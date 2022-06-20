@@ -219,14 +219,7 @@ auto        NODE_T::operator=(node&& other) -> node&
 // ========================================================================
 size_t      NODE_T::size(void) const
 {
-    size_t      count       = 1;
-
-    for (node& nd : m_children)
-    {
-        count += nd.size();
-    }// end for (node& nd : m_children)
-
-    return count;
+    return m_nChildren + 1;
 }// end NODE_T::size(void) const
 
 // === NODE_T::is_text(void) const ========================================
