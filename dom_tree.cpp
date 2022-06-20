@@ -444,7 +444,7 @@ void        NODE_T::copy_from(const node& other)
     m_parent = nullptr;
     m_children = other.m_children;
     // set parent of children to this
-    for (auto& child : m_chilren)
+    for (auto& child : m_children)
     {
         child.set_parent(this);
     }
@@ -462,7 +462,7 @@ void        NODE_T::move_from(node&& other)
     m_parent = nullptr;
     m_children = other.m_children;
     // set parent of children to this
-    for (auto& child : m_chilren)
+    for (auto& child : m_children)
     {
         child.set_parent(this);
     }
@@ -500,6 +500,26 @@ void        NODE_T::set_parent(const node *nd)
         m_parent->increm_num_children(m_nChildren + 1);
     }
 }// end NODE_T::set_parent(const node *nd)
+
+// === NODE_T::increm_num_children(size_t num) ============================
+//
+// ========================================================================
+void        NODE_T::increm_num_children(size_t num)
+{
+    m_nChildren += num;
+    if (m_parent)
+        m_parent->increm_num_children(num);
+}// end NODE_T::increm_num_children(size_t num)
+
+// === NODE_T::decrem_num_children(size_t num) ============================
+//
+// ========================================================================
+void        NODE_T::decrem_num_children(size_t num)
+{
+    m_nChildren -= num;
+    if (m_parent)
+        m_parent->decrem_num_children(num);
+}// end NODE_T::decrem_num_children(size_t num)
 
 // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 //
