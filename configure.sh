@@ -195,6 +195,13 @@ ${TAB}\$(RM) ${test_obj_files[@]}
 ${TAB}\$(RM) ${test_out_files[@]}
 
 # === RECONFIGURE =========================================================
+# 
+# Rebuilds the Makefile using configure.sh. Run this after
+# creating/deleting any .cpp or .hpp files.
+# 
+# NOTE: this will run ./configure.sh with the arguments passed to it when
+# building this Makefile. If you would like to reconfigure with different
+# options, run ./configure.sh from scratch.
 #
 # =========================================================================
 reconfigure : configure.sh
@@ -215,6 +222,12 @@ ${TAB}$(if [[ "${LD}" = "${CPP}" ]]; then
 else
 	echo "\$(LD) ${LDFLAGS} -o \$@ \$^"
 fi)
+
+# === INSTALL =============================================================
+#
+# =========================================================================
+install : main.out
+${TAB}install main.out \$(PREFIX)/bin/\$(BIN)
 
 _EOF_
 
