@@ -7,10 +7,52 @@ TAB=$'\t'
 CONFIG_ARGS=($@)
 
 # Standard options
-BIN=w3m
-TEST_DIR=tests
-CPP=g++
-LD="${CPP}"
+export BIN=w3m
+export TEST_DIR=tests
+export CPP=g++
+export LD="${CPP}"
+export PREFIX="/usr/local"
+
+# parse options from args
+while [[ $# -gt 0 ]]; do
+    IFS='=' read key val <<< "$1"
+    case "${key}" in
+        --with-bin)
+            if [[ ${val} ]]; then
+                export BIN="${val}"
+            else
+                export BIN="$2"
+                shift
+            fi
+            ;;
+        --with-cpp)
+            if [[ ${val} ]]; then
+                export CPP="${val}"
+            else
+                export CPP="$2"
+                shift
+            fi
+            ;;
+        --with-ld)
+            if [[ ${val} ]]; then
+                export LD="${val}"
+            else
+                export LD="$2"
+                shift
+            fi
+            ;;
+        --with-prefix)
+            if [[ ${val} ]]; then
+                export PREFIX="${val}"
+            else
+                export PREFIX="$2"
+                shift
+            fi
+            ;;
+    esac
+    shift
+done
+# end arg parsing
 
 # util functions
 get_deps()
@@ -124,7 +166,7 @@ CPP=${CPP}
 LD=${LD}
 
 ifeq (\$(PREFIX),)
-PREFIX=/usr/local
+PREFIX=${PREFIX}
 endif
 
 ifeq (\$(BIN),)
