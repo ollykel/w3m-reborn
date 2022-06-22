@@ -4,6 +4,7 @@
 
 # Misc. constants
 TAB=$'\t'
+CONFIG_ARGS=($@)
 
 # Standard options
 BIN=w3m
@@ -147,15 +148,15 @@ all : \$(BIN) tests
 # =========================================================================
 clean:
 ${TAB}\$(RM) \$(BIN)
-${TAB}\$(RM) *.o
-${TAB}\$(RM) ${TEST_DIR}/*.o
-${TAB}\$(RM) ${TEST_DIR}/*.out
+${TAB}\$(RM) ${base_obj_files[@]}
+${TAB}\$(RM) ${test_obj_files[@]}
+${TAB}\$(RM) ${test_out_files[@]}
 
 # === RECONFIGURE =========================================================
 #
 # =========================================================================
 reconfigure : configure.sh
-${TAB}./configure.sh
+${TAB}./configure.sh ${CONFIG_ARGS[@]}
 
 # === DIST CLEAN ==========================================================
 #
