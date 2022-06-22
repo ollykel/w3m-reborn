@@ -16,6 +16,8 @@
 #include <string>
 #include <vector>
 
+#include "string_exception.hpp"
+
 using std::string;
 
 template    <typename T>

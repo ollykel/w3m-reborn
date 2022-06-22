@@ -1,6 +1,26 @@
 #ifndef __DOM_TREE_HPP__
 #define __DOM_TREE_HPP__
 
+// ~~~ DomTree Interface ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//
+// The DomTree class is a tree structure implementing the Document Object
+// Model (DOM) specification. It can hold all the elements of a webpage
+// (i.e. as parsed from an html document), and can be manipulated by other
+// functions after creation (i.e. by a JavaScript engine).
+//
+// CAUTION:
+//  - DomTree::node::iterator::insert (and related functions) will not
+//  update the newly created node's parent pointer; for this reason, never
+//  use these functions on their owns, but create new nodes using the
+//  emplace_... member functions of DomTree::node.
+//
+// TODO:
+//  - replace std::list<node> with a custom implementation, NodeList,
+//  which inherits from std::list<node>. NodeList should ensure that newly
+//  inserted child nodes always point to the parent node.
+//
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 #include <list>
 #include <map>
 
@@ -29,8 +49,8 @@ class   DomTree
         // === public mutator(s) ==========================================
         void            clear(void);
         auto            reset_root(
-                            const string identifier,
-                            const string text = ""
+                            const string& identifier,
+                            const string& text = ""
                         ) -> node*;
 
         // === friend operator(s) =========================================
@@ -44,7 +64,7 @@ class   DomTree
 
         // === private mutator(s) =========================================
         void        copy_from(const DomTree& other);
-        void        move_from(DomTree&& other);
+        void        move_from(DomTree& other);
         void        destruct(void);
 };// end class   DomTree
 
@@ -67,12 +87,25 @@ class   DomTree::node
 
     public:
         // === public member class(es) ====================================
-        typedef std::list<node>::iterator           iterator;
-        typedef std::list<node>::const_iterator     const_iterator;
+        typedef
+            std::list<node>::iterator
+            iterator;
+        typedef
+            std::list<node>::reverse_iterator
+            reverse_iterator;
+        typedef
+            std::list<node>::const_iterator
+            const_iterator;
+        typedef
+            std::list<node>::const_reverse_iterator
+            const_reverse_iterator;
         class   text_node_childless;
 
+        // === public member variable(s) ==================================
+        std::map<string,string>     attributes;
+
         // === public constructor(s) ======================================
-        node(const string identifier, const string text = "");// type
+        node(const string& identifier, const string& text = "");// type
         node(const node& original);// copy
         node(node&& original);// move
         ~node(void);// destructor
@@ -90,8 +123,8 @@ class   DomTree::node
         // ------ iterators -----------------------------------------------
         auto        cbegin(void) const -> const_iterator;
         auto        cend(void) const -> const const_iterator;
-        auto        crbegin(void) const -> const_iterator;
-        auto        crend(void) const -> const const_iterator;
+        auto        crbegin(void) const -> const_reverse_iterator;
+        auto        crend(void) const -> const const_reverse_iterator;
 
         // === public mutator(s) ==========================================
         void        clear_children(void);
@@ -111,26 +144,33 @@ class   DomTree::node
                         const string identifier,
                         const string text = ""
                     ) -> node&;
+        auto        child_front(void) -> node&;
+        auto        child_back(void) -> node&;
         auto        child_at(size_t index) -> node&;
         // ------ iterators -----------------------------------------------
         auto        begin(void) -> iterator;
         auto        end(void) -> const iterator;
-        auto        rbegin(void) -> iterator;
-        auto        rend(void) -> const iterator;
+        auto        rbegin(void) -> reverse_iterator;
+        auto        rend(void) -> const reverse_iterator;
+
+        // === friend operator(s) =========================================
+        friend std::ostream&    operator<<(
+            std::ostream& outs,
+            const DomTree::node& nd
+        );
     private:
         // === private member variable(s) =================================
         node                        *m_parent       = nullptr;
         std::list<node>             m_children;
-        std::map<string,string>     m_attributes;
         string                      m_identifier    = "";
         string                      m_text          = "";
-        size_t                      m_nChildren     = 0;
+        size_t                      m_nDescendants     = 0;
 
         // === private mutator(s) =========================================
         void        copy_from(const node& other);
-        void        move_from(node&& other);
+        void        move_from(node& other);
         void        destruct(void);
-        void        set_parent(const node *nd);
+        void        set_parent(node *nd);
         void        increm_num_children(size_t num);
         void        decrem_num_children(size_t num);
 };// end class   DomTree::node
