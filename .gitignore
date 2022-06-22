@@ -1,4 +1,5 @@
+w3m
+Makefile
 .*.swp
 *.o
 *.out
-Makefile
