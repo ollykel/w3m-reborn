@@ -98,7 +98,9 @@ void     HtmlParserBasic::push_node(
         ins.ignore(numeric_limits<streamsize>::max(), '>');
         if (tag != tagStack.top())
         {
-            throw except_invalid_token("</" + tag + ">");
+            string      err     = "</" + tag + ">";
+            err += "(expected " + tagStack.top() + ")";
+            throw except_invalid_token(err);
         }
         tagStack.pop();
         nodeStack.pop();
@@ -149,7 +151,7 @@ void     HtmlParserBasic::push_node(
 
     ins.ignore(1);// remove ending '>' char
 
-    if (isEmpty)
+    if (isEmpty || is_empty_tag(tag))
         return;
 
     utils::ignore_whitespace(ins);
@@ -258,3 +260,20 @@ string   HtmlParserBasic::read_text_token(std::istream& ins)
 
     return output;
 }// end HtmlParserBasic::read_text_token(std::istream& ins)
+
+// === HtmlParserBasic::is_empty_tag(const string& tag) ===================
+//
+// ========================================================================
+bool     HtmlParserBasic::is_empty_tag(const string& tag)
+{
+    static std::unordered_set<string>       empty_tags = {
+        "br",
+        "hr",
+        "img",
+        "input",
+        "link",
+        "meta"
+    };
+
+    return empty_tags.count(tag);
+}// end HtmlParserBasic::is_empty_tag(const string& tag)

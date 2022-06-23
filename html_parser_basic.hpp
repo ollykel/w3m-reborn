@@ -2,6 +2,7 @@
 #define __HTML_PARSER_BASIC_HPP__
 
 #include <stack>
+#include <unordered_set>
 
 #include "deps.hpp"
 #include "html_parser.hpp"
@@ -27,6 +28,7 @@ class   HtmlParserBasic : public HtmlParser
         static std::pair<string,string>
                         read_tag_attribute(std::istream& ins);
         static string   read_text_token(std::istream& ins);
+        static bool     is_empty_tag(const string& tag);
 };// end class   HtmlParserBasic : public HtmlParser
 
 #endif
