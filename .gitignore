@@ -1,6 +1,8 @@
 w3m
 Makefile
 *.swp
+*.swo
 .*.swp
+.*.swo
 *.o
 *.out
