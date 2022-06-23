@@ -10,12 +10,14 @@
 
 #include <cstdlib>
 #include <cstddef>
+#include <limits>
 #include <memory>
 #include <stdexcept>
 #include <iostream>
 #include <string>
 #include <vector>
 
+#include "utils.hpp"
 #include "string_exception.hpp"
 
 using std::string;

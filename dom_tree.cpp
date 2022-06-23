@@ -130,16 +130,16 @@ std::ostream&    operator<<(std::ostream& outs, const DomTree& tree)
 // ========================================================================
 void        DomTree::copy_from(const DomTree& other)
 {
-    *m_root = *other.m_root;
+    m_root = std::make_unique<node>(*other.m_root);
 }// end DomTree::copy_from(const DomTree& other)
 
-// === DomTree::move_from(DomTree&& other) ==========================
+// === DomTree::move_from(DomTree& other) =================================
 //
 // ========================================================================
 void        DomTree::move_from(DomTree& other)
 {
-    *m_root = *other.m_root;
-}// end DomTree::move_from(DomTree&& other)
+    m_root.reset(other.m_root.release());
+}// end DomTree::move_from(DomTree& other)
 
 // === DomTree::destruct(void) ============================================
 //

@@ -7,5 +7,5 @@
 HtmlParser::except_invalid_token
 ::except_invalid_token(const string& token)
 {
-    set_text(token);
+    set_text("invalid token: " + token);
 }// end ::except_invalid_token(const string& token)
