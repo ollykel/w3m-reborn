@@ -1,5 +1,7 @@
 #include "string_exception.hpp"
 
+#include <iostream>
+
 // === StringException::operator const std::string&(void) const ===========
 //
 // ========================================================================
@@ -15,3 +17,11 @@ void        StringException::set_text(const std::string& text)
 {
     m_text = text;
 }// end StringException::set_text(const std::string& text)
+
+// === operator<<(std::ostream& outs, const StringException& e) ===========
+//
+// ========================================================================
+std::ostream&   operator<<(std::ostream& outs, const StringException& e)
+{
+    return outs << e.m_text;
+}// end operator<<(std::ostream& outs, const StringException& e)

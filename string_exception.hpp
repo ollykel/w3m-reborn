@@ -12,6 +12,12 @@ class   StringException
         // === public operator(s) =========================================
         // ------ accessor(s) ---------------------------------------------
         operator        const std::string&(void) const;
+
+        // === friend operator(s) =========================================
+        friend std::ostream&    operator<<(
+                                    std::ostream& outs,
+                                    const StringException& e
+                                );
     protected:
         // === protected mutator(s) =======================================
         void            set_text(const std::string& text);

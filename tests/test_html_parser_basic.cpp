@@ -27,7 +27,7 @@ int main(void)
     }
     catch (HtmlParser::except_invalid_token e)
     {
-        cout << "ERROR: " << (string) e << endl;
+        cout << "ERROR: " << e << endl;
         ret = EXIT_FAILURE;
     }
     catch (...)
