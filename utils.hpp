@@ -15,6 +15,10 @@ namespace utils
     std::string         read_token_snake_case(std::istream& ins);
     std::string         read_token_squoted(std::istream& ins);
     std::string         read_token_dquoted(std::istream& ins);
+    std::string         read_token_to_pattern(
+                            std::istream& ins,
+                            const char *pattern
+                        );
 };
 
 #endif

@@ -15,24 +15,28 @@ int main(void)
 {
     using namespace std;
 
+    int                 ret     = EXIT_SUCCESS;
     HtmlParserBasic     parser;
     DomTree             dom;
 
+    dom.reset_root("window");
+
     try
     {
-        dom = parser.parse_html(cin);
-        cout << dom << endl;
+        parser.parse_html(*dom.root(), cin);
     }
     catch (HtmlParser::except_invalid_token e)
     {
         cout << "ERROR: " << (string) e << endl;
-        return EXIT_FAILURE;
+        ret = EXIT_FAILURE;
     }
     catch (...)
     {
         cout << "ERROR: unrecognized exception" << endl;
-        return EXIT_FAILURE;
+        ret = EXIT_FAILURE;
     }
 
-    return EXIT_SUCCESS;
+    cout << dom << endl;
+
+    return ret;
 }// end main(void)

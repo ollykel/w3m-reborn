@@ -29,14 +29,14 @@ std::string         utils::read_token_until(
     using namespace std;
 
     string      output                  = "";
-    bool        avoidSet[CHAR_MAX]      = {};
+    bool        avoidSet[UCHAR_MAX]      = {};
 
     for (const char *curr = avoid; *curr; ++curr)
     {
-        avoidSet[*curr] = true;
+        avoidSet[static_cast<int>(*curr) + CHAR_MAX] = true;
     }// end for (const char *curr = avoid; *curr; ++curr)
 
-    while (ins && !avoidSet[ins.peek()])
+    while (ins && !avoidSet[ins.peek() + CHAR_MAX])
     {
         output += ins.get();
     }// end while (ins && !avoidSet[ins.peek()])
@@ -128,3 +128,43 @@ std::string         utils::read_token_dquoted(std::istream& ins)
 
     return output;
 }// end utils::read_token_dquoted(std::istream& ins)
+
+// === utils::read_token_to_pattern =======================================
+//
+// TODO: fix implementation
+//
+// ========================================================================
+std::string         utils::read_token_to_pattern(
+    std::istream& ins,
+    const char *pattern
+)
+{
+    using namespace std;
+
+    string      output          = "";
+    char        sentinel[2]     = { pattern[0], '\0' };
+    const char  *match          = pattern;
+
+    if (!pattern[0])
+    {
+        return output;
+    }
+
+    while (ins && *match)
+    {
+        match = pattern;
+
+        output += utils::read_token_until(ins, sentinel);
+
+        for (char curr = ins.get(); ins && *match && curr == *match;
+            curr = ins.get())
+        {
+            output += curr;
+            ++match;
+            if (!*match)
+                break;
+        }// end for
+    }// end while
+
+    return output;
+}// end utils::read_token_to_pattern

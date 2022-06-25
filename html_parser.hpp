@@ -18,7 +18,7 @@ class   HtmlParser
         class   except_invalid_token;
 
         // === public member function(s) ==================================
-        DomTree     parse_html(std::istream& ins) const;
+        void    parse_html(DomTree::node& root, std::istream& ins) const;
 };// end class   HtmlParser
 
 class   HtmlParser::except_invalid_token : public StringException
