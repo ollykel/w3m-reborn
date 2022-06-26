@@ -192,6 +192,7 @@ bool     HtmlParserBasic::is_empty_tag(const string& tag)
         "input",
         "link",
         "meta",
+        "source",
         "video",
         "BR"
     };
@@ -299,7 +300,20 @@ void     HtmlParserBasic::tag::ignore_comment(std::istream& ins)
     // Case 2: <!--...-->
     else if (token.length() > 1 and token[0] == '-' and token[1] == '-')
     {
-        utils::read_token_to_pattern(ins, "-->");
+        string      rest        = "";
+
+        do
+        {
+            getline(ins, rest, '>');
+        } while (
+            rest.length() < 2
+                or
+            (
+                rest[rest.length() - 1] != '-'
+                    and
+                rest[rest.length() - 2] != '-'
+            )
+        );// end do-while
     }
     else
     {

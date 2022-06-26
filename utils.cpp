@@ -5,12 +5,6 @@
 
 #include "utils.hpp"
 
-// === utils::ignore_whitespace(std::istream& ins) ======================== //
-// Ignores chars in an istream until either the stream is empty or the
-// stream comes to a non-whitespace character. Does not extract the first
-// non-whitespace character.
-//
-// ========================================================================
 std::istream&       utils::ignore_whitespace(std::istream& ins)
 {
     while (ins && std::isspace(ins.peek()))
@@ -29,14 +23,17 @@ std::string         utils::read_token_until(
     using namespace std;
 
     string      output                  = "";
-    bool        avoidSet[UCHAR_MAX]      = {};
+    bool        avoidSet[UCHAR_MAX]     = {};
 
     for (const char *curr = avoid; *curr; ++curr)
     {
-        avoidSet[static_cast<int>(*curr) + CHAR_MAX] = true;
+        if (*curr < 0)
+            avoidSet[static_cast<int>(*curr) + UCHAR_MAX] = true;
+        else
+            avoidSet[static_cast<int>(*curr)] = true;
     }// end for (const char *curr = avoid; *curr; ++curr)
 
-    while (ins && !avoidSet[ins.peek() + CHAR_MAX])
+    while (ins && !avoidSet[ins.peek()])
     {
         output += ins.get();
     }// end while (ins && !avoidSet[ins.peek()])
