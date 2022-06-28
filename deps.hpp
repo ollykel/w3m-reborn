@@ -10,6 +10,7 @@
 
 #include <cstdlib>
 #include <cstddef>
+#include <cstring>
 #include <limits>
 #include <memory>
 #include <stdexcept>
