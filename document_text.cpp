@@ -41,7 +41,6 @@ void        DocumentText::redraw(size_t cols)
 
     istringstream       inBuf(m_data);
     string              currLine        = "";
-    size_t              charCount       = 0;
 
     m_buffer.clear();
 
@@ -108,22 +107,4 @@ void        DocumentText::redraw(size_t cols)
                 }
         }// end switch (inBuf.peek())
     }// end while (inBuf)
-
-    // for (char curr : m_data)
-    // {
-    //     if (charCount < cols and curr != '\r' and curr != '\n')
-    //     {
-    //         currLine += curr;
-    //         ++charCount;
-    //     }
-    //     else
-    //     {
-    //         m_buffer.emplace_back();
-    //         m_buffer[m_buffer.size() - 1].emplace_back(currLine);
-    //         currLine.clear();
-    //         if (curr != '\r' and curr != '\n')
-    //             currLine += curr;
-    //         charCount = 0;
-    //     }
-    // }// end for (char curr : m_data)
 }// end DocumentText::redraw(size_t cols)
