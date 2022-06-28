@@ -61,19 +61,19 @@ class   Document::BufferNode
         // === public constructor(s) ======================================
         BufferNode(
             const string& text = "",
-            const cont::Ref<Document::Reference>& link = {},
-            const cont::Ref<Document::Reference>& image = {}
+            const cont::Ref& link = {},
+            const cont::Ref& image = {}
         );// type/default
 
         // === public accessor(s) =========================================
-        const string&                           get_text(void) const;
-        const cont::Ref<Document::Reference>&   get_link_ref(void) const;
-        const cont::Ref<Document::Reference>&   get_image_ref(void) const;
+        const string&       get_text(void) const;
+        const cont::Ref&    get_link_ref(void) const;
+        const cont::Ref&    get_image_ref(void) const;
     private:
         // === private member variable(s) =================================
-        string                  m_text          = "";
-        cont::Ref<Reference>    m_linkRef       = {};
-        cont::Ref<Reference>    m_imageRef      = {};
+        string      m_text          = "";
+        cont::Ref   m_linkRef       = {};
+        cont::Ref   m_imageRef      = {};
 };// end class Document::BufferNode
 
 class   Document::Reference

@@ -25,7 +25,7 @@ bool        test_refs(std::vector<T>& values)
 {
     using namespace std;
 
-    cont::Ref<T>    a = 1, b = 2, c = 4, d, e = 0;
+    cont::Ref   a = 1, b = 2, c = 4, d, e = 0;
 
     #define     RUN_TEST(REF)   \
     try   \

@@ -101,8 +101,8 @@ auto Document::rend_lines(void) -> const reverse_line_iterator
 
 Document::BufferNode::BufferNode(
     const string& text,
-    const cont::Ref<Document::Reference>& link,
-    const cont::Ref<Document::Reference>& image
+    const cont::Ref& link,
+    const cont::Ref& image
 )
 {
     m_text = text;
@@ -116,12 +116,12 @@ const string&       Document::BufferNode::get_text(void) const
     return m_text;
 }
 
-const cont::Ref<Document::Reference>& Document::BufferNode::get_link_ref(void) const
+const cont::Ref& Document::BufferNode::get_link_ref(void) const
 {
     return m_linkRef;
 }
 
-const cont::Ref<Document::Reference>& Document::BufferNode::get_image_ref(void) const
+const cont::Ref& Document::BufferNode::get_image_ref(void) const
 {
     return m_imageRef;
 }
