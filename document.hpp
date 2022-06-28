@@ -60,20 +60,20 @@ class   Document::BufferNode
     public:
         // === public constructor(s) ======================================
         BufferNode(
-            string text = "",
-            size_t linkIdx = 0,
-            size_t imageIdx = 0
-        );
+            const string& text = "",
+            const cont::Ref<Document::Reference>& link = {},
+            const cont::Ref<Document::Reference>& image = {}
+        );// type/default
 
         // === public accessor(s) =========================================
-        const string&       get_text(void) const;
-        size_t              get_link_index(void) const;
-        size_t              get_image_index(void) const;
+        const string&                           get_text(void) const;
+        const cont::Ref<Document::Reference>&   get_link_ref(void) const;
+        const cont::Ref<Document::Reference>&   get_image_ref(void) const;
     private:
         // === private member variable(s) =================================
-        string      m_text          = "";
-        size_t      m_linkIndex     = 0;
-        size_t      m_imageIndex    = 0;
+        string                  m_text          = "";
+        cont::Ref<Reference>    m_linkRef       = {};
+        cont::Ref<Reference>    m_imageRef      = {};
 };// end class Document::BufferNode
 
 class   Document::Reference

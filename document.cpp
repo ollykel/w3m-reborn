@@ -100,14 +100,14 @@ auto Document::rend_lines(void) -> const reverse_line_iterator
 // === class Document::BufferNode Implementation ==========================
 
 Document::BufferNode::BufferNode(
-    string text,
-    size_t linkIdx,
-    size_t imageIdx
+    const string& text,
+    const cont::Ref<Document::Reference>& link,
+    const cont::Ref<Document::Reference>& image
 )
 {
     m_text = text;
-    m_linkIndex = linkIdx;
-    m_imageIndex = imageIdx;
+    m_linkRef = link;
+    m_imageRef = image;
 }// end Document::BufferNode::BufferNode(string text, linkIdx, imageIdx)
 
 // === public accessor(s) =================================================
@@ -116,14 +116,14 @@ const string&       Document::BufferNode::get_text(void) const
     return m_text;
 }
 
-size_t              Document::BufferNode::get_link_index(void) const
+const cont::Ref<Document::Reference>& Document::BufferNode::get_link_ref(void) const
 {
-    return m_linkIndex;
+    return m_linkRef;
 }
 
-size_t              Document::BufferNode::get_image_index(void) const
+const cont::Ref<Document::Reference>& Document::BufferNode::get_image_ref(void) const
 {
-    return m_imageIndex;
+    return m_imageRef;
 }
 
 // === class Document::Reference Implementation ===========================
