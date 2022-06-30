@@ -115,43 +115,47 @@ class   DomTree::node
         auto        operator=(node&& other) -> node&;
 
         // === public accessor(s) =========================================
-        size_t      size(void) const;
-        bool        is_text(void) const;
-        auto        child_front(void) const -> const node&;
-        auto        child_back(void) const -> const node&;
-        auto        child_at(size_t index) const -> const node&;
+        size_t          size(void) const;
+        bool            is_text(void) const;
+        auto            identifier(void) const -> const string&;
+        auto            text(void) const -> const string&;
+        auto            parent(void) const -> const node*;
+        auto            child_front(void) const -> const node&;
+        auto            child_back(void) const -> const node&;
+        auto            child_at(size_t index) const -> const node&;
         // ------ iterators -----------------------------------------------
-        auto        cbegin(void) const -> const_iterator;
-        auto        cend(void) const -> const const_iterator;
-        auto        crbegin(void) const -> const_reverse_iterator;
-        auto        crend(void) const -> const const_reverse_iterator;
+        auto            cbegin(void) const -> const_iterator;
+        auto            cend(void) const -> const const_iterator;
+        auto            crbegin(void) const -> const_reverse_iterator;
+        auto            crend(void) const -> const const_reverse_iterator;
 
         // === public mutator(s) ==========================================
-        void        clear_children(void);
-        void        pop_child_front(void);
-        void        pop_child_back(void);
-        void        remove_child_at(size_t index);
-        auto        emplace_child_front(
-                        const string identifier,
-                        const string text = ""
-                    ) -> node&;
-        auto        emplace_child_back(
-                        const string identifier,
-                        const string text = ""
-                    ) -> node&;
-        auto        emplace_child_at(
-                        size_t index,
-                        const string identifier,
-                        const string text = ""
-                    ) -> node&;
-        auto        child_front(void) -> node&;
-        auto        child_back(void) -> node&;
-        auto        child_at(size_t index) -> node&;
+        void            clear_children(void);
+        void            pop_child_front(void);
+        void            pop_child_back(void);
+        void            remove_child_at(size_t index);
+        auto            emplace_child_front(
+                            const string identifier,
+                            const string text = ""
+                        ) -> node&;
+        auto            emplace_child_back(
+                            const string identifier,
+                            const string text = ""
+                        ) -> node&;
+        auto            emplace_child_at(
+                            size_t index,
+                            const string identifier,
+                            const string text = ""
+                        ) -> node&;
+        auto            parent(void) -> node*;
+        auto            child_front(void) -> node&;
+        auto            child_back(void) -> node&;
+        auto            child_at(size_t index) -> node&;
         // ------ iterators -----------------------------------------------
-        auto        begin(void) -> iterator;
-        auto        end(void) -> const iterator;
-        auto        rbegin(void) -> reverse_iterator;
-        auto        rend(void) -> const reverse_iterator;
+        auto            begin(void) -> iterator;
+        auto            end(void) -> const iterator;
+        auto            rbegin(void) -> reverse_iterator;
+        auto            rend(void) -> const reverse_iterator;
 
         // === friend operator(s) =========================================
         friend std::ostream&    operator<<(
@@ -160,11 +164,11 @@ class   DomTree::node
         );
     private:
         // === private member variable(s) =================================
-        node                        *m_parent       = nullptr;
+        node                        *m_parent           = nullptr;
         std::list<node>             m_children;
-        string                      m_identifier    = "";
-        string                      m_text          = "";
-        size_t                      m_nDescendants     = 0;
+        string                      m_identifier        = "";
+        string                      m_text              = "";
+        size_t                      m_nDescendants      = 0;
 
         // === private mutator(s) =========================================
         void        copy_from(const node& other);

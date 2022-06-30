@@ -12,19 +12,18 @@ class   Document
         class       BufferNode;
         class       Reference;
         struct      BufferIndex;
-        typedef     BufferIndex     BufIdx;
-        typedef     std::vector<std::vector<BufferNode> >::iterator
+        typedef     BufferIndex                         BufIdx;
+        typedef     std::vector<BufferNode>             BufferLine;
+        typedef     std::vector<BufferLine>::iterator
                     line_iterator;
-        typedef     std::vector<std::vector<BufferNode> >::reverse_iterator
+        typedef     std::vector<BufferLine>::reverse_iterator
                     reverse_line_iterator;
-        typedef     std::vector<std::vector<BufferNode> >::const_iterator
+        typedef     std::vector<BufferLine>::const_iterator
                     const_line_iterator;
-        typedef     std::vector<std::vector<BufferNode> >::const_reverse_iterator
+        typedef     std::vector<BufferLine>::const_reverse_iterator
                     const_reverse_line_iterator;
-        typedef     std::vector<BufferNode>::iterator
-                    node_iterator;
-        typedef     std::vector<BufferNode>::const_iterator
-                    const_node_iterator;
+        typedef     BufferLine::iterator            node_iterator;
+        typedef     BufferLine::const_iterator      const_node_iterator;
 
         // === public constructor(s) ======================================
         Document(void);// default
@@ -69,6 +68,14 @@ class   Document::BufferNode
         const string&       get_text(void) const;
         const cont::Ref&    get_link_ref(void) const;
         const cont::Ref&    get_image_ref(void) const;
+
+        // === public mutator(s) ==========================================
+        void    set_text(const string& text);
+        void    set_link_ref(const size_t index);
+        void    set_image_ref(const size_t index);
+        void    clear_text(void);
+        void    clear_link_ref(void);
+        void    clear_image_ref(void);
     private:
         // === private member variable(s) =================================
         string      m_text          = "";
@@ -89,7 +96,7 @@ class   Document::Reference
         Reference(const string& url = "");
 
         // === public accessor(s) =========================================
-        const string&                               get_url(void) const;
+        const string& get_url(void) const;
         auto cbegin_referers(void)  -> referer_container::const_iterator;
         auto cend_referers(void)    -> const referer_container::const_iterator;
 

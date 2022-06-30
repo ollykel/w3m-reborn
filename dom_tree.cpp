@@ -230,6 +230,30 @@ bool        NODE_T::is_text(void) const
     return !m_text.empty();
 }// end NODE_T::is_text(void) const
 
+// === NODE_T::identifier(void) const =====================================
+//
+// ========================================================================
+auto        NODE_T::identifier(void) const -> const string&
+{
+    return m_text;
+}// end NODE_T::identifier(void) const -> const string&
+
+// === NODE_T::text(void) const -> const string& ==========================
+//
+// ========================================================================
+auto        NODE_T::text(void) const -> const string&
+{
+    return m_text;
+}// end NODE_T::text(void) const -> const string&
+
+// === NODE_T::parent(void) const -> const node* ==========================
+//
+// ========================================================================
+auto        NODE_T::parent(void) const -> const node*
+{
+    return m_parent;
+}// end NODE_T::parent(void) const -> const node*
+
 // === NODE_T::child_front(void) const -> const node& =====================
 //
 // ========================================================================
@@ -409,6 +433,14 @@ auto        NODE_T::emplace_child_at(
     it->set_parent(this);
     return *it;
 }// end NODE_T::emplace_child_at(...) -> node&
+
+// === NODE_T::parent(void) -> node* ======================================
+//
+// ========================================================================
+auto        NODE_T::parent(void) -> node*
+{
+    return m_parent;
+}// end NODE_T::parent(void) -> node*
 
 // === NODE_T::child_front(void) -> node& =================================
 //

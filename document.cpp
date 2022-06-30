@@ -126,6 +126,38 @@ const cont::Ref& Document::BufferNode::get_image_ref(void) const
     return m_imageRef;
 }
 
+// === public mutator(s) ==================================================
+void    Document::BufferNode::set_text(const string& text)
+{
+    m_text = text;
+}// end Document::BufferNode::set_text(const string& text)
+
+void    Document::BufferNode::set_link_ref(const size_t index)
+{
+    m_linkRef = index;
+}// end Document::BufferNode::set_link_ref(const size_t index)
+
+void    Document::BufferNode::set_image_ref(const size_t index)
+{
+    m_imageRef = index;
+}// end Document::BufferNode::set_image_ref(const size_t index)
+
+void    Document::BufferNode::clear_text(void)
+{
+    m_text.clear();
+}// end Document::BufferNode::clear_text(void)
+
+void    Document::BufferNode::clear_link_ref(void)
+{
+    m_linkRef.clear();
+}// end Document::BufferNode::clear_link_ref(void)
+
+void    Document::BufferNode::clear_image_ref(void)
+{
+    m_imageRef.clear();
+}// end Document::BufferNode::clear_image_ref(void)
+
+
 // === class Document::Reference Implementation ===========================
 
 // === public constructor(s) ==============================================
