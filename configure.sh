@@ -73,6 +73,7 @@ get_deps()
 
     while [[ ${file_queue} ]]; do
         local target="${file_queue[0]}"
+        file_queue=(${file_queue[@]:1})
 
         [[ ! -f "${target}" ]] && continue
 
@@ -90,11 +91,58 @@ get_deps()
             fi
             file_set[${dep}]=1
         done
-
-        file_queue=(${file_queue[@]:1})
     done
 }
 # end get_deps
+
+get_obj_deps()
+{
+    local target_file="$1"
+    local -A file_set
+    local -a file_queue
+
+    IFS=$'\n\r' local files=($(
+        grep -e "^\s*#include\s\+\"\S\+\"\s*\$" < "${target_file}" | \
+        sed -re "s@^\s*#include\s+\"(\S+)\"\s*\$@\1@g" | \
+        sed -re "s@^(\.\./)*@@"))
+
+    file_queue+=(${files[@]})
+    for file in ${files[@]}; do
+        file_set[${file}]=1
+    done
+
+    while [[ -n ${file_queue} ]]; do
+        local target="${file_queue[0]}"
+        file_queue=(${file_queue[@]:1})
+
+        [[ ! -f "${target}" ]] && continue
+
+
+        IFS=$'\n\r' local deps=($(
+            grep -e "^\s*#include\s\+\"\S\+\"\s*\$" < "${target}" | \
+            sed -re "s@^\s*#include\s+\"(\S+)\"\s*\$@\1@g" | \
+            sed -re "s@^(\.\./)*@@"))
+
+        target_cpp="${target%.*}.cpp"
+
+        if [[ -f "${target_cpp}" ]]; then
+            # output target obj file here
+            echo "${target%.*}.o"
+            IFS=$'\n\r' deps+=($(
+                grep -e "^\s*#include\s\+\"\S\+\"\s*\$" < "${target_cpp}" | \
+                sed -re "s@^\s*#include\s+\"(\S+)\"\s*\$@\1@g" | \
+                sed -re "s@^(\.\./)*@@"))
+        fi
+        
+        for dep in ${deps[@]}; do
+            if [[ ! ${file_set[${dep}]} ]]; then
+                file_queue+=(${dep})
+            fi
+            file_set[${dep}]=1
+        done
+    done
+}
+# end get_obj_deps
 
 format_obj_build_deps()
 {
@@ -122,15 +170,9 @@ format_test_build_deps()
     fi
 
     local -a obj_files=("${test_base}.o")
+    obj_files+=($(get_obj_deps "${test_base}.cpp"))
 
     IFS=$'\n\r' local -a deps=($(get_deps "${test_base}.cpp"))
-
-    for dep in ${deps[@]}; do
-        dep_base="$(sed -e "s@\.hpp\$@@" <<< "${dep}")"
-        if [[ -f "${dep_base}.cpp" ]]; then
-            obj_files+=("${dep_base}.o")
-        fi
-    done
     
     cat << _EOF_
 # --- ${test_base}.out ----------------------------------------------------
@@ -222,7 +264,7 @@ main.out : ${base_obj_files[@]}
 #
 # =========================================================================
 install : main.out
-${TAB}install main.out \$(PREFIX)/bin/\$(BIN)
+${TAB}install \$< \$(PREFIX)/bin/\$(BIN)
 
 _EOF_
 

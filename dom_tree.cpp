@@ -235,7 +235,7 @@ bool        NODE_T::is_text(void) const
 // ========================================================================
 auto        NODE_T::identifier(void) const -> const string&
 {
-    return m_text;
+    return m_identifier;
 }// end NODE_T::identifier(void) const -> const string&
 
 // === NODE_T::text(void) const -> const string& ==========================

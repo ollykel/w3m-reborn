@@ -26,6 +26,10 @@ class   DocumentHtml : public Document
         string      m_data      = "";
         DomTree     m_dom       = {};
         size_t      m_tabWidth  = 4;// TODO: read from config
+        std::map<
+            string,
+            void (DocumentHtml::*)(const DomTree::node&, const size_t)
+        >           m_dispatcher;
 
         // === protected mutator(s) =======================================
         void    append_node(const DomTree::node& nd, const size_t cols);
@@ -47,10 +51,12 @@ class   DocumentHtml : public Document
                 );
         void    append_p(const DomTree::node& p, const size_t cols);
         void    append_table(const DomTree::node& table, const size_t cols);
+        void    append_tbody(const DomTree::node& tbody, const size_t cols);
         void    append_other(const DomTree::node& nd, const size_t cols);
 
         // === protected static function(s) ===============================
         static size_t   line_length(BufferLine& line);
+        static bool     is_node_header(const DomTree::node& nd);
 };// end class DocumentHtml : public Document
 
 #endif

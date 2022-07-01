@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <cctype>
 #include <sstream>
 
 #include "deps.hpp"
@@ -10,15 +11,27 @@
 // === public constructor(s) ======================================
 DocumentHtml::DocumentHtml(void) : Document()
 {
-    // do nothing
+    // initialize dispatcher
+    m_dispatcher["a"] = &DocumentHtml::append_a;
+    m_dispatcher["br"] = &DocumentHtml::append_br;
+    m_dispatcher["form"] = &DocumentHtml::append_form;
+    m_dispatcher["hr"] = &DocumentHtml::append_hr;
+    m_dispatcher["img"] = &DocumentHtml::append_img;
+    m_dispatcher["ul"] = &DocumentHtml::append_ul;
+    m_dispatcher["ol"] = &DocumentHtml::append_ol;
+    m_dispatcher["p"] = &DocumentHtml::append_p;
+    m_dispatcher["table"] = &DocumentHtml::append_table;
+    m_dispatcher["tbody"] = &DocumentHtml::append_tbody;
 }// end DocumentHtml(void)
 
-DocumentHtml::DocumentHtml(std::istream& ins, const size_t cols) : Document()
+DocumentHtml::DocumentHtml(std::istream& ins, const size_t cols)
+    : DocumentHtml()
 {
     from_stream(ins, cols);
 }// end DocumentHtml(std::istream& ins, const size_t cols)
 
-DocumentHtml::DocumentHtml(const string& text, const size_t cols) : Document()
+DocumentHtml::DocumentHtml(const string& text, const size_t cols)
+    : DocumentHtml()
 {
     from_string(text, cols);
 }// end DocumentHtml(const string& text, const size_t cols)
@@ -47,8 +60,28 @@ void        DocumentHtml::from_string(const string& text, const size_t cols)
 // ------ override(s) ---------------------------------------------
 void        DocumentHtml::redraw(size_t cols)
 {
-    // TODO: implement
     m_buffer.clear();
+    m_links.clear();
+    m_images.clear();
+
+    for (auto& nd : *m_dom.root())
+    {
+        if (nd.identifier() == "document" or nd.identifier() == "html")
+        {
+            for (auto& child : nd)
+            {
+                // skip <head>
+                if (child.identifier() != "head")
+                {
+                    append_node(child, cols);
+                }
+            }// end for child
+        }
+        else
+        {
+            append_node(nd, cols);
+        }
+    }// end for (auto& nd : *m_dom->root())
 }// end DocumentHtml::redraw(size_t cols)
 
 // === protected mutator(s) ===============================================
@@ -58,46 +91,34 @@ void        DocumentHtml::redraw(size_t cols)
 // ========================================================================
 void    DocumentHtml::append_node(const DomTree::node& nd, const size_t cols)
 {
-        if (nd.is_text())
-        {
-            append_text(nd, cols);
-        }
-        else if (nd.identifier() == "a")
-        {
-            append_a(nd, cols);
-        }
-        else if (nd.identifier() == "br")
-        {
-            append_br(nd, cols);
-        }
-        else if (nd.identifier() == "form")
-        {
-            append_form(nd, cols);
-        }
-        else if (nd.identifier() == "hn")
-        {
-            append_hn(nd, cols);
-        }
-        else if (nd.identifier() == "hr")
-        {
-            append_hr(nd, cols);
-        }
-        else if (nd.identifier() == "img")
-        {
-            append_img(nd, cols);
-        }
-        else if (nd.identifier() == "p")
-        {
-            append_p(nd, cols);
-        }
-        else if (nd.identifier() == "table")
-        {
-            append_table(nd, cols);
-        }
-        else
-        {
-            append_other(nd, cols);
-        }
+    if (nd.is_text())
+    {
+        append_text(nd, cols);
+    }
+    // ignore scripts
+    else if (nd.identifier() == "script")
+    {
+        // do nothing
+    }
+    // ignore styles
+    else if (nd.identifier() == "style")
+    {
+        // do nothing
+    }
+    else if (is_node_header(nd))
+    {
+        append_hn(nd, cols);
+    }
+    else if (m_dispatcher.count(nd.identifier()))
+    {
+        auto func = m_dispatcher.at(nd.identifier());
+
+        (this->*func)(nd, cols);
+    }
+    else
+    {
+        append_other(nd, cols);
+    }
 }// end DocumentHtml::append_node(const DomTree::node& nd, const size_t cols)
 
 void    DocumentHtml::append_children(const DomTree::node& nd, const size_t cols)
@@ -131,6 +152,12 @@ void    DocumentHtml::append_text(const DomTree::node& text, const size_t cols)
         m_buffer.emplace_back();
     }
 
+    if (currLen and inBuf and isspace(inBuf.peek()))
+    {
+        currLine += ' ';
+        ++currLen;
+    }
+
     while (inBuf)
     {
         string      token       = "";
@@ -139,16 +166,20 @@ void    DocumentHtml::append_text(const DomTree::node& text, const size_t cols)
 
         while (not token.empty())
         {
-            size_t      colsLeft        = cols - currLen;
+            size_t      colsLeft        = cols > currLen ?
+                                            cols - currLen :
+                                            0;
 
             if (token.length() <= colsLeft)
             {
                 currLine += token;
                 currLen += token.length();
-                if (inBuf and colsLeft != token.length())
+                if (inBuf and inBuf.peek() != EOF
+                    and colsLeft != token.length())
                 {
                     currLine += ' ';
-                    --currLen;
+                    ++currLen;
+                    --colsLeft;
                 }
                 token.clear();
             }
@@ -156,7 +187,7 @@ void    DocumentHtml::append_text(const DomTree::node& text, const size_t cols)
             {
                 if (currLine.empty())
                 {
-                    currLine += token.substr(0, colsLeft);
+                    currLine = token.substr(0, colsLeft);
                     token.erase(0, colsLeft);
                 }
                 m_buffer.back().emplace_back(currLine);
@@ -195,9 +226,9 @@ void    DocumentHtml::append_a(const DomTree::node& a, const size_t cols)
     }
 
     const size_t        linkIdx     = m_links.size();
-    auto&               currLink    = m_links.back();
 
     m_links.emplace_back(a.attributes.at("href"));
+    auto&               currLink    = m_links.back();
 
     for (size_t i = startLineIdx, j = startNodeIdx; i < m_buffer.size(); ++i)
     {
@@ -294,9 +325,9 @@ void    DocumentHtml::append_img(const DomTree::node& img, const size_t cols)
     }
 
     const size_t        linkIdx     = m_images.size();
-    auto&               currImg     = m_images.back();
 
     m_links.emplace_back(img.attributes.at("src"));
+    auto&               currImg     = m_images.back();
 
     for (size_t i = startLineIdx, j = startNodeIdx; i < m_buffer.size(); ++i)
     {
@@ -330,14 +361,22 @@ void    DocumentHtml::append_ul(const DomTree::node& ul, const size_t cols)
             ++listDepth;
         }
     }// end for *node
-    const size_t    indentSize = std::max(listDepth * m_tabWidth, cols / 2);
+    const size_t    indentSize = std::min(listDepth * m_tabWidth, cols / 2);
     const string    indent(indentSize, ' ');
     for (auto iter = ul.cbegin(); iter != ul.cend(); ++iter)
     {
         const auto& child = *iter;
+
         m_buffer.emplace_back();
         m_buffer.back().emplace_back(indent);
-        append_node(child, cols);
+        if (child.identifier() == "li")
+        {
+            append_li_ul(child, cols);
+        }
+        else
+        {
+            append_node(child, cols);
+        }
     }// end for child
     m_buffer.emplace_back();
 }// end DocumentHtml::append_ul(const DomTree::node& ul, const size_t cols)
@@ -355,7 +394,7 @@ void    DocumentHtml::append_ol(const DomTree::node& ol, const size_t cols)
             ++listDepth;
         }
     }// end for *node
-    const size_t    indentSize = std::max(listDepth * m_tabWidth, cols / 2);
+    const size_t    indentSize = std::min(listDepth * m_tabWidth, cols / 2);
     const string    indent(indentSize, ' ');
     size_t          index       = 1;
 
@@ -384,7 +423,6 @@ void    DocumentHtml::append_li_ul(const DomTree::node& li, const size_t cols)
 {
     m_buffer.back().emplace_back("* ");
     append_children(li, cols);
-    m_buffer.emplace_back();
 }// end DocumentHtml::append_li_ul
 
 // === DocumentHtml::append_li_ol =========================================
@@ -401,7 +439,6 @@ void    DocumentHtml::append_li_ol(
     format << index << ". ";
     m_buffer.back().emplace_back(format.str());
     append_children(li, cols);
-    m_buffer.emplace_back();
 }// end DocumentHtml::append_li_ol
 
 // === DocumentHtml::append_p(const DomTree::node& p) =====================
@@ -423,10 +460,26 @@ void    DocumentHtml::append_p(const DomTree::node& p, const size_t cols)
 // ========================================================================
 void    DocumentHtml::append_table(const DomTree::node& table, const size_t cols)
 {
-    m_buffer.emplace_back();
-    m_buffer.back().emplace_back("<TABLE>");
+    append_hr(table, cols);
+    append_children(table, cols);
     m_buffer.emplace_back();
 }// end DocumentHtml::append_table(const DomTree::node& table, const size_t cols)
+
+// === DocumentHtml::append_tbody(const DomTree::node& tbody, const size_t cols)
+//
+// TODO: actually implement
+//
+// ========================================================================
+void    DocumentHtml::append_tbody(const DomTree::node& tbody, const size_t cols)
+{
+    for (auto iter = tbody.cbegin(); iter != tbody.cend(); ++iter)
+    {
+        const auto&     elem        = *iter;
+
+        append_children(elem, cols);
+        append_hr(tbody, cols);
+    }// end for (auto iter = tbody.cbegin(); iter != tbody.cend(); ++iter)
+}// end DocumentHtml::append_tbody(const DomTree::node& tbody, const size_t cols)
 
 // === DocumentHtml::append_other(const DomTree::node& nd) ================
 //
@@ -451,3 +504,21 @@ size_t  DocumentHtml::line_length(BufferLine& line)
 
     return count;
 }// end DocumentHtml::line_length(std::vector<BufferNode>& line)
+
+bool    DocumentHtml::is_node_header(const DomTree::node& nd)
+{
+    const string&   id      = nd.identifier();
+
+    if (id.length() < 2 or id[0] != 'h')
+    {
+        return false;
+    }
+    for (size_t i = 1; i < id.length(); ++i)
+    {
+        if (not isdigit(id[i]))
+        {
+            return false;
+        }
+    }// end for (size_t i = 1; i < id.length(); ++i)
+    return true;
+}// end DocumentHtml::is_node_header(const DomTree::node& nd)

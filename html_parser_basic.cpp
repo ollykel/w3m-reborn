@@ -71,11 +71,11 @@ void     HtmlParserBasic::push_node(
     // if we get to any of these cases we have a serious logic error
     if (nodeStack.empty())
     {
-        throw out_of_range("node stack is empty");
+        throw logic_error("node stack is empty");
     }
     else if (!nodeStack.top())
     {
-        throw out_of_range("node stack top node is null");
+        throw logic_error("node stack top node is null");
     }
 
     DomTree::node       *parentNode     = nodeStack.top();
@@ -139,12 +139,10 @@ void     HtmlParserBasic::push_node(
             break;
         case tag::Kind::terminal:
             {
-                if (currTag.identifier != tagStack.top())
+                while (currTag.identifier != tagStack.top())
                 {
-                    string      err     = "</" + currTag.identifier + ">";
-
-                    err += " (expected </" + tagStack.top() + ">)";
-                    throw except_invalid_token(err);
+                    tagStack.pop();
+                    nodeStack.pop();
                 }
                 tagStack.pop();
                 nodeStack.pop();
