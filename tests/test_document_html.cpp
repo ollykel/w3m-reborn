@@ -13,6 +13,9 @@ class   DocumentHtmlTester : public DocumentHtml
             { return m_dom; }
 };// end class DocumentHtmlTester
 
+// === forward declarations ===============================================
+void    print_doc(std::ostream& outs, const DocumentHtmlTester& doc);
+
 // === main ===============================================================
 //
 // Reads document text from stdin, wrapping it by the number of columns
@@ -32,32 +35,13 @@ int main(const int argc, const char **argv)
 
         cout << doc.dom() << endl;
 
-        cout << "Printing document buffer..." << endl << "===" << endl;
-
-        for (auto iter = doc.begin_lines(); iter != doc.end_lines(); ++iter)
-        {
-            for (auto& node : *iter)
-            {
-                cout << '{' << node.get_text() << '}';
-            }// end for node
-            cout << endl;
-        }// end for iter
+        print_doc(cout, doc);
 
         cout << "Redrawing document with column width " << numCols2
             << "..." << endl;
         doc.redraw(numCols2);
 
-        cout << "Printing document buffer again..." << endl << "==="
-            << endl;
-
-        for (auto iter = doc.begin_lines(); iter != doc.end_lines(); ++iter)
-        {
-            for (auto& node : *iter)
-            {
-                cout << '{' << node.get_text() << '}';
-            }// end for node
-            cout << endl;
-        }// end for iter
+        print_doc(cout, doc);
     }
     catch (...)
     {
@@ -67,3 +51,39 @@ int main(const int argc, const char **argv)
 
     return EXIT_SUCCESS;
 }// end main
+
+// === helper function implementations ====================================
+
+void    print_doc(std::ostream& outs, const DocumentHtmlTester& doc)
+{
+    using namespace std;
+
+    outs << "Printing document buffer..." << endl << "===" << endl;
+
+    for (auto iter = doc.cbegin_lines(); iter != doc.cend_lines(); ++iter)
+    {
+        for (auto& node : *iter)
+        {
+            if (node.get_link_ref())
+            {
+                outs << "[" << node.get_text() << "](" 
+                    << node.get_link_ref().index() << ')';
+            }
+            else
+            {
+                outs << node.get_text();
+            }
+        }// end for node
+        outs << endl;
+    }// end for iter
+
+    outs << "===" << endl;
+    outs << "Links:" << endl;
+    outs << "===" << endl;
+
+    size_t      count       = 0;
+    for (auto iter = doc.cbegin_links(); iter != doc.cend_links(); ++iter)
+    {
+        outs << count++ << ". " << iter->get_url() << endl;
+    }// end for iter
+}// end print_doc(std::ostream& outs, const DocumentHtmlTester& doc)

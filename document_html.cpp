@@ -185,7 +185,7 @@ void    DocumentHtml::append_text(const DomTree::node& text, const size_t cols)
             }
             else
             {
-                if (currLine.empty())
+                if (not currLen)
                 {
                     currLine = token.substr(0, colsLeft);
                     token.erase(0, colsLeft);

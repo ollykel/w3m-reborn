@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <cstddef>
 #include <cstring>
+#include <cassert>
 #include <limits>
 #include <memory>
 #include <stdexcept>

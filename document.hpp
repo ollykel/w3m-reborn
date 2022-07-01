@@ -24,6 +24,8 @@ class   Document
                     const_reverse_line_iterator;
         typedef     BufferLine::iterator            node_iterator;
         typedef     BufferLine::const_iterator      const_node_iterator;
+        typedef     std::vector<Reference>::const_iterator
+                    const_ref_iterator;
 
         // === public constructor(s) ======================================
         Document(void);// default
@@ -32,10 +34,17 @@ class   Document
         size_t                              num_lines(void) const;
         auto get_link_at(size_t index) const    -> const Reference&;
         auto get_image_at(size_t index) const   -> const Reference&;
+        // --- line iterators ---------------------------------------------
         auto cbegin_lines(size_t idx = 0) const  -> const_line_iterator;
         auto cend_lines(void) const         -> const const_line_iterator;
         auto crbegin_lines(size_t idx = 0) const -> const_reverse_line_iterator;
         auto crend_lines(void) const   -> const const_reverse_line_iterator;
+        // --- link iterator(s) -------------------------------------------
+        auto cbegin_links(size_t idx = 0) const -> const_ref_iterator;
+        auto cend_links(void) const -> const const_ref_iterator;
+        // --- image iterator(s) ------------------------------------------
+        auto cbegin_images(size_t idx = 0) const -> const_ref_iterator;
+        auto cend_images(void) const -> const const_ref_iterator;
 
         // === public mutator(s) ==========================================
         void            clear(void);

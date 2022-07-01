@@ -66,6 +66,44 @@ auto Document::crend_lines(void) const
     return m_buffer.crend();
 }// end Document::crend_lines(size_t idx = 0) const
 
+// --- link iterator(s) ---------------------------------------------------
+
+auto Document::cbegin_links(size_t idx) const -> const_ref_iterator
+{
+    auto    iter    = m_links.cbegin();
+
+    while (idx--)
+    {
+        ++iter;
+    }
+
+    return iter;
+}// end Document::cbegin_links(size_t idx = 0) const -> const_ref_iterator
+
+auto Document::cend_links(void) const -> const const_ref_iterator
+{
+    return m_links.cend();
+}// end Document::cend_links(void) const -> const const_ref_iterator
+
+// --- image iterator(s) --------------------------------------------------
+
+auto Document::cbegin_images(size_t idx) const -> const_ref_iterator
+{
+    auto    iter    = m_images.cbegin();
+
+    while (idx--)
+    {
+        ++iter;
+    }
+
+    return iter;
+}// end Document::cbegin_images(size_t idx = 0) const -> const_ref_iterator
+
+auto Document::cend_images(void) const -> const const_ref_iterator
+{
+    return m_images.cend();
+}// end Document::cend_images(void) const -> const const_ref_iterator
+
 // === public mutator(s) ==================================================
 auto Document::begin_lines(size_t idx) -> line_iterator
 {

@@ -39,7 +39,7 @@ namespace utils
     // ====================================================================
     std::string         read_token_until(
                             std::istream& ins,
-                            const char *avoid,
+                            const std::string& avoid,
                             const bool inclusive = false
                         );
     std::string         read_token_snake_case(std::istream& ins);

@@ -49,7 +49,7 @@ const
                     string      err     = "";
 
                     ins >> err;
-                    err += " (not a valid tag opening)";
+                    err = "\"" + err + "\" (not a valid tag opening)";
                     throw except_invalid_token(err);
                 }
         }// end switch (nextChar)
@@ -98,34 +98,18 @@ void     HtmlParserBasic::push_node(
                 tagStack.push(currTag.identifier);
                 nodeStack.push(&currNode);
 
-                const size_t        stackSize       = nodeStack.size();
-                string              currText        = "";
+                const size_t    stackSize   = nodeStack.size();
 
-                utils::ignore_whitespace(ins);
-                while (ins && nodeStack.size() == stackSize)
+                while (ins and nodeStack.size() == stackSize)
                 {
-                    // Case 1: child (non-text) node
-                    if (ins.peek() == '<')
+                    string          currText    = read_text_token(ins);
+                    if (not currText.empty())
                     {
-                        if (!currText.empty())
-                        {
-                            // emplace text node
-                            currNode.emplace_child_back("text", currText);
-                            currText.clear();
-                        }
-                        push_node(ins, nodeStack, tagStack);
+                        // emplace text node
+                        currNode.emplace_child_back("text", currText);
+                        currText.clear();
                     }
-                    // Case 2: text node
-                    else
-                    {
-                        if (!currText.empty())
-                        {
-                            currText += ' ';
-                        }
-                        currText += read_text_token(ins);
-                    }
-
-                    utils::ignore_whitespace(ins);
+                    push_node(ins, nodeStack, tagStack);
                 }// end while (ins)
             }
             break;
@@ -146,7 +130,6 @@ void     HtmlParserBasic::push_node(
                 }
                 tagStack.pop();
                 nodeStack.pop();
-                return;
             }
             break;
         case tag::Kind::comment:
@@ -165,13 +148,9 @@ string   HtmlParserBasic::read_text_token(std::istream& ins)
 
     string      output      = "";
 
-    while (ins && ins.peek() != '<')
+    while (ins and ins.peek() != '<')
     {
-        if (!output.empty())
-        {
-            output += ' ';
-        }
-        output += utils::read_token_until(ins, "<\r\n");
+        output += utils::read_token_until(ins, "<");
         utils::ignore_whitespace(ins);
     }// end while (ins && ins.peek() != '<')
 
@@ -207,13 +186,14 @@ auto     HtmlParserBasic::tag::from_stream(std::istream& ins) -> tag
 
     tag     output;
 
+
     // if we get to this case we have a serious logic error
     if (ins.get() != '<')
     {
         string      error       = "";
 
-        ins >> error;
-        error += " (not a valid tag opening)";
+        getline(ins, error);
+        error = "\"" + error + "\" (not a valid tag opening)";
         throw HtmlParserBasic::except_invalid_token(error);
     }
 

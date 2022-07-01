@@ -1,13 +1,16 @@
 #include <climits>
+#include <cstdio>
+#include <cassert>
 #include <iostream>
 #include <string>
 #include <cctype>
+#include <set>
 
 #include "utils.hpp"
 
 std::istream&       utils::ignore_whitespace(std::istream& ins)
 {
-    while (ins && std::isspace(ins.peek()))
+    while (ins and std::isspace(ins.peek()))
     {
         ins.ignore(1);
     }
@@ -16,30 +19,24 @@ std::istream&       utils::ignore_whitespace(std::istream& ins)
 
 std::string         utils::read_token_until(
     std::istream& ins,
-    const char *avoid,
+    const std::string& avoid,
     const bool inclusive
 )
 {
     using namespace std;
 
     string      output                  = "";
-    bool        avoidSet[UCHAR_MAX]     = {};
+    set<char>   avoidSet(avoid.cbegin(), avoid.cend());
 
-    for (const char *curr = avoid; *curr; ++curr)
-    {
-        if (*curr < 0)
-            avoidSet[static_cast<int>(*curr) + UCHAR_MAX] = true;
-        else
-            avoidSet[static_cast<int>(*curr)] = true;
-    }// end for (const char *curr = avoid; *curr; ++curr)
-
-    while (ins && !avoidSet[ins.peek()])
+    while (ins.peek() != EOF and not avoidSet.count(ins.peek()))
     {
         output += ins.get();
     }// end while (ins && !avoidSet[ins.peek()])
 
-    if (ins && inclusive)
+    if (ins.peek() != EOF and inclusive)
+    {
         output += ins.get();
+    }
 
     return output;
 }// end utils::read_token_until
