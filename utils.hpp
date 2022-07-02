@@ -49,6 +49,10 @@ namespace utils
                             std::istream& ins,
                             const char *pattern
                         );
-};
+    std::string         path_base(
+                            const std::string& str,
+                            const char pathSep = '/'
+                        );
+};// end namespace utils
 
 #endif

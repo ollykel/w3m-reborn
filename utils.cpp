@@ -162,3 +162,18 @@ std::string         utils::read_token_to_pattern(
 
     return output;
 }// end utils::read_token_to_pattern
+
+std::string     utils::path_base(const std::string& str, const char pathSep)
+{
+    size_t      lastPos     = str.rfind(pathSep);
+
+    if (lastPos == std::string::npos)
+    {
+        return str.substr(0, str.length());
+    }
+    else
+    {
+        ++lastPos;
+        return str.substr(lastPos, str.length() - lastPos);
+    }
+}// end utils::path_base

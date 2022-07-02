@@ -336,25 +336,39 @@ void    DocumentHtml::append_hr(const DomTree::node& hr, const size_t cols)
 // ========================================================================
 void    DocumentHtml::append_img(const DomTree::node& img, const size_t cols)
 {
+    using namespace std;
+
     if (m_buffer.empty())
     {
         m_buffer.emplace_back();
     }
-
-    // store last line, column indices before appending children
-    const size_t    startLineIdx = m_buffer.size() - 1;
-    const size_t    startNodeIdx = m_buffer.back().size();
-
-    append_children(img, cols);
 
     if (not img.attributes.count("src"))
     {
         return;
     }
 
+    // store last line, column indices before appending children
+    const size_t    startLineIdx = m_buffer.size() - 1;
+    const size_t    startNodeIdx = m_buffer.back().size();
+
+    // set representative string; ideally alt
+    // if alt not provided, use truncated url from src
+    string      imgText     = img.attributes.count("alt") ?
+                                img.attributes.at("alt") :
+                                utils::path_base(img.attributes.at("src"));
+    if (imgText.empty())
+    {
+        imgText = utils::path_base(img.attributes.at("src"));
+    }
+
+    imgText = "[" + imgText + "]";
+    append_str(imgText, cols);
+
     const size_t        linkIdx     = m_images.size();
 
-    m_links.emplace_back(img.attributes.at("src"));
+    m_images.emplace_back(img.attributes.at("src"));
+
     auto&               currImg     = m_images.back();
 
     for (size_t i = startLineIdx, j = startNodeIdx; i < m_buffer.size(); ++i)
@@ -476,6 +490,11 @@ void    DocumentHtml::append_li_ol(
 // ========================================================================
 void    DocumentHtml::append_p(const DomTree::node& p, const size_t cols)
 {
+    // prepend an extra newline if previous line is non-empty
+    if (not m_buffer.empty() and not m_buffer.back().empty())
+    {
+        m_buffer.emplace_back();
+    }
     m_buffer.emplace_back();
     append_children(p, cols);
     m_buffer.emplace_back();
