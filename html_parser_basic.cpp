@@ -162,20 +162,28 @@ string   HtmlParserBasic::read_text_token(std::istream& ins)
 // ========================================================================
 bool     HtmlParserBasic::is_empty_tag(const string& tag)
 {
+    // TODO; generate these from a config/definition file
     const static std::unordered_set<string>     empty_tags = {
+        "area",
+        "base",
         "br",
+        "col",
+        "command",
+        "embed",
         "hr",
         "img",
         "input",
+        "keygen",
         "link",
         "meta",
+        "param",
         "source",
-        "video",
-        "BR"
+        "track",
+        "wbr"
     };
 
     return empty_tags.count(tag);
-}// end HtmlParserBasic::is_empty_tag(const string& tag)
+}// end HtmlParserBasic
 
 // === HtmlParserBasic::tag::from_stream(std::istream& ins) -> tag ========
 //

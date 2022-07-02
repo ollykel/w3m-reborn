@@ -90,7 +90,12 @@ void        DocumentHtml::redraw(size_t cols)
         if (not line.empty())
         {
             string&     text    = line.back().m_text;
-            if (not text.empty() and std::isspace(text.back()))
+
+            if (text.empty())
+            {
+                line.pop_back();// NOTE: text now points to deallocated memory
+            }
+            else if (std::isspace(text.back()))
             {
                 text.pop_back();
             }
@@ -618,25 +623,34 @@ unsigned    DocumentHtml::parse_html_entity(const string& id)
         {"permil",    137}
     };
 
+    unsigned    out     = 0;
+
     if (entMap.count(id))
     {
-        return entMap.at(id);
+        out = entMap.at(id);
     }
     else if (id.length() > 2 and id[0] == '#')
     {
         try
         {
-            return std::stoi(id.substr(1, id.length() - 1));
+            out = std::stoi(id.substr(1, id.length() - 1));
         }
         catch (std::invalid_argument& _)
         {
-            return ' ';
+            out = ' ';
         }
     }
     else
     {
-        return ' ';
+        out = ' ';
     }
+
+    if (out == 160)// nbsp
+    {
+        out = ' ';
+    }
+
+    return out;
 }// end DocumentHtml::parse_html_entity(const string& id)
 
 string   DocumentHtml::decode_text(const string& text)
