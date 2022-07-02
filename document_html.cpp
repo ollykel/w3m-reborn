@@ -150,13 +150,10 @@ void    DocumentHtml::append_children(const DomTree::node& nd, const size_t cols
     }// end for (const auto& child : nd)
 }// end DocumentHtml::append_children(const DomTree::node& nd, const size_t cols)
 
-// === DocumentHtml::append_text(const DomTree::node& text) ===============
-//
-// Draws a text node at the end of the buffer, broken over several lines if
-// necessary. Starts at the end of the last line, if space is available.
+// === DocumentHtml::append_str(const string& str, const size_t cols) =====
 //
 // ========================================================================
-void    DocumentHtml::append_text(const DomTree::node& text, const size_t cols)
+void    DocumentHtml::append_str(const string& str, const size_t cols)
 {
     using namespace std;
 
@@ -164,7 +161,7 @@ void    DocumentHtml::append_text(const DomTree::node& text, const size_t cols)
                                     0 :
                                     line_length(m_buffer.back());
     string          currLine    = "";
-    istringstream   inBuf(text.text());
+    istringstream   inBuf(str);
 
     if (m_buffer.empty())
     {
@@ -219,6 +216,17 @@ void    DocumentHtml::append_text(const DomTree::node& text, const size_t cols)
     }// end while (inBuf)
 
     m_buffer.back().emplace_back(currLine);
+}// end DocumentHtml::append_str(const string& str, const size_t cols)
+
+// === DocumentHtml::append_text(const DomTree::node& text) ===============
+//
+// Draws a text node at the end of the buffer, broken over several lines if
+// necessary. Starts at the end of the last line, if space is available.
+//
+// ========================================================================
+void    DocumentHtml::append_text(const DomTree::node& text, const size_t cols)
+{
+    append_str(text.text(), cols);
 }// end DocumentHtml::append_text(const DomTree::node& text)
 
 // === DocumentHtml::append_a =============================================

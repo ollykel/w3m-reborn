@@ -34,6 +34,7 @@ class   DocumentHtml : public Document
         // === protected mutator(s) =======================================
         void    append_node(const DomTree::node& nd, const size_t cols);
         void    append_children(const DomTree::node& nd, const size_t cols);
+        void    append_str(const string& str, const size_t cols);
         void    append_text(const DomTree::node& text, const size_t cols);
         void    append_a(const DomTree::node& a, const size_t cols);
         void    append_br(const DomTree::node& br, const size_t cols);
