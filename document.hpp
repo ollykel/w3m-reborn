@@ -65,6 +65,10 @@ class   Document
 
 class   Document::BufferNode
 {
+    friend class Document;
+    friend class DocumentText;
+    friend class DocumentHtml;
+
     public:
         // === public constructor(s) ======================================
         BufferNode(
@@ -85,8 +89,8 @@ class   Document::BufferNode
         void    clear_text(void);
         void    clear_link_ref(void);
         void    clear_image_ref(void);
-    private:
-        // === private member variable(s) =================================
+    protected:
+        // === protected member variable(s) ===============================
         string      m_text          = "";
         cont::Ref   m_linkRef       = {};
         cont::Ref   m_imageRef      = {};

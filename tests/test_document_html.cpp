@@ -1,4 +1,5 @@
 #include "../deps.hpp"
+#include "../html_parser.hpp"
 #include "../dom_tree.hpp"
 #include "../document_html.hpp"
 
@@ -43,9 +44,9 @@ int main(const int argc, const char **argv)
 
         print_doc(cout, doc);
     }
-    catch (...)
+    catch (HtmlParser::except_invalid_token& e)
     {
-        cout << "Caught unrecognized exception" << endl;
+        cout << "Caught exception:" << e << endl;
         return EXIT_FAILURE;
     }
 

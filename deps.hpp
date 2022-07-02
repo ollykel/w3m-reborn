@@ -25,6 +25,7 @@
 #include "container.hpp"
 
 using std::string;
+using std::wstring;
 
 template    <typename T>
 using       u_ptr       = std::unique_ptr<T>;

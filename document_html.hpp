@@ -55,8 +55,10 @@ class   DocumentHtml : public Document
         void    append_other(const DomTree::node& nd, const size_t cols);
 
         // === protected static function(s) ===============================
-        static size_t   line_length(BufferLine& line);
-        static bool     is_node_header(const DomTree::node& nd);
+        static size_t       line_length(BufferLine& line);
+        static bool         is_node_header(const DomTree::node& nd);
+        static unsigned     parse_html_entity(const string& id);
+        static string       decode_text(const string& text);
 };// end class DocumentHtml : public Document
 
 #endif

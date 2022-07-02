@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <cctype>
 #include <sstream>
+#include <map>
 
 #include "deps.hpp"
 #include "dom_tree.hpp"
@@ -82,6 +83,19 @@ void        DocumentHtml::redraw(size_t cols)
             append_node(nd, cols);
         }
     }// end for (auto& nd : *m_dom->root())
+
+    // remove extra spaces from ends of lines
+    for (auto& line : m_buffer)
+    {
+        if (not line.empty())
+        {
+            string&     text    = line.back().m_text;
+            if (not text.empty() and std::isspace(text.back()))
+            {
+                text.pop_back();
+            }
+        }
+    }// end for (auto& line : m_buffer)
 }// end DocumentHtml::redraw(size_t cols)
 
 // === protected mutator(s) ===============================================
@@ -163,6 +177,7 @@ void    DocumentHtml::append_text(const DomTree::node& text, const size_t cols)
         string      token       = "";
 
         inBuf >> token;
+        token = decode_text(token);
 
         while (not token.empty())
         {
@@ -461,7 +476,7 @@ void    DocumentHtml::append_p(const DomTree::node& p, const size_t cols)
 void    DocumentHtml::append_table(const DomTree::node& table, const size_t cols)
 {
     append_hr(table, cols);
-    append_children(table, cols);
+    append_tbody(table, cols);// behavior is mostly the same
     m_buffer.emplace_back();
 }// end DocumentHtml::append_table(const DomTree::node& table, const size_t cols)
 
@@ -476,9 +491,12 @@ void    DocumentHtml::append_tbody(const DomTree::node& tbody, const size_t cols
     {
         const auto&     elem        = *iter;
 
-        append_children(elem, cols);
-        append_hr(tbody, cols);
-    }// end for (auto iter = tbody.cbegin(); iter != tbody.cend(); ++iter)
+        append_node(elem, cols);
+        if (elem.identifier() == "tr")
+        {
+            append_hr(tbody, cols);
+        }
+    }// end for iter
 }// end DocumentHtml::append_tbody(const DomTree::node& tbody, const size_t cols)
 
 // === DocumentHtml::append_other(const DomTree::node& nd) ================
@@ -522,3 +540,127 @@ bool    DocumentHtml::is_node_header(const DomTree::node& nd)
     }// end for (size_t i = 1; i < id.length(); ++i)
     return true;
 }// end DocumentHtml::is_node_header(const DomTree::node& nd)
+
+unsigned    DocumentHtml::parse_html_entity(const string& id)
+{
+    // TODO: find way to generate from text/csv file
+    const static std::map<string, unsigned>   entMap  = {
+        {"dollar", 36},
+        {"cent",   162},
+        {"pound",  163},
+        {"curren", 164},
+        {"yen",    165},
+        {"copy",   169},
+        {"reg",    174},
+        {"commat",  64},
+        {"excl",    33},
+        {"num",     35},
+        {"percnt",  37},
+        {"amp",     38},
+        {"lpar",    40},
+        {"rpar",    41},
+        {"ast",     42},
+        {"comma",   44},
+        {"period",  46},
+        {"sol",     47},
+        {"colon",   58},
+        {"semi",    59},
+        {"quest",   63},
+        {"lbrack",  91},
+        {"bsol",    92},
+        {"rbrack",  93},
+        {"Hat",     94},
+        {"lowbar",  95},
+        {"grave",   96},
+        {"lbrace",  123},
+        {"vert",    124},
+        {"rbrace",  125},
+        {"tilde",   126},
+        {"nbsp",    160},
+        {"iexcl",   161},
+        {"brvbar",  166},
+        {"sect",    167},
+        {"uml",     168},
+        {"ordf",    170},
+        {"not",     172},
+        {"shy",     173},
+        {"macr",    175},
+        {"sup2",    178},
+        {"sup3",    179},
+        {"acute",   180},
+        {"micro",   181},
+        {"para",    182},
+        {"middot",  183},
+        {"cedil",   184},
+        {"sup1",    185},
+        {"ordm",    186},
+        {"iquest",  191},
+        {"quot",   34},
+        {"apos",   39},
+        {"laquo",  171},
+        {"raquo",  187},
+        {"frac14", 188},
+        {"frac12", 189},
+        {"frac34", 190},
+        {"plus",      43},
+        {"times",     215},
+        {"divide",    247},
+        {"equals",    61},
+        {"plusmn",    177},
+        {"not",       172},
+        {"lt",        60},
+        {"gt",        62},
+        {"deg",       176},
+        {"sup1",      185},
+        {"sup2",      178},
+        {"sup3",      179},
+        {"percnt",    37},
+        {"permil",    137}
+    };
+
+    if (entMap.count(id))
+    {
+        return entMap.at(id);
+    }
+    else if (id.length() > 2 and id[0] == '#')
+    {
+        try
+        {
+            return std::stoi(id.substr(1, id.length() - 1));
+        }
+        catch (std::invalid_argument& _)
+        {
+            return ' ';
+        }
+    }
+    else
+    {
+        return ' ';
+    }
+}// end DocumentHtml::parse_html_entity(const string& id)
+
+string   DocumentHtml::decode_text(const string& text)
+{
+    using namespace std;
+
+    istringstream       inBuf(text);
+    string              output      = "";
+
+    while (inBuf)
+    {
+        output += utils::read_token_until(inBuf, "&");
+        if (inBuf and inBuf.peek() == '&')
+        {
+            inBuf.ignore(1);
+            string      entId       = utils::read_token_until(inBuf, ";");
+
+            output += parse_html_entity(entId);
+            if (inBuf and inBuf.peek() == ';')
+            {
+                inBuf.ignore(1);
+            }
+        }
+    }// end while (inBuf)
+
+    return output;
+}// end DocumentHtml::decode_text(const string& text)
