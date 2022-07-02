@@ -490,13 +490,13 @@ void    DocumentHtml::append_li_ol(
 // ========================================================================
 void    DocumentHtml::append_p(const DomTree::node& p, const size_t cols)
 {
-    // prepend an extra newline if previous line is non-empty
-    if (not m_buffer.empty() and not m_buffer.back().empty())
+    if (m_buffer.empty())
     {
         m_buffer.emplace_back();
     }
-    m_buffer.emplace_back();
     append_children(p, cols);
+    // append an extra newline to denote new paragraph
+    m_buffer.emplace_back();
     m_buffer.emplace_back();
 }// end DocumentHtml::append_p(const DomTree::node& p)
 
