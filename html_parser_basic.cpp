@@ -92,7 +92,15 @@ void     HtmlParserBasic::push_node(
 
                 // check if tag is inherently childless
                 if (is_empty_tag(currTag.identifier))
+                {
                     return;
+                }
+                // handle scripts specially
+                else if (currTag.identifier == "script")
+                {
+                    extract_script_node(ins, currNode);
+                    return;
+                }
 
                 // prepare stacks for recursive calls
                 tagStack.push(currTag.identifier);
@@ -138,6 +146,42 @@ void     HtmlParserBasic::push_node(
             break;
     }// end switch (currTag.kind)
 }// end HtmlParserBasic::push_node
+
+void     HtmlParserBasic::extract_script_node(
+    std::istream& ins,
+    DomTree::node& scriptNode
+)
+{
+    string      scriptText      = "";
+
+    while (ins)
+    {
+        scriptText += utils::read_token_until(ins, "<");
+        ins.ignore(1);
+        if (ins and ins.peek() == '/')
+        {
+            char    buf[8]  = {};// enough to hold "/script"
+
+            ins.read(buf, 7);
+            if (not strcmp(buf, "/script"))
+            {
+                utils::ignore_whitespace(ins);
+                ins.ignore(1);// ignore terminal >
+                break;
+            }
+            else
+            {
+                scriptText += buf;
+            }
+        }
+        else
+        {
+            scriptText += '<';
+        }
+    }// end while (ins)
+
+    scriptNode.emplace_child_back("text", scriptText);
+}// end HtmlParserBasic::extract_script_node
 
 // === HtmlParserBasic::read_text_token(std::istream& ins) ================
 //

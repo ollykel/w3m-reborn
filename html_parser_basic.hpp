@@ -29,7 +29,7 @@ class   HtmlParserBasic : public HtmlParser
                             std::stack<DomTree::node*>& nodeStack,
                             std::stack<string>& tagStack
                         );
-        static void     push_script_node(
+        static void     extract_script_node(
                             std::istream& ins,
                             DomTree::node& scriptNode
                         );
