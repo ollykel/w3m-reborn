@@ -1,9 +1,8 @@
 # PRIORITIES
-1. parse \<script\> tags using HtmlParserBasic::push\_script\_node
-2. render html entities
-3. handle all singleton nodes correctly
-4. handle indents
-5. create debugger
-6. render \<pre\>
-7. render forms
-8. render tables
+1. render html entities
+2. handle all singleton nodes correctly
+3. handle indents
+4. create debugger
+5. render \<pre\>
+6. render forms
+7. render tables
