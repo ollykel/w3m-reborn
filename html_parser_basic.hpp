@@ -29,8 +29,9 @@ class   HtmlParserBasic : public HtmlParser
                             std::stack<DomTree::node*>& nodeStack,
                             std::stack<string>& tagStack
                         );
-        static void     extract_script_node(
+        static void     extract_literal_node(
                             std::istream& ins,
+                            const string& tagId,
                             DomTree::node& scriptNode
                         );
         static string   read_text_token(std::istream& ins);

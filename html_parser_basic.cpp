@@ -96,9 +96,11 @@ void     HtmlParserBasic::push_node(
                     return;
                 }
                 // handle scripts specially
-                else if (currTag.identifier == "script")
+                else if (currTag.identifier == "script"
+                    or currTag.identifier == "style")
                 {
-                    extract_script_node(ins, currNode);
+                    extract_literal_node(ins, currTag.identifier,
+                        currNode);
                     return;
                 }
 
@@ -147,23 +149,25 @@ void     HtmlParserBasic::push_node(
     }// end switch (currTag.kind)
 }// end HtmlParserBasic::push_node
 
-void     HtmlParserBasic::extract_script_node(
+void     HtmlParserBasic::extract_literal_node(
     std::istream& ins,
-    DomTree::node& scriptNode
+    const string& tagId,
+    DomTree::node& nd
 )
 {
-    string      scriptText      = "";
+    string          innerText       = "";
+    const string    endSentinel     = "/" + tagId;
 
     while (ins)
     {
-        scriptText += utils::read_token_until(ins, "<");
+        innerText += utils::read_token_until(ins, "<");
         ins.ignore(1);
         if (ins and ins.peek() == '/')
         {
-            char    buf[8]  = {};// enough to hold "/script"
+            std::vector<char>   buf(endSentinel.length() + 1);
 
-            ins.read(buf, 7);
-            if (not strcmp(buf, "/script"))
+            ins.read(&buf[0], endSentinel.length());
+            if (endSentinel == &buf[0])
             {
                 utils::ignore_whitespace(ins);
                 ins.ignore(1);// ignore terminal >
@@ -171,17 +175,17 @@ void     HtmlParserBasic::extract_script_node(
             }
             else
             {
-                scriptText += buf;
+                innerText += &buf[0];
             }
         }
         else
         {
-            scriptText += '<';
+            innerText += '<';
         }
     }// end while (ins)
 
-    scriptNode.emplace_child_back("text", scriptText);
-}// end HtmlParserBasic::extract_script_node
+    nd.emplace_child_back("text", innerText);
+}// end HtmlParserBasic::extract_literal_node
 
 // === HtmlParserBasic::read_text_token(std::istream& ins) ================
 //
