@@ -3,6 +3,7 @@
 2. render html entities
 3. handle all singleton nodes correctly
 4. handle indents
-5. render \<pre\>
-6. render forms
-7. render tables
+5. create debugger
+6. render \<pre\>
+7. render forms
+8. render tables
