@@ -29,6 +29,10 @@ class   HtmlParserBasic : public HtmlParser
                             std::stack<DomTree::node*>& nodeStack,
                             std::stack<string>& tagStack
                         );
+        static void     push_script_node(
+                            std::istream& ins,
+                            DomTree::node& scriptNode
+                        );
         static string   read_text_token(std::istream& ins);
         static bool     is_empty_tag(const string& tag);
 };// end class   HtmlParserBasic : public HtmlParser
