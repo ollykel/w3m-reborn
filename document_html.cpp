@@ -15,6 +15,7 @@ DocumentHtml::DocumentHtml(void) : Document()
     // initialize dispatcher
     m_dispatcher["a"] = &DocumentHtml::append_a;
     m_dispatcher["br"] = &DocumentHtml::append_br;
+    m_dispatcher["div"] = &DocumentHtml::append_div;
     m_dispatcher["form"] = &DocumentHtml::append_form;
     m_dispatcher["hr"] = &DocumentHtml::append_hr;
     m_dispatcher["img"] = &DocumentHtml::append_img;
@@ -74,13 +75,13 @@ void        DocumentHtml::redraw(size_t cols)
                 // skip <head>
                 if (child.identifier() != "head")
                 {
-                    append_node(child, cols);
+                    append_node(child, cols, {});
                 }
             }// end for child
         }
         else
         {
-            append_node(nd, cols);
+            append_node(nd, cols, {});
         }
     }// end for (auto& nd : *m_dom->root())
 
@@ -108,11 +109,11 @@ void        DocumentHtml::redraw(size_t cols)
 // === DocumentHtml::append_node ==========================================
 //
 // ========================================================================
-void    DocumentHtml::append_node(const DomTree::node& nd, const size_t cols)
+void    DocumentHtml::append_node(const DomTree::node& nd, const size_t cols, Format fmt)
 {
     if (nd.is_text())
     {
-        append_text(nd, cols);
+        append_text(nd, cols, fmt);
     }
     // ignore scripts
     else if (nd.identifier() == "script")
@@ -126,34 +127,34 @@ void    DocumentHtml::append_node(const DomTree::node& nd, const size_t cols)
     }
     else if (is_node_header(nd))
     {
-        append_hn(nd, cols);
+        append_hn(nd, cols, fmt);
     }
     else if (m_dispatcher.count(nd.identifier()))
     {
         auto func = m_dispatcher.at(nd.identifier());
 
-        (this->*func)(nd, cols);
+        (this->*func)(nd, cols, fmt);
     }
     else
     {
-        append_other(nd, cols);
+        append_other(nd, cols, fmt);
     }
-}// end DocumentHtml::append_node(const DomTree::node& nd, const size_t cols)
+}// end DocumentHtml::append_node(const DomTree::node& nd, const size_t cols, Format fmt)
 
-void    DocumentHtml::append_children(const DomTree::node& nd, const size_t cols)
+void    DocumentHtml::append_children(const DomTree::node& nd, const size_t cols, Format fmt)
 {
     for (auto iter = nd.cbegin(); iter != nd.cend(); ++iter)
     {
         const auto& child = *iter;
 
-        append_node(child, cols);
+        append_node(child, cols, fmt);
     }// end for (const auto& child : nd)
-}// end DocumentHtml::append_children(const DomTree::node& nd, const size_t cols)
+}// end DocumentHtml::append_children(const DomTree::node& nd, const size_t cols, Format fmt)
 
-// === DocumentHtml::append_str(const string& str, const size_t cols) =====
+// === DocumentHtml::append_str(const string& str, const size_t cols, Format fmt) =====
 //
 // ========================================================================
-void    DocumentHtml::append_str(const string& str, const size_t cols)
+void    DocumentHtml::append_str(const string& str, const size_t cols, Format fmt)
 {
     using namespace std;
 
@@ -168,7 +169,13 @@ void    DocumentHtml::append_str(const string& str, const size_t cols)
         m_buffer.emplace_back();
     }
 
-    if (currLen and inBuf and isspace(inBuf.peek()))
+    if (m_buffer.back().empty())
+    {
+        m_buffer.back().emplace_back(string(fmt.indent, ' '), true);
+        currLen = fmt.indent;
+    }
+
+    if (currLen > fmt.indent and inBuf and isspace(inBuf.peek()))
     {
         currLine += ' ';
         ++currLen;
@@ -202,21 +209,29 @@ void    DocumentHtml::append_str(const string& str, const size_t cols)
             }
             else
             {
-                if (not currLen)
+                if (currLen <= fmt.indent)
                 {
                     currLine = token.substr(0, colsLeft);
                     token.erase(0, colsLeft);
                 }
                 m_buffer.back().emplace_back(currLine);
                 m_buffer.emplace_back();
-                currLen = 0;
+                if (fmt.indent)
+                {
+                    currLen = fmt.indent;
+                    m_buffer.back().emplace_back(string(fmt.indent, ' '), true);
+                }
+                else
+                {
+                    currLen = 0;
+                }
                 currLine.clear();
             }
         }// end while (not token.empty())
     }// end while (inBuf)
 
     m_buffer.back().emplace_back(currLine);
-}// end DocumentHtml::append_str(const string& str, const size_t cols)
+}// end DocumentHtml::append_str(const string& str, const size_t cols, Format fmt)
 
 // === DocumentHtml::append_text(const DomTree::node& text) ===============
 //
@@ -224,9 +239,9 @@ void    DocumentHtml::append_str(const string& str, const size_t cols)
 // necessary. Starts at the end of the last line, if space is available.
 //
 // ========================================================================
-void    DocumentHtml::append_text(const DomTree::node& text, const size_t cols)
+void    DocumentHtml::append_text(const DomTree::node& text, const size_t cols, Format fmt)
 {
-    append_str(text.text(), cols);
+    append_str(text.text(), cols, fmt);
 }// end DocumentHtml::append_text(const DomTree::node& text)
 
 // === DocumentHtml::append_a =============================================
@@ -235,7 +250,7 @@ void    DocumentHtml::append_text(const DomTree::node& text, const size_t cols)
 // reference to newly added buffer nodes.
 //
 // ========================================================================
-void    DocumentHtml::append_a(const DomTree::node& a, const size_t cols)
+void    DocumentHtml::append_a(const DomTree::node& a, const size_t cols, Format fmt)
 {
     if (m_buffer.empty())
     {
@@ -246,7 +261,7 @@ void    DocumentHtml::append_a(const DomTree::node& a, const size_t cols)
     const size_t    startLineIdx = m_buffer.size() - 1;
     const size_t    startNodeIdx = m_buffer.back().size();
 
-    append_children(a, cols);
+    append_children(a, cols, fmt);
 
     if (not a.attributes.count("href"))
     {
@@ -266,7 +281,7 @@ void    DocumentHtml::append_a(const DomTree::node& a, const size_t cols)
         {
             auto&   currNode    = currLine.at(j);
 
-            if (not currNode.get_link_ref())
+            if (not currNode.reserved() and not currNode.get_link_ref())
             {
                 currNode.set_link_ref(linkIdx);
                 currLink.append_referer(i, j);
@@ -277,25 +292,41 @@ void    DocumentHtml::append_a(const DomTree::node& a, const size_t cols)
     }// end for i
 }// end DocumentHtml::append_a(const DomTree::node& a)
 
-// === DocumentHtml::append_br(const DomTree::node& br, const size_t cols)
+// === DocumentHtml::append_br(const DomTree::node& br, const size_t cols, Format fmt)
 //
 // ========================================================================
-void    DocumentHtml::append_br(const DomTree::node& br, const size_t cols)
+void    DocumentHtml::append_br(const DomTree::node& br, const size_t cols, Format fmt)
 {
     m_buffer.emplace_back();
-}// end DocumentHtml::append_br(const DomTree::node& br, const size_t cols)
+}// end DocumentHtml::append_br(const DomTree::node& br, const size_t cols, Format fmt)
 
-// === DocumentHtml::append_form(const DomTree::node& form, const size_t cols)
+void    DocumentHtml::append_div(const DomTree::node& div, const size_t cols, Format fmt)
+{
+    if (m_buffer.empty())
+    {
+        m_buffer.emplace_back();
+    }
+
+    if (not m_buffer.back().empty() and not fmt.block_ignore())
+    {
+        m_buffer.emplace_back();
+        fmt.set_block_ignore(false);
+    }
+
+    append_children(div, cols, fmt);
+}// end DocumentHtml::append_div(const DomTree::node& br, const size_t cols, Format fmt)
+
+// === DocumentHtml::append_form(const DomTree::node& form, const size_t cols, Format fmt)
 //
 // TODO: actually implement
 //
 // ========================================================================
-void    DocumentHtml::append_form(const DomTree::node& form, const size_t cols)
+void    DocumentHtml::append_form(const DomTree::node& form, const size_t cols, Format fmt)
 {
     m_buffer.emplace_back();
     m_buffer.back().emplace_back("<FORM>");
     m_buffer.emplace_back();
-}// end DocumentHtml::append_form(const DomTree::node& form, const size_t cols)
+}// end DocumentHtml::append_form(const DomTree::node& form, const size_t cols, Format fmt)
 
 // === DocumentHtml::append_hn(const DomTree::node& hn) ===================
 //
@@ -305,17 +336,17 @@ void    DocumentHtml::append_form(const DomTree::node& form, const size_t cols)
 // for styling (i.e. "style" enum)
 //
 // ========================================================================
-void    DocumentHtml::append_hn(const DomTree::node& hn, const size_t cols)
+void    DocumentHtml::append_hn(const DomTree::node& hn, const size_t cols, Format fmt)
 {
     m_buffer.emplace_back();
-    append_children(hn, cols);
+    append_children(hn, cols, fmt);
     m_buffer.emplace_back();
 }// end DocumentHtml::append_hn(const DomTree::node& hn)
 
-// === DocumentHtml::append_hr(const DomTree::node& hr, const size_t cols)
+// === DocumentHtml::append_hr(const DomTree::node& hr, const size_t cols, Format fmt)
 //
 // ========================================================================
-void    DocumentHtml::append_hr(const DomTree::node& hr, const size_t cols)
+void    DocumentHtml::append_hr(const DomTree::node& hr, const size_t cols, Format fmt)
 {
     static size_t       nCols       = 0;
     static string       rule        = "";
@@ -329,12 +360,12 @@ void    DocumentHtml::append_hr(const DomTree::node& hr, const size_t cols)
     m_buffer.emplace_back();
     m_buffer.back().emplace_back(rule);
     m_buffer.emplace_back();
-}// end DocumentHtml::append_hr(const DomTree::node& hr, const size_t cols)
+}// end DocumentHtml::append_hr(const DomTree::node& hr, const size_t cols, Format fmt)
 
 // === DocumentHtml::append_img(const DomTree::node& img) =================
 //
 // ========================================================================
-void    DocumentHtml::append_img(const DomTree::node& img, const size_t cols)
+void    DocumentHtml::append_img(const DomTree::node& img, const size_t cols, Format fmt)
 {
     using namespace std;
 
@@ -354,16 +385,19 @@ void    DocumentHtml::append_img(const DomTree::node& img, const size_t cols)
 
     // set representative string; ideally alt
     // if alt not provided, use truncated url from src
-    string      imgText     = img.attributes.count("alt") ?
-                                img.attributes.at("alt") :
-                                utils::path_base(img.attributes.at("src"));
-    if (imgText.empty())
+    string      imgText     = "[";
+
+    imgText += img.attributes.count("alt") ?
+                img.attributes.at("alt") :
+                utils::path_base(img.attributes.at("src"));
+
+    if (imgText.length() == 1)
     {
-        imgText = utils::path_base(img.attributes.at("src"));
+        imgText += utils::path_base(img.attributes.at("src"));
     }
 
-    imgText = "[" + imgText + "]";
-    append_str(imgText, cols);
+    imgText += ']';
+    append_str(imgText, cols, fmt);
 
     const size_t        linkIdx     = m_images.size();
 
@@ -379,7 +413,7 @@ void    DocumentHtml::append_img(const DomTree::node& img, const size_t cols)
         {
             auto&   currNode    = currLine.at(j);
 
-            if (not currNode.get_image_ref())
+            if (not currNode.reserved())
             {
                 currNode.set_image_ref(linkIdx);
                 currImg.append_referer(i, j);
@@ -390,81 +424,81 @@ void    DocumentHtml::append_img(const DomTree::node& img, const size_t cols)
     }// end for i
 }// end DocumentHtml::append_img(const DomTree::node& img)
 
-// === DocumentHtml::append_ul(const DomTree::node& img, const size_t cols)
+// === DocumentHtml::append_ul(const DomTree::node& img, const size_t cols, Format fmt)
 //
 // ========================================================================
-void    DocumentHtml::append_ul(const DomTree::node& ul, const size_t cols)
+void    DocumentHtml::append_ul(const DomTree::node& ul, const size_t cols, Format fmt)
 {
-    size_t      listDepth       = 0;
-    for (const auto *node = &ul; node; node = node->parent())
-    {
-        if (node->identifier() == "ol" or node->identifier() == "ul")
-        {
-            ++listDepth;
-        }
-    }// end for *node
-    const size_t    indentSize = std::min(listDepth * m_tabWidth, cols / 2);
-    const string    indent(indentSize, ' ');
+    fmt.set_in_list(true);
+    fmt.set_ordered_list(false);
+    if (fmt.listLevel)
+        fmt.indent += 2;
+
     for (auto iter = ul.cbegin(); iter != ul.cend(); ++iter)
     {
         const auto& child = *iter;
 
         m_buffer.emplace_back();
-        m_buffer.back().emplace_back(indent);
         if (child.identifier() == "li")
         {
-            append_li_ul(child, cols);
+            append_li_ul(child, cols, fmt);
         }
         else
         {
-            append_node(child, cols);
+            append_node(child, cols, fmt);
         }
     }// end for child
-    m_buffer.emplace_back();
-}// end DocumentHtml::append_ul(const DomTree::node& ul, const size_t cols)
 
-// === DocumentHtml::append_ol(const DomTree::node& ol, const size_t cols)
+    m_buffer.emplace_back();
+}// end DocumentHtml::append_ul(const DomTree::node& ul, const size_t cols, Format fmt)
+
+// === DocumentHtml::append_ol(const DomTree::node& ol, const size_t cols, Format fmt)
 //
 // ========================================================================
-void    DocumentHtml::append_ol(const DomTree::node& ol, const size_t cols)
+void    DocumentHtml::append_ol(const DomTree::node& ol, const size_t cols, Format fmt)
 {
-    size_t      listDepth       = 0;
-    for (const auto *node = &ol; node; node = node->parent())
-    {
-        if (node->identifier() == "ol" or node->identifier() == "ul")
-        {
-            ++listDepth;
-        }
-    }// end for *node
-    const size_t    indentSize = std::min(listDepth * m_tabWidth, cols / 2);
-    const string    indent(indentSize, ' ');
-    size_t          index       = 1;
+    fmt.set_in_list(true);
+    fmt.set_ordered_list(true);
+    fmt.listIndex = 1;
 
     for (auto iter = ol.cbegin(); iter != ol.cend(); ++iter)
     {
         const auto& child = *iter;
 
         m_buffer.emplace_back();
-        m_buffer.back().emplace_back(indent);
         if (child.identifier() == "li")
         {
-            append_li_ol(child, cols, index++);
+            append_li_ol(child, cols, fmt);
+            ++fmt.listIndex;
         }
         else
         {
-            append_node(child, cols);
+            append_node(child, cols, fmt);
         }
     }// end for child
     m_buffer.emplace_back();
-}// end DocumentHtml::append_ol(const DomTree::node& ol, const size_t cols)
+}// end DocumentHtml::append_ol(const DomTree::node& ol, const size_t cols, Format fmt)
 
 // === DocumentHtml::append_li_ul =========================================
 //
 // ========================================================================
-void    DocumentHtml::append_li_ul(const DomTree::node& li, const size_t cols)
+void    DocumentHtml::append_li_ul(const DomTree::node& li, const size_t cols, Format fmt)
 {
-    m_buffer.back().emplace_back("* ");
-    append_children(li, cols);
+    if (fmt.in_list())
+    {
+        fmt.set_block_ignore(true);
+        m_buffer.back().emplace_back(string(fmt.indent, ' '), true);
+        if (fmt.listLevel & 1)// odd list levels
+            m_buffer.back().emplace_back("+ ");
+        else
+            m_buffer.back().emplace_back("* ");
+        ++fmt.listLevel;
+        if (fmt.indent < cols / 2)
+            fmt.indent += 2;
+    }
+    fmt.set_in_list(false);
+    fmt.set_ordered_list(false);
+    append_children(li, cols, fmt);
 }// end DocumentHtml::append_li_ul
 
 // === DocumentHtml::append_li_ol =========================================
@@ -473,14 +507,21 @@ void    DocumentHtml::append_li_ul(const DomTree::node& li, const size_t cols)
 void    DocumentHtml::append_li_ol(
     const DomTree::node& li,
     const size_t cols,
-    const size_t index
+    Format fmt
 )
 {
-    std::stringstream       format;
+    if (fmt.in_list())
+    {
+        std::stringstream       format;
 
-    format << index << ". ";
-    m_buffer.back().emplace_back(format.str());
-    append_children(li, cols);
+        fmt.set_block_ignore(true);
+        m_buffer.back().emplace_back(string(fmt.indent, ' '), true);
+        format << fmt.listIndex << ". ";
+        m_buffer.back().emplace_back(format.str());
+        if (fmt.indent < cols / 2)
+            fmt.indent += format.str().length();
+    }
+    append_children(li, cols, fmt);
 }// end DocumentHtml::append_li_ol
 
 // === DocumentHtml::append_p(const DomTree::node& p) =====================
@@ -488,48 +529,49 @@ void    DocumentHtml::append_li_ol(
 // TODO: implement, with styling (see append_hn)
 //
 // ========================================================================
-void    DocumentHtml::append_p(const DomTree::node& p, const size_t cols)
+void    DocumentHtml::append_p(const DomTree::node& p, const size_t cols, Format fmt)
 {
     if (m_buffer.empty())
     {
         m_buffer.emplace_back();
     }
-    append_children(p, cols);
+    fmt.set_block_ignore(false);
+    append_children(p, cols, fmt);
     // append an extra newline to denote new paragraph
     m_buffer.emplace_back();
     m_buffer.emplace_back();
 }// end DocumentHtml::append_p(const DomTree::node& p)
 
-// === DocumentHtml::append_table(const DomTree::node& table, const size_t cols)
+// === DocumentHtml::append_table(const DomTree::node& table, const size_t cols, Format fmt)
 //
 // TODO: actually implement
 //
 // ========================================================================
-void    DocumentHtml::append_table(const DomTree::node& table, const size_t cols)
+void    DocumentHtml::append_table(const DomTree::node& table, const size_t cols, Format fmt)
 {
-    append_hr(table, cols);
-    append_tbody(table, cols);// behavior is mostly the same
+    append_hr(table, cols, fmt);
+    append_tbody(table, cols, fmt);// behavior is mostly the same
     m_buffer.emplace_back();
-}// end DocumentHtml::append_table(const DomTree::node& table, const size_t cols)
+}// end DocumentHtml::append_table(const DomTree::node& table, const size_t cols, Format fmt)
 
-// === DocumentHtml::append_tbody(const DomTree::node& tbody, const size_t cols)
+// === DocumentHtml::append_tbody(const DomTree::node& tbody, const size_t cols, Format fmt)
 //
 // TODO: actually implement
 //
 // ========================================================================
-void    DocumentHtml::append_tbody(const DomTree::node& tbody, const size_t cols)
+void    DocumentHtml::append_tbody(const DomTree::node& tbody, const size_t cols, Format fmt)
 {
     for (auto iter = tbody.cbegin(); iter != tbody.cend(); ++iter)
     {
         const auto&     elem        = *iter;
 
-        append_node(elem, cols);
+        append_node(elem, cols, fmt);
         if (elem.identifier() == "tr")
         {
-            append_hr(tbody, cols);
+            append_hr(tbody, cols, fmt);
         }
     }// end for iter
-}// end DocumentHtml::append_tbody(const DomTree::node& tbody, const size_t cols)
+}// end DocumentHtml::append_tbody(const DomTree::node& tbody, const size_t cols, Format fmt)
 
 // === DocumentHtml::append_other(const DomTree::node& nd) ================
 //
@@ -537,9 +579,9 @@ void    DocumentHtml::append_tbody(const DomTree::node& tbody, const size_t cols
 // just appends all children of the node.
 //
 // ========================================================================
-void    DocumentHtml::append_other(const DomTree::node& nd, const size_t cols)
+void    DocumentHtml::append_other(const DomTree::node& nd, const size_t cols, Format fmt)
 {
-    append_children(nd, cols);
+    append_children(nd, cols, fmt);
 }// end DocumentHtml::append_other(const DomTree::node& nd)
 
 // === protected static function(s) =======================================
@@ -1373,7 +1415,7 @@ unsigned    DocumentHtml::parse_html_entity(const string& id)
         {"dfisht",              10623},
     };
 
-    unsigned    out     = 0;
+    unsigned    out     = '&';
 
     if (entMap.count(id))
     {
@@ -1387,17 +1429,17 @@ unsigned    DocumentHtml::parse_html_entity(const string& id)
         }
         catch (std::invalid_argument& _)
         {
-            out = ' ';
+            out = '&';
         }
     }
     else
     {
-        out = ' ';
+        out = '&';
     }
 
     if (out == 160)// nbsp
     {
-        out = ' ';
+        out = '&';
     }
 
     return out;
@@ -1428,3 +1470,59 @@ string   DocumentHtml::decode_text(const string& text)
 
     return output;
 }// end DocumentHtml::decode_text(const string& text)
+
+// XXX class DocumentHtml::Format Implementation XXXXXXXXXXXXXXXXXXXXXXXXXX
+
+// === public accessor(s) =================================================
+bool        DocumentHtml::Format::in_list(void) const
+{
+    return m_flags & F_IN_LIST;
+}// end DocumentHtml::Format::in_list(void) const
+
+bool        DocumentHtml::Format::ordered_list(void) const
+{
+    return m_flags & F_ORDERED_LIST;
+}// end DocumentHtml::Format::ordered_list(void) const
+
+bool        DocumentHtml::Format::preformatted(void) const
+{
+    return m_flags & F_PREFORMATTED;
+}// end DocumentHtml::Format::preformatted(void) const
+
+bool        DocumentHtml::Format::block_ignore(void) const
+{
+    return m_flags & F_BLOCK_IGNORE;
+}// end DocumentHtml::Format::block_ignore(void) const
+
+// === public mutator(s) ==================================================
+void        DocumentHtml::Format::set_in_list(bool state)
+{
+    if (state)
+        m_flags |= F_IN_LIST;
+    else
+        m_flags &= ~F_IN_LIST;
+}// end DocumentHtml::Format::set_in_list(bool state)
+
+void        DocumentHtml::Format::set_ordered_list(bool state)
+{
+    if (state)
+        m_flags |= F_ORDERED_LIST;
+    else
+        m_flags &= ~F_ORDERED_LIST;
+}// end DocumentHtml::Format::set_ordered_list(bool state)
+
+void        DocumentHtml::Format::set_preformatted(bool state)
+{
+    if (state)
+        m_flags |= F_PREFORMATTED;
+    else
+        m_flags &= ~F_PREFORMATTED;
+}// end DocumentHtml::Format::set_preformatted(bool state)
+
+void        DocumentHtml::Format::set_block_ignore(bool state)
+{
+    if (state)
+        m_flags |= F_BLOCK_IGNORE;
+    else
+        m_flags &= ~F_BLOCK_IGNORE;
+}// end DocumentHtml::Format::set_block_ignore(bool state)

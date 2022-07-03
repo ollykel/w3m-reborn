@@ -58,11 +58,11 @@ class   DomTree
                                     std::ostream& outs,
                                     const DomTree& tree
                                 );
-    private:
-        // === private member variable(s) =================================
+    protected:
+        // === protected member variable(s) ===============================
         u_ptr<node>     m_root;
 
-        // === private mutator(s) =========================================
+        // === protected mutator(s) =======================================
         void        copy_from(const DomTree& other);
         void        move_from(DomTree& other);
         void        destruct(void);
@@ -115,47 +115,51 @@ class   DomTree::node
         auto        operator=(node&& other) -> node&;
 
         // === public accessor(s) =========================================
-        size_t          size(void) const;
-        bool            is_text(void) const;
-        auto            identifier(void) const -> const string&;
-        auto            text(void) const -> const string&;
-        auto            parent(void) const -> const node*;
-        auto            child_front(void) const -> const node&;
-        auto            child_back(void) const -> const node&;
-        auto            child_at(size_t index) const -> const node&;
+        size_t      size(void) const;
+        bool        is_text(void) const;
+        auto        identifier(void) const -> const string&;
+        auto        text(void) const -> const string&;
+        auto        parent(void) const -> const node*;
+        auto        child_front(void) const -> const node&;
+        auto        child_back(void) const -> const node&;
+        auto        child_at(size_t index) const -> const node&;
+        auto        count_descendants_by_id(
+                        const string& id,
+                        int depth = -1
+                    ) const -> size_t;
         // ------ iterators -----------------------------------------------
-        auto            cbegin(void) const -> const_iterator;
-        auto            cend(void) const -> const const_iterator;
-        auto            crbegin(void) const -> const_reverse_iterator;
-        auto            crend(void) const -> const const_reverse_iterator;
+        auto        cbegin(void) const -> const_iterator;
+        auto        cend(void) const -> const const_iterator;
+        auto        crbegin(void) const -> const_reverse_iterator;
+        auto        crend(void) const -> const const_reverse_iterator;
 
         // === public mutator(s) ==========================================
-        void            clear_children(void);
-        void            pop_child_front(void);
-        void            pop_child_back(void);
-        void            remove_child_at(size_t index);
-        auto            emplace_child_front(
-                            const string identifier,
-                            const string text = ""
-                        ) -> node&;
-        auto            emplace_child_back(
-                            const string identifier,
-                            const string text = ""
-                        ) -> node&;
-        auto            emplace_child_at(
-                            size_t index,
-                            const string identifier,
-                            const string text = ""
-                        ) -> node&;
-        auto            parent(void) -> node*;
-        auto            child_front(void) -> node&;
-        auto            child_back(void) -> node&;
-        auto            child_at(size_t index) -> node&;
+        void        clear_children(void);
+        void        pop_child_front(void);
+        void        pop_child_back(void);
+        void        remove_child_at(size_t index);
+        auto        emplace_child_front(
+                        const string identifier,
+                        const string text = ""
+                    ) -> node&;
+        auto        emplace_child_back(
+                        const string identifier,
+                        const string text = ""
+                    ) -> node&;
+        auto        emplace_child_at(
+                        size_t index,
+                        const string identifier,
+                        const string text = ""
+                    ) -> node&;
+        auto        parent(void) -> node*;
+        auto        child_front(void) -> node&;
+        auto        child_back(void) -> node&;
+        auto        child_at(size_t index) -> node&;
         // ------ iterators -----------------------------------------------
-        auto            begin(void) -> iterator;
-        auto            end(void) -> const iterator;
-        auto            rbegin(void) -> reverse_iterator;
-        auto            rend(void) -> const reverse_iterator;
+        auto        begin(void) -> iterator;
+        auto        end(void) -> const iterator;
+        auto        rbegin(void) -> reverse_iterator;
+        auto        rend(void) -> const reverse_iterator;
 
         // === friend operator(s) =========================================
         friend std::ostream&    operator<<(

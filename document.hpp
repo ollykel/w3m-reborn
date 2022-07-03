@@ -73,17 +73,20 @@ class   Document::BufferNode
         // === public constructor(s) ======================================
         BufferNode(
             const string& text = "",
+            const bool isReserved = false,
             const cont::Ref& link = {},
             const cont::Ref& image = {}
         );// type/default
 
         // === public accessor(s) =========================================
         const string&       get_text(void) const;
+        bool                reserved(void) const;
         const cont::Ref&    get_link_ref(void) const;
         const cont::Ref&    get_image_ref(void) const;
 
         // === public mutator(s) ==========================================
         void    set_text(const string& text);
+        void    set_reserved(const bool state);
         void    set_link_ref(const size_t index);
         void    set_image_ref(const size_t index);
         void    clear_text(void);
@@ -92,6 +95,7 @@ class   Document::BufferNode
     protected:
         // === protected member variable(s) ===============================
         string      m_text          = "";
+        bool        m_isReserved    = false;
         cont::Ref   m_linkRef       = {};
         cont::Ref   m_imageRef      = {};
 };// end class Document::BufferNode

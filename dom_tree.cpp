@@ -293,6 +293,28 @@ auto        NODE_T::child_at(size_t index) const -> const node&
     return *it;
 }// end NODE_T::child_at(size_t index) const
 
+auto        NODE_T::count_descendants_by_id(
+    const string& id,
+    int depth
+) const -> size_t
+{
+    if (is_text() or not depth)
+        return 0;
+
+    size_t      out     = 0;
+
+    for (auto iter = m_children.cbegin(); iter != m_children.cend(); ++iter)
+    {
+        const NODE_T& child = *iter;
+
+        if (child.identifier() == id)
+            ++out;
+        out += child.count_descendants_by_id(id, depth - 1);
+    }// end for iter
+
+    return out;
+}// end NODE_T::count_descendants_by_id(const string& id) const -> size_t
+
 // === NODE_T::cbegin(void) const -> const_iterator =======================
 //
 // ========================================================================
