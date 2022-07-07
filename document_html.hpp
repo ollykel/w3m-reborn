@@ -19,6 +19,7 @@ class   DocumentHtml : public Document
         // === public mutator(s) ==========================================
         void        from_stream(std::istream& ins, const size_t cols);
         void        from_string(const string& text, const size_t cols);
+        void        parse_title_from_data(void);
         // ------ override(s) ---------------------------------------------
         void        redraw(size_t cols) override;
     protected:

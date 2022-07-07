@@ -62,25 +62,18 @@ void        DocumentHtml::from_string(const string& text, const size_t cols)
     m_data = text;
     parser.parse_html(*m_dom.root(), inBuf);
 
+    parse_title_from_data();
     redraw(cols);
 }// end DocumentHtml::from_string(const string& text, const size_t cols)
 
-// ------ override(s) ---------------------------------------------
-void        DocumentHtml::redraw(size_t cols)
+void        DocumentHtml::parse_title_from_data(void)
 {
-    std::vector<string>     styleStack;
-
-    m_buffer.clear();
-    m_links.clear();
-    m_images.clear();
-
     for (auto& nd : *m_dom.root())
     {
         if (nd.identifier() == "document" or nd.identifier() == "html")
         {
             for (auto& child : nd)
             {
-                // skip <head>
                 if (child.identifier() == "head")
                 {
                     if (title().empty())
@@ -101,7 +94,28 @@ void        DocumentHtml::redraw(size_t cols)
                         }// end for item
                     }
                 }
-                else
+            }// end for child
+        }
+    }// end for (auto& nd : *m_dom->root())
+}// end DocumentHtml::parse_title_from_data(void)
+
+// ------ override(s) ---------------------------------------------
+void        DocumentHtml::redraw(size_t cols)
+{
+    std::vector<string>     styleStack;
+
+    m_buffer.clear();
+    m_links.clear();
+    m_images.clear();
+
+    for (auto& nd : *m_dom.root())
+    {
+        if (nd.identifier() == "document" or nd.identifier() == "html")
+        {
+            for (auto& child : nd)
+            {
+                // skip <head>
+                if (child.identifier() != "head")
                 {
                     append_node(child, cols, {}, styleStack);
                 }
