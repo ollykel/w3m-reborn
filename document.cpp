@@ -171,6 +171,12 @@ const cont::Ref& Document::BufferNode::get_image_ref(void) const
     return m_imageRef;
 }
 
+auto    Document::BufferNode::stylers(void) const
+    -> const std::vector<string>&
+{
+    return m_stylers;
+}// end Document::BufferNode::stylers(void) const
+
 // === public mutator(s) ==================================================
 void    Document::BufferNode::set_text(const string& text)
 {
@@ -192,6 +198,11 @@ void    Document::BufferNode::set_image_ref(const size_t index)
     m_imageRef = index;
 }// end Document::BufferNode::set_image_ref(const size_t index)
 
+void    Document::BufferNode::append_styler(const string& styler)
+{
+    m_stylers.emplace_back(styler);
+}// end Document::BufferNode::append_styler(const string& styler)
+
 void    Document::BufferNode::clear_text(void)
 {
     m_text.clear();
@@ -207,6 +218,9 @@ void    Document::BufferNode::clear_image_ref(void)
     m_imageRef.clear();
 }// end Document::BufferNode::clear_image_ref(void)
 
+void    Document::BufferNode::clear_stylers(void)
+{
+}// end Document::BufferNode::clear_stylers(void)
 
 // === class Document::Reference Implementation ===========================
 

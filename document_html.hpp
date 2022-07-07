@@ -31,33 +31,129 @@ class   DocumentHtml : public Document
         size_t      m_tabWidth  = 4;// TODO: read from config
         std::map<
             string,
-            void (DocumentHtml::*)(const DomTree::node&, const size_t, Format)
+            void (DocumentHtml::*)(
+                const DomTree::node&,
+                const size_t,
+                Format,
+                std::vector<string>&)
         >           m_dispatcher;
 
         // === protected mutator(s) =======================================
-        void    append_node(const DomTree::node& nd, const size_t cols, Format fmt);
-        void    append_children(const DomTree::node& nd, const size_t cols, Format fmt);
-        void    append_str(const string& str, const size_t cols, Format fmt);
-        void    append_text(const DomTree::node& text, const size_t cols, Format fmt);
-        void    append_a(const DomTree::node& a, const size_t cols, Format fmt);
-        void    append_br(const DomTree::node& br, const size_t cols, Format fmt);
-        void    append_div(const DomTree::node& div, const size_t cols, Format fmt);
-        void    append_form(const DomTree::node& form, const size_t cols, Format fmt);
-        void    append_hn(const DomTree::node& hn, const size_t cols, Format fmt);
-        void    append_hr(const DomTree::node& hr, const size_t cols, Format fmt);
-        void    append_img(const DomTree::node& img, const size_t cols, Format fmt);
-        void    append_ul(const DomTree::node& ul, const size_t cols, Format fmt);
-        void    append_ol(const DomTree::node& ol, const size_t cols, Format fmt);
-        void    append_li_ul(const DomTree::node& li, const size_t cols, Format fmt);
+        void    append_node(
+            const DomTree::node& nd,
+            const size_t cols,
+            Format fmt,
+            std::vector<string>& styleStack
+        );
+        void    append_children(
+            const DomTree::node& nd,
+            const size_t cols,
+            Format fmt,
+            std::vector<string>& styleStack
+        );
+        void    append_str(
+            const string& str,
+            const size_t cols,
+            Format fmt,
+            std::vector<string>& styleStack
+        );
+        void    append_text(
+            const DomTree::node& text,
+            const size_t cols,
+            Format fmt,
+            std::vector<string>& styleStack
+        );
+        void    append_a(
+            const DomTree::node& a,
+            const size_t cols,
+            Format fmt,
+            std::vector<string>& styleStack
+        );
+        void    append_br(
+            const DomTree::node& br,
+            const size_t cols,
+            Format fmt,
+            std::vector<string>& styleStack
+        );
+        void    append_div(
+            const DomTree::node& div,
+            const size_t cols,
+            Format fmt,
+            std::vector<string>& styleStack
+        );
+        void    append_form(
+            const DomTree::node& form,
+            const size_t cols,
+            Format fmt,
+            std::vector<string>& styleStack
+        );
+        void    append_hn(
+            const DomTree::node& hn,
+            const size_t cols,
+            Format fmt,
+            std::vector<string>& styleStack
+        );
+        void    append_hr(
+            const DomTree::node& hr,
+            const size_t cols,
+            Format fmt,
+            std::vector<string>& styleStack
+        );
+        void    append_img(
+            const DomTree::node& img,
+            const size_t cols,
+            Format fmt,
+            std::vector<string>& styleStack
+        );
+        void    append_ul(
+            const DomTree::node& ul,
+            const size_t cols,
+            Format fmt,
+            std::vector<string>& styleStack
+        );
+        void    append_ol(
+            const DomTree::node& ol,
+            const size_t cols,
+            Format fmt,
+            std::vector<string>& styleStack
+        );
+        void    append_li_ul(
+            const DomTree::node& li,
+            const size_t cols,
+            Format fmt,
+            std::vector<string>& styleStack
+        );
         void    append_li_ol(
-                    const DomTree::node& li,
-                    const size_t cols,
-                    Format fmt
-                );
-        void    append_p(const DomTree::node& p, const size_t cols, Format fmt);
-        void    append_table(const DomTree::node& table, const size_t cols, Format fmt);
-        void    append_tbody(const DomTree::node& tbody, const size_t cols, Format fmt);
-        void    append_other(const DomTree::node& nd, const size_t cols, Format fmt);
+            const DomTree::node& li,
+            const size_t cols,
+            Format fmt,
+            std::vector<string>& styleStack
+        );
+        void    append_p(
+            const DomTree::node& p,
+            const size_t cols,
+            Format fmt,
+            std::vector<string>& styleStack
+        );
+        void    append_table(
+            const DomTree::node& table,
+            const size_t cols,
+            Format fmt,
+            std::vector<string>& styleStack
+        );
+        void    append_tbody(
+            const DomTree::node& tbody,
+            const size_t cols,
+            Format fmt,
+            std::vector<string>& styleStack
+        );
+        void    append_other(
+            const DomTree::node& nd,
+            const size_t cols,
+            Format fmt,
+            std::vector<string>& styleStack
+        );
+        void    begin_block(const size_t cols, Format& fmt);
 
         // === protected static function(s) ===============================
         static size_t       line_length(BufferLine& line);

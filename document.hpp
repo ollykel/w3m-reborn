@@ -58,9 +58,9 @@ class   Document
         auto rend_lines(void)               -> const reverse_line_iterator;
     protected:
         // === protected member variable(s) ===============================
-        std::vector<std::vector<BufferNode> >       m_buffer        = {};
-        std::vector<Reference>                      m_links         = {};
-        std::vector<Reference>                      m_images        = {};
+        std::vector<BufferLine>         m_buffer        = {};
+        std::vector<Reference>          m_links         = {};
+        std::vector<Reference>          m_images        = {};
 };// end class Document
 
 class   Document::BufferNode
@@ -79,25 +79,29 @@ class   Document::BufferNode
         );// type/default
 
         // === public accessor(s) =========================================
-        const string&       get_text(void) const;
-        bool                reserved(void) const;
-        const cont::Ref&    get_link_ref(void) const;
-        const cont::Ref&    get_image_ref(void) const;
+        const string&                   get_text(void) const;
+        bool                            reserved(void) const;
+        const cont::Ref&                get_link_ref(void) const;
+        const cont::Ref&                get_image_ref(void) const;
+        auto    stylers(void) const -> const std::vector<string>&;
 
         // === public mutator(s) ==========================================
         void    set_text(const string& text);
         void    set_reserved(const bool state);
         void    set_link_ref(const size_t index);
         void    set_image_ref(const size_t index);
+        void    append_styler(const string& styler);
         void    clear_text(void);
         void    clear_link_ref(void);
         void    clear_image_ref(void);
+        void    clear_stylers(void);
     protected:
         // === protected member variable(s) ===============================
-        string      m_text          = "";
-        bool        m_isReserved    = false;
-        cont::Ref   m_linkRef       = {};
-        cont::Ref   m_imageRef      = {};
+        string                  m_text          = "";
+        bool                    m_isReserved    = false;
+        std::vector<string>     m_stylers       = {};
+        cont::Ref               m_linkRef       = {};
+        cont::Ref               m_imageRef      = {};
 };// end class Document::BufferNode
 
 class   Document::Reference
