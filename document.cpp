@@ -15,6 +15,11 @@ size_t  Document::num_lines(void) const
     return m_buffer.size();
 }// end Document::num_lines(void) const
 
+auto    Document::title(void) const -> const string&
+{
+    return m_title;
+}// end Document::title
+
 auto Document::get_link_at(size_t index) const -> const Reference&
 {
     return m_links[index];
@@ -105,6 +110,11 @@ auto Document::cend_images(void) const -> const const_ref_iterator
 }// end Document::cend_images(void) const -> const const_ref_iterator
 
 // === public mutator(s) ==================================================
+void    Document::set_title(const string& title)
+{
+    m_title = title;
+}// end Document::set_title
+
 auto Document::begin_lines(size_t idx) -> line_iterator
 {
     auto    iter    = m_buffer.begin();

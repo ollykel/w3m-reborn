@@ -32,6 +32,7 @@ class   Document
 
         // === public accessor(s) =========================================
         size_t                              num_lines(void) const;
+        auto    title(void) const   -> const string&;
         auto get_link_at(size_t index) const    -> const Reference&;
         auto get_image_at(size_t index) const   -> const Reference&;
         // --- line iterators ---------------------------------------------
@@ -52,12 +53,14 @@ class   Document
         {
             // do nothing
         }
+        void    set_title(const string& title);
         auto begin_lines(size_t idx = 0)    -> line_iterator;
         auto end_lines(void)                -> const line_iterator;
         auto rbegin_lines(size_t idx = 0)   -> reverse_line_iterator;
         auto rend_lines(void)               -> const reverse_line_iterator;
     protected:
         // === protected member variable(s) ===============================
+        string                          m_title         = "";
         std::vector<BufferLine>         m_buffer        = {};
         std::vector<Reference>          m_links         = {};
         std::vector<Reference>          m_images        = {};
