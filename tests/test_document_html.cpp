@@ -59,6 +59,8 @@ void    print_doc(std::ostream& outs, const DocumentHtmlTester& doc)
 {
     using namespace std;
 
+    outs << "Title: " << doc.title() << endl;
+    outs << "===" << endl;
     outs << "Printing document buffer..." << endl << "===" << endl;
 
     for (auto iter = doc.cbegin_lines(); iter != doc.cend_lines(); ++iter)

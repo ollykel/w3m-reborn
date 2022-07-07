@@ -81,7 +81,24 @@ void        DocumentHtml::redraw(size_t cols)
             for (auto& child : nd)
             {
                 // skip <head>
-                if (child.identifier() != "head")
+                if (child.identifier() == "head")
+                {
+                    for (auto& item : child)
+                    {
+                        if (item.identifier() == "title")
+                        {
+                            for (auto& nd : item)
+                            {
+                                if (nd.is_text())
+                                {
+                                    set_title(nd.text());
+                                    break;
+                                }
+                            }// end for nd
+                        }
+                    }// end for item
+                }
+                else
                 {
                     append_node(child, cols, {}, styleStack);
                 }
