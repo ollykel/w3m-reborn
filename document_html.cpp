@@ -83,20 +83,23 @@ void        DocumentHtml::redraw(size_t cols)
                 // skip <head>
                 if (child.identifier() == "head")
                 {
-                    for (auto& item : child)
+                    if (title().empty())
                     {
-                        if (item.identifier() == "title")
+                        for (auto& item : child)
                         {
-                            for (auto& nd : item)
+                            if (item.identifier() == "title")
                             {
-                                if (nd.is_text())
+                                for (auto& nd : item)
                                 {
-                                    set_title(nd.text());
-                                    break;
-                                }
-                            }// end for nd
-                        }
-                    }// end for item
+                                    if (nd.is_text())
+                                    {
+                                        set_title(nd.text());
+                                        break;
+                                    }
+                                }// end for nd
+                            }
+                        }// end for item
+                    }
                 }
                 else
                 {
