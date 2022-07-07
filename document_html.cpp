@@ -308,7 +308,7 @@ void    DocumentHtml::append_a(
         {
             auto&   currNode    = currLine.at(j);
 
-            if (not currNode.reserved() and not currNode.get_link_ref())
+            if (not currNode.reserved() and not currNode.link_ref())
             {
                 currNode.set_link_ref(linkIdx);
                 currLink.append_referer(i, j);
@@ -686,7 +686,7 @@ size_t  DocumentHtml::line_length(BufferLine& line)
 
     for (auto& node : line)
     {
-        count += node.get_text().length();
+        count += node.text().length();
     }// end for (auto& node : line)
 
     return count;

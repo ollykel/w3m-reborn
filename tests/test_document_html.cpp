@@ -65,14 +65,14 @@ void    print_doc(std::ostream& outs, const DocumentHtmlTester& doc)
     {
         for (auto& node : *iter)
         {
-            if (node.get_link_ref())
+            if (node.link_ref())
             {
-                outs << "[" << node.get_text() << "](" 
-                    << node.get_link_ref().index() << ')';
+                outs << "[" << node.text() << "](" 
+                    << node.link_ref().index() << ')';
             }
             else
             {
-                outs << node.get_text();
+                outs << node.text();
             }
         }// end for node
         outs << endl;

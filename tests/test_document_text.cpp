@@ -24,7 +24,7 @@ int main(const int argc, const char **argv)
         {
             for (auto& node : *iter)
             {
-                cout << '{' << node.get_text().c_str() << '}';
+                cout << '{' << node.text().c_str() << '}';
             }// end for node
             cout << endl;
         }// end for iter
@@ -40,7 +40,7 @@ int main(const int argc, const char **argv)
         {
             for (auto& node : *iter)
             {
-                cout << '{' << node.get_text().c_str() << '}';
+                cout << '{' << node.text().c_str() << '}';
             }// end for node
             cout << endl;
         }// end for iter

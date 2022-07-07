@@ -79,10 +79,10 @@ class   Document::BufferNode
         );// type/default
 
         // === public accessor(s) =========================================
-        const string&                   get_text(void) const;
+        const string&                   text(void) const;
         bool                            reserved(void) const;
-        const cont::Ref&                get_link_ref(void) const;
-        const cont::Ref&                get_image_ref(void) const;
+        const cont::Ref&                link_ref(void) const;
+        const cont::Ref&                image_ref(void) const;
         auto    stylers(void) const -> const std::vector<string>&;
 
         // === public mutator(s) ==========================================

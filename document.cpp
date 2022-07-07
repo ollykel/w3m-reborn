@@ -151,7 +151,7 @@ Document::BufferNode::BufferNode(
 }// end Document::BufferNode::BufferNode(string text, linkIdx, imageIdx)
 
 // === public accessor(s) =================================================
-const string&       Document::BufferNode::get_text(void) const
+const string&       Document::BufferNode::text(void) const
 {
     return m_text;
 }
@@ -161,12 +161,12 @@ bool                Document::BufferNode::reserved(void) const
     return m_isReserved;
 }// end Document::BufferNode::reserved(void) const
 
-const cont::Ref& Document::BufferNode::get_link_ref(void) const
+const cont::Ref& Document::BufferNode::link_ref(void) const
 {
     return m_linkRef;
 }
 
-const cont::Ref& Document::BufferNode::get_image_ref(void) const
+const cont::Ref& Document::BufferNode::image_ref(void) const
 {
     return m_imageRef;
 }
