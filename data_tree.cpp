@@ -43,6 +43,15 @@ auto    DataTree::from_yaml(std::istream& ins) -> DataTree
 
         getline(ins, line);
 
+        {
+            const size_t    commentIdx  = line.find('#');
+
+            if (commentIdx != string::npos)
+            {
+                line.erase(commentIdx, line.length() - commentIdx);
+            }
+        }
+
         if (line.empty())
             continue;
 
@@ -55,7 +64,7 @@ auto    DataTree::from_yaml(std::istream& ins) -> DataTree
         else if (lineIndent > indentStack.top())
         {
             indentStack.push(lineIndent);
-            treeStack.push(&treeStack.top()->m_children.back());
+            treeStack.push(&treeStack.top()->m_children.back().second);
         }
         // Case 3: indent less than previous
         else if (lineIndent < indentStack.top())
@@ -73,14 +82,22 @@ auto    DataTree::from_yaml(std::istream& ins) -> DataTree
         // Case 4: indent is the same; do nothing
         //
         // Parse key, possible value pair
+        DataTree&       currTree        = *treeStack.top();
+
         line.erase(0, lineIndent);
 
         size_t      keyLen      = line.find(':');
 
-        if (keyLen == string::npos)
+        if (keyLen == 0)
+        {
+            throw except_invalid_data("yaml parser key-value pair without key");
+        }
+        else if (keyLen == string::npos)
         {
             throw except_invalid_data("yaml parser found line without colon (:)");
         }
+
+        currTree.m_children.emplace_back(line.substr(0, keyLen), DataTree());
     }// end while ins
 
     return output;

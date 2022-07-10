@@ -16,7 +16,7 @@ class   DataTree
 {
     public:
         // === public member type(s) ======================================
-        typedef     std::pair<string,u_ptr<DataTree> >  child_type;
+        typedef     std::pair<string,DataTree>  child_type;
         class       except_invalid_data;
 
         // === public constructor(s) ======================================
