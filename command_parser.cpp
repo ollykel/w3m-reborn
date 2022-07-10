@@ -17,6 +17,32 @@ auto CommandParser::parse_command(std::istream& ins) const
 
     vector<string>      out     = {};
 
+    while (ins)
+    {
+        utils::ignore_chars(ins, " \t");
+
+        if (not ins)
+            break;
+
+        switch (ins.peek())
+        {
+            case '\n':
+            case '\r':
+            case ';':
+                return out;
+            case '"':
+                out.push_back(utils::read_token_dquoted(ins));
+                break;
+            case '\'':
+                out.push_back(utils::read_token_squoted(ins));
+                break;
+            default:
+                out.emplace_back();
+                ins >> out.back();
+                break;
+        }// end switch (ins.peek())
+    }// end while ins
+
     return out;
 }// end CommandParser::parse_command
 
