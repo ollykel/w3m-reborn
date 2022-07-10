@@ -20,6 +20,11 @@ namespace utils
     //
     // ====================================================================
     std::istream&       ignore_whitespace(std::istream& ins);
+    
+    std::istream&       ignore_chars(
+                            std::istream& ins,
+                            const std::string& ignoreStr
+                        );
 
     // === read_token_until ===============================================
     //

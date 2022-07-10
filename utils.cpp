@@ -20,6 +20,23 @@ std::istream&       ignore_whitespace(std::istream& ins)
     return ins;
 }// end ignore_whitespace(std::istream& ins)
 
+std::istream&       ignore_chars(
+    std::istream& ins,
+    const std::string& ignoreStr
+)
+{
+    using namespace std;
+
+    set<char>   ignoreSet(ignoreStr.cbegin(), ignoreStr.cend());
+
+    while (ins and ignoreSet.count(ins.peek()))
+    {
+        ins.ignore(1);
+    }// end while
+
+    return ins;
+}// end ignore_chars
+
 std::string         read_token_until(
     std::istream& ins,
     const std::string& avoid,
