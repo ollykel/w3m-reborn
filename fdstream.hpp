@@ -68,14 +68,14 @@ class   ifdstream : public std::istream
         u_ptr<std::streambuf>       m_bufPtr    = nullptr;
 };// end class ifdstream
 
-class   ofdstream2 : public std::ostream
+class   ofdstream : public std::ostream
 {
     public:
         // === public constructor(s) ======================================
 
         // === Type Constructor ===========================================
         //
-        // Initializes an ofdstream2 that wraps a given file descriptor.
+        // Initializes an ofdstream that wraps a given file descriptor.
         // Assumes the file descriptor is already open and has the correct
         // permissions set.
         //
@@ -83,7 +83,7 @@ class   ofdstream2 : public std::ostream
         //      fd      [IN]    -- file descriptor
         //
         // ================================================================
-        ofdstream2(const int fd);
+        ofdstream(const int fd);
 
         // === public mutator(s) ==========================================
         void close(void);
@@ -91,75 +91,6 @@ class   ofdstream2 : public std::ostream
         // === protected member variable(s) ===============================
         int                         m_fd        = -1;
         u_ptr<std::streambuf>       m_bufPtr    = nullptr;
-};// end class ofdstream2
-
-class   fdstream
-{
-    public:
-        // === public accessor(s) =========================================
-        operator bool(void) const;
-        auto fd(void) const         -> int;
-        auto fail(void) const       -> bool;
-        auto opened(void) const     -> bool;
-        auto closed(void) const     -> bool;
-
-        // === public mutator(s) ==========================================
-        void set_fd(const int fd);
-        void close(void);
-    protected:
-        // === protected member variable(s) ===============================
-        int     m_fd                = INT_MAX;
-        bool    m_hasInitialized    = false;
-        bool    m_hasFailed         = false;
-        bool    m_hasClosed         = false;
-};// end class fdstream
-
-class   ofdstream : public fdstream
-{
-    public:
-        // === public constructor(s) ======================================
-        ofdstream(void);// default
-        ofdstream(const int fd);// type
-
-        // === public accessor(s) =========================================
-        auto flags(void) const
-            -> std::ios_base::fmtflags;
-        auto width(void) const
-            -> std::streamsize;
-        auto precision(void) const
-            -> std::streamsize;
-        auto fill(void) const
-            -> char;
-
-        // === public mutator(s) ==========================================
-        auto flags(std::ios_base::fmtflags flags)
-            -> std::ios_base::fmtflags;
-        auto setf(std::ios_base::fmtflags flags)
-            -> std::ios_base::fmtflags;
-        auto setf(std::ios_base::fmtflags flags, std::ios_base::fmtflags mask)
-            -> std::ios_base::fmtflags;
-        void unsetf(std::ios_base::fmtflags mask);
-        auto width(std::streamsize w)
-            -> std::streamsize;
-        auto precision(std::streamsize p)
-            -> std::streamsize;
-        auto fill(char f)
-            -> char;
-        auto write(const char *s, size_t n)
-            -> ssize_t;
-        auto write(const std::vector<char>& s)
-            -> ssize_t;
-        auto write(const string& s)
-            -> ssize_t;
-
-        template <typename T>
-        auto operator<<(const T& in)
-            -> ofdstream&;
-    protected:
-        // === protected member variable(s) ===============================
-        std::stringstream       m_formatter     = {};
 };// end class ofdstream
-
-#include "fdstream.tpp"
 
 #endif
