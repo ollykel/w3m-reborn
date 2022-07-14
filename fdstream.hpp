@@ -3,11 +3,95 @@
 
 #include <climits>
 #include <cstdio>
+#include <streambuf>
 #include <ios>
 #include <sstream>
 #include <stack>
 
 #include "deps.hpp"
+
+class   fdstream_streambuf : public std::streambuf
+{
+    public:
+        // === public constructor(s) ======================================
+
+        // === Type Constructor ===========================================
+        //
+        // Creates a streambuf that reads from/writes to a given file
+        // descriptor.
+        // Assumes that the file descriptor is already open and has the
+        // correct permissions set.
+        //
+        // Input:
+        //      fd      [IN]    -- file descriptor
+        //
+        // ================================================================
+        fdstream_streambuf(const int fd);// type
+    protected:
+        // === protected member variable(s) ===============================
+        const int           m_fd            = -1;
+        std::stack<int>     m_charStack     = {};
+        std::vector<char>   m_buffer        = {};
+
+        // === protected static constant(s) ===============================
+        const size_t        C_BUFFER_INCREMENT   = 256;
+
+        // === protected virtual member function(s) =======================
+        virtual int underflow(void)
+            override;
+        virtual std::streamsize xsputn(const char *s, std::streamsize n)
+            override;
+};// end class fdstream_streambuf
+
+class   ifdstream : public std::istream
+{
+    public:
+        // === public constructor(s) ======================================
+
+        // === Type Constructor ===========================================
+        //
+        // Initializes an ifdstream that wraps a given file descriptor.
+        // Assumes the file descriptor is already open and has the correct
+        // permissions set.
+        //
+        // Input:
+        //      fd      [IN]    -- file descriptor
+        //
+        // ================================================================
+        ifdstream(const int fd);
+
+        // === public mutator(s) ==========================================
+        void close(void);
+    protected:
+        // === protected member variable(s) ===============================
+        int                         m_fd        = -1;
+        u_ptr<std::streambuf>       m_bufPtr    = nullptr;
+};// end class ifdstream
+
+class   ofdstream2 : public std::ostream
+{
+    public:
+        // === public constructor(s) ======================================
+
+        // === Type Constructor ===========================================
+        //
+        // Initializes an ofdstream2 that wraps a given file descriptor.
+        // Assumes the file descriptor is already open and has the correct
+        // permissions set.
+        //
+        // Input:
+        //      fd      [IN]    -- file descriptor
+        //
+        // ================================================================
+        ofdstream2(const int fd);
+
+        // === public mutator(s) ==========================================
+        void close(void);
+    protected:
+        // === protected member variable(s) ===============================
+        int                         m_fd        = -1;
+        u_ptr<std::streambuf>       m_bufPtr    = nullptr;
+};// end class ofdstream2
 
 class   fdstream
 {
@@ -29,48 +113,6 @@ class   fdstream
         bool    m_hasFailed         = false;
         bool    m_hasClosed         = false;
 };// end class fdstream
-
-class   ifdstream : public fdstream
-{
-    public:
-        // === public constructor(s) ======================================
-        ifdstream(void);// default
-        ifdstream(const int fd);// type
-
-        // === public accessor(s) =========================================
-        operator bool(void) const;
-        auto eof(void) const
-            -> bool;
-
-        // === public mutator(s) ==========================================
-        auto get(void)
-            -> int;
-        auto get(char& c)
-            -> ifdstream&;
-        auto get(char *s, size_t n, char delim = EOF)
-            -> ifdstream&;
-        auto get(string& s, size_t n = 0, char delim = EOF)
-            -> ifdstream&;
-        auto getline(string& s)
-            -> ifdstream&;
-        auto read(char *buf, size_t n)
-            -> ssize_t;
-        auto read(std::vector<char>& buf, size_t n)
-            -> ssize_t;
-        auto peek(void)
-            -> int;
-        auto putback(char c)
-            -> ifdstream&;
-        void ignore(size_t n);
-
-        template <typename T>
-        auto operator>>(T& out)
-            -> ifdstream&;
-    protected:
-        // === public member variable(s) ==================================
-        std::stack<int>         m_charBuf       = {};
-        bool                    m_eof           = false;
-};// end class ifdstream
 
 class   ofdstream : public fdstream
 {

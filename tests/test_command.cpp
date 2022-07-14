@@ -25,7 +25,7 @@ int main(const int argc, const char **argv)
         while (sproc.stdout())
         {
             lines.emplace_back();
-            sproc.stdout().getline(lines.back());
+            getline(sproc.stdout(), lines.back());
             cout << "(line: " << lines.back() << ")" << endl;
         }// end while
 
