@@ -62,7 +62,7 @@ int main(const int argc, const char **argv)
             sproc.stdin() << '\t';
             for (int j = 0; j < 3; ++j)
             {
-                sproc.stdin() << setw(8) << val++ << ' ';
+                sproc.stdin() << setw(8) << val++;
             }// end for j
             sproc.stdin() << endl;
         }// end for i
