@@ -1,3 +1,5 @@
+#include <iomanip>
+
 #include "../deps.hpp"
 #include "../command.hpp"
 
@@ -43,11 +45,27 @@ int main(const int argc, const char **argv)
 
     // test cat (using stdin)
     {
-        cout << "Testing command \"cat\" (piping to stdin)..." << endl;
+        const string    cmdName
+                        = "cat --number";
+        auto            sproc
+                        = Command(cmdName).set_stdin_piped(true).spawn();
 
-        auto    sproc   = Command("cat").set_stdin_piped(true).spawn();
+        cout << "Testing command \"" << cmdName << "\" (piping to stdin)..."
+            << endl;
 
+        sproc.stdin().setf(ios::left);
         sproc.stdin() << "\tHello World from cat!" << endl;
+        for (int i = 1; i < 6; ++i)
+        {
+            int     val     = i * i;
+
+            sproc.stdin() << '\t';
+            for (int j = 0; j < 3; ++j)
+            {
+                sproc.stdin() << setw(8) << val++ << ' ';
+            }// end for j
+            sproc.stdin() << endl;
+        }// end for i
         sproc.stdin().close();
 
         cout << "Process exited with status " << sproc.wait() << endl;
