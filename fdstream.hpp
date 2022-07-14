@@ -39,6 +39,8 @@ class   fdstream_streambuf : public std::streambuf
         // === protected virtual member function(s) =======================
         virtual int underflow(void)
             override;
+        virtual int overflow(int c = EOF)
+            override;
         virtual std::streamsize xsputn(const char *s, std::streamsize n)
             override;
 };// end class fdstream_streambuf

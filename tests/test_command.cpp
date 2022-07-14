@@ -47,7 +47,7 @@ int main(const int argc, const char **argv)
 
         auto    sproc   = Command("cat").set_stdin_piped(true).spawn();
 
-        sproc.stdin() << "Allo Welt!" << "\n";
+        sproc.stdin() << "\tHello World from cat!" << endl;
         sproc.stdin().close();
 
         cout << "Process exited with status " << sproc.wait() << endl;

@@ -33,10 +33,21 @@ int fdstream_streambuf::underflow(void)
         return traits_type::eof();
     }
 
-    setg(&m_buffer.front(), &m_buffer.at(oldBufSize), &m_buffer.back());
+    setg(&m_buffer.front(), &m_buffer.at(oldBufSize), &m_buffer.back() + 1);
 
     return traits_type::to_int_type(m_buffer.at(oldBufSize));
 }// end fdstream_streambuf::underflow
+
+int fdstream_streambuf::overflow(int c)
+{
+    if (c != EOF)
+    {
+        char        ch      = c;
+
+        ::write(m_fd, &ch, 1);
+    }
+    return c;
+}// end fdstream_streambuf::overflow
 
 std::streamsize fdstream_streambuf::xsputn(const char *s, std::streamsize n)
 {
