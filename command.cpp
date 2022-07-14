@@ -342,10 +342,15 @@ Command::Subprocess::Subprocess(
                 close(errPipe[0]);
                 dup2(errPipe[1], 2);
             }
-            if (env.empty())
-                execvp(argsRaw[0], &argsRaw[0]);
-            else
-                execvpe(argsRaw[0], &argsRaw[0], &envArrayRaw[0]);
+            // set environment
+            for (const auto& kv : env)
+            {
+                if (kv.second.empty())
+                    ::unsetenv(kv.first.c_str());
+                else
+                    ::setenv(kv.first.c_str(), kv.second.c_str(), 1);
+            }// end for kv
+            execvp(argsRaw[0], &argsRaw[0]);
             break;
         // error
         case -1:
