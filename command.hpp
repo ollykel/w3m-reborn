@@ -5,6 +5,7 @@
 #include <map>
 
 #include "deps.hpp"
+#include "fdstream.hpp"
 
 // === class Command ======================================================
 //
@@ -87,9 +88,9 @@ class   Command::Subprocess
         auto stderr_piped(void) const   -> bool;
 
         // === public mutator(s) ==========================================
-        auto stdin(void)    -> std::ostream&;
-        auto stdout(void)   -> std::istream&;
-        auto stderr(void)   -> std::istream&;
+        auto stdin(void)    -> std::ofstream&;
+        auto stdout(void)   -> ifdstream&;
+        auto stderr(void)   -> ifdstream&;
         auto wait(void)     -> int;
         auto kill(int sig)  -> int;
     protected:
@@ -98,8 +99,8 @@ class   Command::Subprocess
         int                     m_exitStatus        = -1;
         bool                    m_hasTerminated     = false;
         u_ptr<std::ofstream>    m_stdin             = nullptr;
-        u_ptr<std::ifstream>    m_stdout            = nullptr;
-        u_ptr<std::ifstream>    m_stderr            = nullptr;
+        u_ptr<ifdstream>        m_stdout            = nullptr;
+        u_ptr<ifdstream>        m_stderr            = nullptr;
 
         // === protected member constructor(s) ============================
         Subprocess(

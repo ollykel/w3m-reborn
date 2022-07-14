@@ -12,6 +12,7 @@
 
 #include "deps.hpp"
 #include "command.hpp"
+#include "fdstream.hpp"
 
 // --- public constructor(s) ----------------------------------------------
 Command::Command(void)
@@ -173,7 +174,7 @@ auto Command::Subprocess::stderr_piped(void) const   -> bool
 }// end Command::Subprocess::stderr_piped
 
 // --- public mutator(s) --------------------------------------------------
-auto Command::Subprocess::stdin(void)    -> std::ostream&
+auto Command::Subprocess::stdin(void)    -> std::ofstream&
 {
     if (not m_stdin)
     {
@@ -183,7 +184,7 @@ auto Command::Subprocess::stdin(void)    -> std::ostream&
     return *m_stdin.get();
 }// end Command::Subprocess::stdin
 
-auto Command::Subprocess::stdout(void)   -> std::istream&
+auto Command::Subprocess::stdout(void)   -> ifdstream&
 {
     if (not m_stdout)
     {
@@ -193,7 +194,7 @@ auto Command::Subprocess::stdout(void)   -> std::istream&
     return *m_stdout.get();
 }// end Command::Subprocess::stdout
 
-auto Command::Subprocess::stderr(void)   -> std::istream&
+auto Command::Subprocess::stderr(void)   -> ifdstream&
 {
     if (not m_stderr)
     {
@@ -295,12 +296,7 @@ Command::Subprocess::Subprocess(
         {
             // success
             case 0:
-                {
-                    stringstream        fmt;
-
-                    fmt << "/dev/pts/" << outPipe[0];
-                    m_stdout = make_unique<ifstream>(fmt.str());
-                }
+                m_stdout = make_unique<ifdstream>(outPipe[0]);
                 break;
             // failure
             case -1:
@@ -318,12 +314,7 @@ Command::Subprocess::Subprocess(
         {
             // success
             case 0:
-                {
-                    stringstream        fmt;
-
-                    fmt << "/dev/pts/" << errPipe[0];
-                    m_stderr = make_unique<ifstream>(fmt.str());
-                }
+                m_stderr = make_unique<ifdstream>(errPipe[0]);
                 break;
             // failure
             case -1:
@@ -368,11 +359,11 @@ Command::Subprocess::Subprocess(
         // in parent process
         default:
             if (pipeStdin)
-                close(inPipe[1]);
+                close(inPipe[0]);
             if (pipeStdout)
-                close(outPipe[0]);
+                close(outPipe[1]);
             if (pipeStderr)
-                close(errPipe[0]);
+                close(errPipe[1]);
             break;
     }// switch (m_pid)
 }// end Command::Subprocess::Subprocess
