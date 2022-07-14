@@ -30,7 +30,7 @@ class   fdstream
         bool    m_hasClosed         = false;
 };// end class fdstream
 
-class   ifdstream : public fdstream, public std::istream
+class   ifdstream : public fdstream
 {
     public:
         // === public constructor(s) ======================================
@@ -72,7 +72,7 @@ class   ifdstream : public fdstream, public std::istream
         bool                    m_eof           = false;
 };// end class ifdstream
 
-class   ofdstream : public fdstream, public std::ostream
+class   ofdstream : public fdstream
 {
     public:
         // === public constructor(s) ======================================
