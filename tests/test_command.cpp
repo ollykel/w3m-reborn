@@ -28,7 +28,6 @@ int main(const int argc, const char **argv)
         {
             lines.emplace_back();
             getline(sproc.stdout(), lines.back());
-            cout << "(line: " << lines.back() << ")" << endl;
         }// end while
 
         sproc.stdout().close();
@@ -70,5 +69,17 @@ int main(const int argc, const char **argv)
 
         cout << "Process exited with status " << sproc.wait() << endl;
     }
+
+    {
+        const string        cmdName     = "env";
+        Command             cmd(cmdName);
+
+        cmd.env["W3M_TEST_A"] = "Foobar";
+        cmd.env["W3M_TEST_B"] = "Hello World";
+
+        cout << "Testing command \"" << cmdName << "\"..." << endl;
+        cout << "Process exited with status " << cmd.spawn().wait() << endl;
+    }
+
     return EXIT_SUCCESS;
 }// end main
