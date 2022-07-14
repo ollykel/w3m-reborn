@@ -30,7 +30,7 @@ class   fdstream
         bool    m_hasClosed         = false;
 };// end class fdstream
 
-class   ifdstream : public fdstream
+class   ifdstream : public fdstream, public std::istream
 {
     public:
         // === public constructor(s) ======================================
