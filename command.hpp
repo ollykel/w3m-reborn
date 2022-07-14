@@ -88,7 +88,7 @@ class   Command::Subprocess
         auto stderr_piped(void) const   -> bool;
 
         // === public mutator(s) ==========================================
-        auto stdin(void)    -> std::ofstream&;
+        auto stdin(void)    -> ofdstream&;
         auto stdout(void)   -> ifdstream&;
         auto stderr(void)   -> ifdstream&;
         auto wait(void)     -> int;
@@ -98,7 +98,7 @@ class   Command::Subprocess
         pid_t                   m_pid               = 0;
         int                     m_exitStatus        = -1;
         bool                    m_hasTerminated     = false;
-        u_ptr<std::ofstream>    m_stdin             = nullptr;
+        u_ptr<ofdstream>        m_stdin             = nullptr;
         u_ptr<ifdstream>        m_stdout            = nullptr;
         u_ptr<ifdstream>        m_stderr            = nullptr;
 

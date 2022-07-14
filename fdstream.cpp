@@ -388,27 +388,102 @@ void ifdstream::ignore(size_t n)
     }
 }// end ifdstream::ignore
 
-template <typename T>
-auto ifdstream::operator>>(T& out)
-    -> ifdstream&
+// === class ofdstream Implementation =====================================
+//
+// ========================================================================
+
+// --- public constructor(s) ----------------------------------------------
+ofdstream::ofdstream(void)
 {
-    using namespace std;
+    // do nothing
+}// end ofdstream::ofdstream
 
-    string      buf     = "";
+ofdstream::ofdstream(const int fd)
+{
+    set_fd(fd);
+}// end ofdstream::ofdstream
 
-    while (not eof() and isspace(peek()))
-    {
-        ignore(1);
-    }// end while
+// --- public accessor(s) -------------------------------------------------
+auto ofdstream::flags(void) const
+    -> std::ios_base::fmtflags
+{
+    return m_formatter.flags();
+}// end ofdstream::flags
 
-    while (not eof() and not isspace(peek()))
-    {
-        buf += get();
-    }// end while
+auto ofdstream::width(void) const
+    -> std::streamsize
+{
+    return m_formatter.width();
+}// end ofdstream::width
 
-    istringstream       stream(buf);
+auto ofdstream::precision(void) const
+    -> std::streamsize
+{
+    return m_formatter.precision();
+}// end ofdstream::precision
 
-    stream >> out;
+auto ofdstream::fill(void) const
+    -> char
+{
+    return m_formatter.fill();
+}// end ofdstream::fill
 
-    return *this;
-}// end ifdstream::operator>>
+// --- public mutator(s) --------------------------------------------------
+auto ofdstream::flags(std::ios_base::fmtflags flags)
+    -> std::ios_base::fmtflags
+{
+    return m_formatter.flags(flags);
+}// end ofdstream::flags
+
+auto ofdstream::setf(std::ios_base::fmtflags flags)
+    -> std::ios_base::fmtflags
+{
+    return m_formatter.setf(flags);
+}// end ofdstream::setf
+
+auto ofdstream::setf(std::ios_base::fmtflags flags, std::ios_base::fmtflags mask)
+    -> std::ios_base::fmtflags
+{
+    return m_formatter.setf(flags, mask);
+}// end ofdstream::setf
+
+void ofdstream::unsetf(std::ios_base::fmtflags mask)
+{
+    m_formatter.unsetf(mask);
+}// end ofdstream::unsetf
+
+auto ofdstream::width(std::streamsize w)
+    -> std::streamsize
+{
+    return m_formatter.width(w);
+}// end ofdstream::width
+
+auto ofdstream::precision(std::streamsize p)
+    -> std::streamsize
+{
+    return m_formatter.precision(p);
+}// end ofdstream::precision
+
+auto ofdstream::fill(char f)
+    -> char
+{
+    return m_formatter.fill(f);
+}// end ofdstream::fill
+
+auto ofdstream::write(const char *s, size_t n)
+    -> ssize_t
+{
+    return ::write(fd(), s, n);
+}// end ofdstream::write
+
+auto ofdstream::write(const std::vector<char>& s)
+    -> ssize_t
+{
+    return write(&s[0], s.size());
+}// end ofdstream::write
+
+auto ofdstream::write(const string& s)
+    -> ssize_t
+{
+    return write(s.c_str(), s.length());
+}// end ofdstream::write

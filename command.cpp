@@ -174,7 +174,7 @@ auto Command::Subprocess::stderr_piped(void) const   -> bool
 }// end Command::Subprocess::stderr_piped
 
 // --- public mutator(s) --------------------------------------------------
-auto Command::Subprocess::stdin(void)    -> std::ofstream&
+auto Command::Subprocess::stdin(void)    -> ofdstream&
 {
     if (not m_stdin)
     {
@@ -273,12 +273,7 @@ Command::Subprocess::Subprocess(
         {
             // success
             case 0:
-                {
-                    stringstream        fmt;
-
-                    fmt << "/dev/pts/" << inPipe[1];
-                    m_stdin = make_unique<ofstream>(fmt.str());
-                }
+                m_stdin = make_unique<ofdstream>(inPipe[1]);
                 break;
             // failure
             case -1:

@@ -1,8 +1,10 @@
 #ifndef __FDSTREAM_HPP__
 #define __FDSTREAM_HPP__
 
-#include <cstdio>
 #include <climits>
+#include <cstdio>
+#include <ios>
+#include <sstream>
 #include <stack>
 
 #include "deps.hpp"
@@ -69,5 +71,53 @@ class   ifdstream : public fdstream
         std::stack<int>         m_charBuf       = {};
         bool                    m_eof           = false;
 };// end class ifdstream
+
+class   ofdstream : public fdstream, public std::ostream
+{
+    public:
+        // === public constructor(s) ======================================
+        ofdstream(void);// default
+        ofdstream(const int fd);// type
+
+        // === public accessor(s) =========================================
+        auto flags(void) const
+            -> std::ios_base::fmtflags;
+        auto width(void) const
+            -> std::streamsize;
+        auto precision(void) const
+            -> std::streamsize;
+        auto fill(void) const
+            -> char;
+
+        // === public mutator(s) ==========================================
+        auto flags(std::ios_base::fmtflags flags)
+            -> std::ios_base::fmtflags;
+        auto setf(std::ios_base::fmtflags flags)
+            -> std::ios_base::fmtflags;
+        auto setf(std::ios_base::fmtflags flags, std::ios_base::fmtflags mask)
+            -> std::ios_base::fmtflags;
+        void unsetf(std::ios_base::fmtflags mask);
+        auto width(std::streamsize w)
+            -> std::streamsize;
+        auto precision(std::streamsize p)
+            -> std::streamsize;
+        auto fill(char f)
+            -> char;
+        auto write(const char *s, size_t n)
+            -> ssize_t;
+        auto write(const std::vector<char>& s)
+            -> ssize_t;
+        auto write(const string& s)
+            -> ssize_t;
+
+        template <typename T>
+        auto operator<<(const T& in)
+            -> ofdstream&;
+    protected:
+        // === protected member variable(s) ===============================
+        std::stringstream       m_formatter     = {};
+};// end class ofdstream
+
+#include "fdstream.tpp"
 
 #endif
