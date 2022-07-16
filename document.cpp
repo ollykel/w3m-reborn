@@ -15,10 +15,29 @@ size_t  Document::num_lines(void) const
     return m_buffer.size();
 }// end Document::num_lines(void) const
 
-auto    Document::title(void) const -> const string&
+auto Document::title(void) const
+    -> const string&
 {
     return m_title;
 }// end Document::title
+
+auto Document::buffer(void) const
+    -> const buffer_type&
+{
+    return m_buffer;
+}// end Document::buffer
+
+auto Document::links(void) const
+    -> const link_container_type&
+{
+    return m_links;
+}// end Document::links
+
+auto Document::images(void) const
+    -> const image_container_type&
+{
+    return m_images;
+}// end Document::images
 
 auto Document::get_link_at(size_t index) const -> const Reference&
 {

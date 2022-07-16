@@ -8,10 +8,11 @@
 class   Document
 {
     public:
-        // === public member class(es) ====================================
+        // --- public member type(s) --------------------------------------
         class       BufferNode;
         class       Reference;
         struct      BufferIndex;
+
         typedef     BufferIndex                         BufIdx;
         typedef     std::vector<BufferNode>             BufferLine;
         typedef     std::vector<BufferLine>::iterator
@@ -26,15 +27,28 @@ class   Document
         typedef     BufferLine::const_iterator      const_node_iterator;
         typedef     std::vector<Reference>::const_iterator
                     const_ref_iterator;
+        typedef     std::vector<BufferLine>         buffer_type;
+        typedef     std::vector<Reference>          link_container_type;
+        typedef     std::vector<Reference>          image_container_type;
 
-        // === public constructor(s) ======================================
+        // --- public constructor(s) --------------------------------------
         Document(void);// default
 
-        // === public accessor(s) =========================================
-        size_t                              num_lines(void) const;
-        auto    title(void) const   -> const string&;
-        auto get_link_at(size_t index) const    -> const Reference&;
-        auto get_image_at(size_t index) const   -> const Reference&;
+        // --- public accessor(s) -----------------------------------------
+        auto num_lines(void) const
+            -> size_t;
+        auto title(void) const
+            -> const string&;
+        auto buffer(void) const
+            -> const buffer_type&;
+        auto links(void) const
+            -> const link_container_type&;
+        auto images(void) const
+            -> const image_container_type&;
+        auto get_link_at(size_t index) const
+            -> const Reference&;
+        auto get_image_at(size_t index) const
+            -> const Reference&;
         // --- line iterators ---------------------------------------------
         auto cbegin_lines(size_t idx = 0) const  -> const_line_iterator;
         auto cend_lines(void) const         -> const const_line_iterator;
@@ -47,23 +61,23 @@ class   Document
         auto cbegin_images(size_t idx = 0) const -> const_ref_iterator;
         auto cend_images(void) const -> const const_ref_iterator;
 
-        // === public mutator(s) ==========================================
+        // --- public mutator(s) ------------------------------------------
         void            clear(void);
         virtual void    redraw(size_t cols)
         {
             // do nothing
         }
-        void    set_title(const string& title);
+        void set_title(const string& title);
         auto begin_lines(size_t idx = 0)    -> line_iterator;
         auto end_lines(void)                -> const line_iterator;
         auto rbegin_lines(size_t idx = 0)   -> reverse_line_iterator;
         auto rend_lines(void)               -> const reverse_line_iterator;
     protected:
-        // === protected member variable(s) ===============================
+        // --- protected member variable(s) -------------------------------
         string                          m_title         = "";
         std::vector<BufferLine>         m_buffer        = {};
-        std::vector<Reference>          m_links         = {};
-        std::vector<Reference>          m_images        = {};
+        link_container_type             m_links         = {};
+        image_container_type            m_images        = {};
 };// end class Document
 
 class   Document::BufferNode
