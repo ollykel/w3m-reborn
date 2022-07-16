@@ -19,7 +19,8 @@ struct  Uri
     Uri(const string& str);// type
 
     // === public accessor(s) =============================================
-    auto    str(void) const -> string;
+    auto    str(void) const
+        -> string;
 };// end struct Uri
 
 std::ostream&   operator<<(std::ostream& outs, const Uri& uri);

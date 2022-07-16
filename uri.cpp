@@ -27,6 +27,10 @@ Uri::Uri(const string& str)
             goto parse_path;
         }
     }
+    else if (str.front() == '#' or str.front() == '?')
+    {
+        goto parse_path;
+    }
 parse_scheme:
     for (; iter != end and *iter != ':'; ++iter)
     {
@@ -111,10 +115,16 @@ parse_path:
 
         *dest = accum;
     }
+
+    if (path.empty())
+    {
+        path = "/";
+    }
 }// end Uri::Uri(const string& str)
 
 // === public accessor(s) =================================================
-auto    Uri::str(void) const -> string
+auto Uri::str(void) const
+    -> string
 {
     string      out     = "";
 
