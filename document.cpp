@@ -2,13 +2,15 @@
 #include "document.hpp"
 
 // === class Document implementation ======================================
+//
+// ========================================================================
 
 Document::Document(void)
 {
     // do nothing
 }// end Document::Document(void)
 
-// === public accessor(s) =================================================
+// --- public accessor(s) -------------------------------------------------
 
 auto Document::title(void) const
     -> const string&
@@ -48,6 +50,8 @@ void    Document::set_title(const string& title)
 }// end Document::set_title
 
 // === class Document::BufferNode Implementation ==========================
+//
+// ========================================================================
 
 Document::BufferNode::BufferNode(
     const string& text,
@@ -62,34 +66,38 @@ Document::BufferNode::BufferNode(
     m_imageRef = image;
 }// end Document::BufferNode::BufferNode(string text, linkIdx, imageIdx)
 
-// === public accessor(s) =================================================
-const string&       Document::BufferNode::text(void) const
+// --- public accessor(s) -------------------------------------------------
+auto Document::BufferNode::text(void) const
+    -> const string&
 {
     return m_text;
 }
 
-bool                Document::BufferNode::reserved(void) const
+auto Document::BufferNode::reserved(void) const
+    -> bool
 {
     return m_isReserved;
 }// end Document::BufferNode::reserved(void) const
 
-const cont::Ref& Document::BufferNode::link_ref(void) const
+auto Document::BufferNode::link_ref(void) const
+    -> const cont::Ref&
 {
     return m_linkRef;
 }
 
-const cont::Ref& Document::BufferNode::image_ref(void) const
+auto Document::BufferNode::image_ref(void) const
+    -> const cont::Ref&
 {
     return m_imageRef;
 }
 
-auto    Document::BufferNode::stylers(void) const
+auto Document::BufferNode::stylers(void) const
     -> const std::vector<string>&
 {
     return m_stylers;
 }// end Document::BufferNode::stylers(void) const
 
-// === public mutator(s) ==================================================
+// --- public mutator(s) --------------------------------------------------
 void    Document::BufferNode::set_text(const string& text)
 {
     m_text = text;
@@ -135,32 +143,30 @@ void    Document::BufferNode::clear_stylers(void)
 }// end Document::BufferNode::clear_stylers(void)
 
 // === class Document::Reference Implementation ===========================
+//
+// ========================================================================
 
-// === public constructor(s) ==============================================
+// --- public constructor(s) ----------------------------------------------
 Document::Reference::Reference(const string& url)
 {
     m_url = url;
 }// end Document::Reference::Reference(const string& url)
 
-// === public accessor(s) =================================================
-const string&   Document::Reference::get_url(void) const
+// --- public accessor(s) -------------------------------------------------
+auto Document::Reference::get_url(void) const
+    -> const string&
 {
     return m_url;
 }// end Document::Reference::get_url(void) const
 
-auto Document::Reference::cbegin_referers(void)
-    -> referer_container::const_iterator
+auto Document::Reference::referers(void) const
+    -> const referer_container&
 {
-    return m_referers.cbegin();
-}// end Document::Reference::cbegin_referers(void)
+    return m_referers;
+}// end Document::Reference::referers
 
-auto Document::Reference::cend_referers(void)
-    -> const referer_container::const_iterator
-{
-    return m_referers.cend();
-}// end Document::Reference::cend_referers(void)
+// --- public mutator(s) --------------------------------------------------
 
-// === public mutator(s) ==================================================
 void Document::Reference::set_url(const string& url)
 {
     m_url = url;
@@ -176,21 +182,11 @@ void Document::Reference::clear_referers(void)
     m_referers.clear();
 }// end Document::Reference::clear_referers(void)
 
-auto Document::Reference::begin_referers(void)
-    -> referer_container::iterator
-{
-    return m_referers.begin();
-}// end Document::Reference::begin_referers(void)
-
-auto Document::Reference::end_referers(void)
-    -> const referer_container::iterator
-{
-    return m_referers.end();
-}// end Document::Reference::end_referers(void)
-
 // === Document::BufferIndex Implementation ===============================
+//
+// ========================================================================
 
-// === public constructor(s) ==============================================
+// --- public constructor(s) ----------------------------------------------
 Document::BufferIndex::BufferIndex(size_t lnum, size_t cnum)
 {
     line = lnum;
