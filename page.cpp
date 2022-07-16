@@ -30,6 +30,12 @@ auto Page::images(void) const
     return m_imageAccessor;
 }// end Page::images
 
+// --- public mutator(s) --------------------------------------------------
+void Page::redraw(const size_t cols)
+{
+    m_document->redraw(cols);
+}// end Page::redraw
+
 // --- public static function(s) ------------------------------------------
 auto Page::from_text_stream(
     std::istream& ins,

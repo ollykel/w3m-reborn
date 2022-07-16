@@ -5,7 +5,10 @@
 
 struct  Uri
 {
-    // === public member variable(s) ======================================
+    // --- public member type(s) ------------------------------------------
+    typedef     Uri     type;
+
+    // --- public member variable(s) --------------------------------------
     string      scheme;
     string      userInfo;
     string      host;
@@ -14,13 +17,17 @@ struct  Uri
     string      query;
     string      fragment;
 
-    // === public constructor(s) ==========================================
+    // --- public constructor(s) ------------------------------------------
     Uri(void);// default
     Uri(const string& str);// type
 
-    // === public accessor(s) =============================================
+    // --- public accessor(s) ---------------------------------------------
     auto    str(void) const
         -> string;
+
+    // --- public static function(s) --------------------------------------
+    static auto relative(const type& base, const type& rel)
+        -> type;
 };// end struct Uri
 
 std::ostream&   operator<<(std::ostream& outs, const Uri& uri);

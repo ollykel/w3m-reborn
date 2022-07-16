@@ -162,6 +162,26 @@ auto Uri::str(void) const
     return out;
 }// end Uri::str(void) const -> string
 
+// --- public static function(s) ------------------------------------------
+auto Uri::relative(const type& base, const type& rel)
+    -> type
+{
+    Uri     out     = rel;
+
+    if (out.scheme.empty())
+        out.scheme = base.scheme;
+    if (out.userInfo.empty())
+        out.userInfo = base.userInfo;
+    if (out.host.empty())
+        out.host = base.host;
+    if (out.port.empty())
+        out.port = base.port;
+    if (out.path.empty())
+        out.path = base.path;
+
+    return out;
+}// end Uri::relative
+
 std::ostream&   operator<<(std::ostream& outs, const Uri& uri)
 {
     using namespace std;

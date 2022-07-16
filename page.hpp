@@ -22,6 +22,10 @@ class Page
             -> const UriAccessor&;
         auto images(void) const
             -> const UriAccessor&;
+
+        // --- public mutator(s) ------------------------------------------
+        void redraw(const size_t cols);
+
         // --- public static function(s) ----------------------------------
         static auto from_text_stream(
                 std::istream& ins,
