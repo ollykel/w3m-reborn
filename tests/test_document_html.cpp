@@ -63,9 +63,9 @@ void    print_doc(std::ostream& outs, const DocumentHtmlTester& doc)
     outs << "===" << endl;
     outs << "Printing document buffer..." << endl << "===" << endl;
 
-    for (auto iter = doc.cbegin_lines(); iter != doc.cend_lines(); ++iter)
+    for (const auto& line : doc.buffer())
     {
-        for (auto& node : *iter)
+        for (auto& node : line)
         {
             if (node.link_ref())
             {
@@ -85,8 +85,8 @@ void    print_doc(std::ostream& outs, const DocumentHtmlTester& doc)
     outs << "===" << endl;
 
     size_t      count       = 0;
-    for (auto iter = doc.cbegin_links(); iter != doc.cend_links(); ++iter)
+    for (const auto& link : doc.links())
     {
-        outs << count++ << ". " << iter->get_url() << endl;
+        outs << count++ << ". " << link.get_url() << endl;
     }// end for iter
 }// end print_doc(std::ostream& outs, const DocumentHtmlTester& doc)

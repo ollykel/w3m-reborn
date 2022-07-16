@@ -20,9 +20,9 @@ int main(const int argc, const char **argv)
 
         cout << "Printing document buffer..." << endl << "===" << endl;
 
-        for (auto iter = doc.begin_lines(); iter != doc.end_lines(); ++iter)
+        for (const auto &line : doc.buffer())
         {
-            for (auto& node : *iter)
+            for (auto& node : line)
             {
                 cout << '{' << node.text().c_str() << '}';
             }// end for node
@@ -36,9 +36,9 @@ int main(const int argc, const char **argv)
         cout << "Printing document buffer again..." << endl << "==="
             << endl;
 
-        for (auto iter = doc.begin_lines(); iter != doc.end_lines(); ++iter)
+        for (const auto &line : doc.buffer())
         {
-            for (auto& node : *iter)
+            for (auto& node : line)
             {
                 cout << '{' << node.text().c_str() << '}';
             }// end for node

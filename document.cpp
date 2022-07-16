@@ -10,11 +10,6 @@ Document::Document(void)
 
 // === public accessor(s) =================================================
 
-size_t  Document::num_lines(void) const
-{
-    return m_buffer.size();
-}// end Document::num_lines(void) const
-
 auto Document::title(void) const
     -> const string&
 {
@@ -28,55 +23,18 @@ auto Document::buffer(void) const
 }// end Document::buffer
 
 auto Document::links(void) const
-    -> const link_container_type&
+    -> const link_container&
 {
     return m_links;
 }// end Document::links
 
 auto Document::images(void) const
-    -> const image_container_type&
+    -> const image_container&
 {
     return m_images;
 }// end Document::images
 
-auto Document::get_link_at(size_t index) const -> const Reference&
-{
-    return m_links[index];
-}// end get_link_at(size_t index) const
-
-auto Document::get_image_at(size_t index) const -> const Reference&
-{
-    return m_images[index];
-}// end get_image_at(size_t index) const
-
-auto Document::cbegin_lines(size_t idx) const
-    -> const_line_iterator
-{
-    auto        iter        = m_buffer.cbegin();
-
-    while (idx--)
-        ++iter;
-
-    return iter;
-}// end cbegin_lines(size_t idx) const
-
-auto Document::cend_lines(void) const
-    -> const const_line_iterator
-{
-    return m_buffer.cend();
-}// end cend_lines(size_t idx = 0) const    -> const_line_iterator
-
-auto Document::crbegin_lines(size_t idx) const
-    -> const_reverse_line_iterator
-{
-    auto    iter    = m_buffer.crbegin();
-
-    while (idx--)
-        ++iter;
-
-    return iter;
-}// end Document::crbegin_lines(size_t idx = 0) const
-
+// --- public mutator(s) --------------------------------------------------
 void    Document::clear(void)
 {
     m_buffer.clear();
@@ -84,85 +42,10 @@ void    Document::clear(void)
     m_images.clear();
 }// end Document::clear(void)
 
-auto Document::crend_lines(void) const
-    -> const const_reverse_line_iterator
-{
-    return m_buffer.crend();
-}// end Document::crend_lines(size_t idx = 0) const
-
-// --- link iterator(s) ---------------------------------------------------
-
-auto Document::cbegin_links(size_t idx) const -> const_ref_iterator
-{
-    auto    iter    = m_links.cbegin();
-
-    while (idx--)
-    {
-        ++iter;
-    }
-
-    return iter;
-}// end Document::cbegin_links(size_t idx = 0) const -> const_ref_iterator
-
-auto Document::cend_links(void) const -> const const_ref_iterator
-{
-    return m_links.cend();
-}// end Document::cend_links(void) const -> const const_ref_iterator
-
-// --- image iterator(s) --------------------------------------------------
-
-auto Document::cbegin_images(size_t idx) const -> const_ref_iterator
-{
-    auto    iter    = m_images.cbegin();
-
-    while (idx--)
-    {
-        ++iter;
-    }
-
-    return iter;
-}// end Document::cbegin_images(size_t idx = 0) const -> const_ref_iterator
-
-auto Document::cend_images(void) const -> const const_ref_iterator
-{
-    return m_images.cend();
-}// end Document::cend_images(void) const -> const const_ref_iterator
-
-// === public mutator(s) ==================================================
 void    Document::set_title(const string& title)
 {
     m_title = title;
 }// end Document::set_title
-
-auto Document::begin_lines(size_t idx) -> line_iterator
-{
-    auto    iter    = m_buffer.begin();
-
-    while(idx--)
-        ++iter;
-
-    return iter;
-}// end Document::begin_lines(size_t idx = 0)
-
-auto Document::end_lines(void) -> const line_iterator
-{
-    return m_buffer.end();
-}// end Document::end_lines(void)
-
-auto Document::rbegin_lines(size_t idx) -> reverse_line_iterator
-{
-    auto    iter    = m_buffer.rbegin();
-
-    while (idx--)
-        ++iter;
-
-    return iter;
-}// end Document::rbegin_lines(size_t idx = 0) -> reverse_line_iterator
-
-auto Document::rend_lines(void) -> const reverse_line_iterator
-{
-    return m_buffer.rend();
-}// end Document::rend_lines(void) -> const reverse_line_iterator
 
 // === class Document::BufferNode Implementation ==========================
 

@@ -13,53 +13,24 @@ class   Document
         class       Reference;
         struct      BufferIndex;
 
-        typedef     BufferIndex                         BufIdx;
-        typedef     std::vector<BufferNode>             BufferLine;
-        typedef     std::vector<BufferLine>::iterator
-                    line_iterator;
-        typedef     std::vector<BufferLine>::reverse_iterator
-                    reverse_line_iterator;
-        typedef     std::vector<BufferLine>::const_iterator
-                    const_line_iterator;
-        typedef     std::vector<BufferLine>::const_reverse_iterator
-                    const_reverse_line_iterator;
-        typedef     BufferLine::iterator            node_iterator;
-        typedef     BufferLine::const_iterator      const_node_iterator;
-        typedef     std::vector<Reference>::const_iterator
-                    const_ref_iterator;
+        typedef     BufferIndex                     BufIdx;
+        typedef     std::vector<BufferNode>         BufferLine;
         typedef     std::vector<BufferLine>         buffer_type;
-        typedef     std::vector<Reference>          link_container_type;
-        typedef     std::vector<Reference>          image_container_type;
+        typedef     std::vector<Reference>          link_container;
+        typedef     std::vector<Reference>          image_container;
 
         // --- public constructor(s) --------------------------------------
         Document(void);// default
 
         // --- public accessor(s) -----------------------------------------
-        auto num_lines(void) const
-            -> size_t;
         auto title(void) const
             -> const string&;
         auto buffer(void) const
             -> const buffer_type&;
         auto links(void) const
-            -> const link_container_type&;
+            -> const link_container&;
         auto images(void) const
-            -> const image_container_type&;
-        auto get_link_at(size_t index) const
-            -> const Reference&;
-        auto get_image_at(size_t index) const
-            -> const Reference&;
-        // --- line iterators ---------------------------------------------
-        auto cbegin_lines(size_t idx = 0) const  -> const_line_iterator;
-        auto cend_lines(void) const         -> const const_line_iterator;
-        auto crbegin_lines(size_t idx = 0) const -> const_reverse_line_iterator;
-        auto crend_lines(void) const   -> const const_reverse_line_iterator;
-        // --- link iterator(s) -------------------------------------------
-        auto cbegin_links(size_t idx = 0) const -> const_ref_iterator;
-        auto cend_links(void) const -> const const_ref_iterator;
-        // --- image iterator(s) ------------------------------------------
-        auto cbegin_images(size_t idx = 0) const -> const_ref_iterator;
-        auto cend_images(void) const -> const const_ref_iterator;
+            -> const image_container&;
 
         // --- public mutator(s) ------------------------------------------
         void            clear(void);
@@ -68,16 +39,12 @@ class   Document
             // do nothing
         }
         void set_title(const string& title);
-        auto begin_lines(size_t idx = 0)    -> line_iterator;
-        auto end_lines(void)                -> const line_iterator;
-        auto rbegin_lines(size_t idx = 0)   -> reverse_line_iterator;
-        auto rend_lines(void)               -> const reverse_line_iterator;
     protected:
         // --- protected member variable(s) -------------------------------
-        string                          m_title         = "";
-        std::vector<BufferLine>         m_buffer        = {};
-        link_container_type             m_links         = {};
-        image_container_type            m_images        = {};
+        string              m_title         = "";
+        buffer_type         m_buffer        = {};
+        link_container      m_links         = {};
+        image_container     m_images        = {};
 };// end class Document
 
 class   Document::BufferNode
