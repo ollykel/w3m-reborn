@@ -13,24 +13,6 @@ class Page
         // --- public member type(s) --------------------------------------
         typedef     std::vector<Uri>        link_container;
         typedef     std::vector<Uri>        image_container;
-        // --- public member class(es) ------------------------------------
-        class UriAccessor : public std::vector<Uri>
-        {
-            // --- friend class(es) -----------------------------------------------
-            friend class Page;
-
-            protected:
-                // --- protected constructor(s) -----------------------------------
-                UriAccessor(void);
-
-                template <typename ITER_T>
-                UriAccessor(
-                    ITER_T iter,
-                    const ITER_T& end,
-                    const Uri& base,
-                    const size_t res = 0
-                );
-        };// end class Page:UriAccessor
 
         // --- public accessor(s) -----------------------------------------
         auto document(void) const

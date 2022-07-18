@@ -146,31 +146,3 @@ auto Page::from_html_string(
 
     return from_html_stream(stream, uri, cols);
 }// end Page::from_html_string
-
-// === class Page::UriAccessor ============================================
-//
-// ========================================================================
-
-Page::UriAccessor::UriAccessor(void)
-    : std::vector<Uri>()
-{
-    // do nothing
-}// end Page::UriAccessor::UriAccessor
-
-template <typename ITER_T>
-Page::UriAccessor::UriAccessor(
-    ITER_T iter,
-    const ITER_T& end,
-    const Uri& base,
-    const size_t res
-)
-{
-    reserve(res);
-
-    for (; iter != end; ++iter)
-    {
-        auto&   uri     = iter->get_url();
-
-        push_back(Uri::from_relative(base, uri));
-    }// end 
-}// end UriAccessor::UriAccessor
