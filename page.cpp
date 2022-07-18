@@ -1,4 +1,4 @@
-#include <map>
+#include <sstream>
 
 #include "deps.hpp"
 #include "page.hpp"
@@ -18,17 +18,29 @@ auto Page::document(void) const
     return *m_document;
 }// end Page::document
 
-auto Page::links(void) const
-    -> const UriAccessor&
+auto Page::links_relative(void) const
+    -> const link_container&
 {
-    return m_linkAccessor;
-}// end Page::links
+    return m_linkUrisRel;
+}// end Page::links_relative
 
-auto Page::images(void) const
-    -> const UriAccessor&
+auto Page::links_full(void) const
+    -> const link_container&
 {
-    return m_imageAccessor;
-}// end Page::images
+    return m_linkUrisFull;
+}// end Page::links_full
+
+auto Page::images_relative(void) const
+    -> const image_container&
+{
+    return m_imageUrisRel;
+}// end Page::images_relative
+
+auto Page::images_full(void) const
+    -> const image_container&
+{
+    return m_imageUrisFull;
+}// end Page::images_full
 
 // --- public mutator(s) --------------------------------------------------
 void Page::redraw(const size_t cols)
@@ -47,18 +59,30 @@ auto Page::from_text_stream(
 
     out.m_uri = uri;
     out.m_document = std::make_unique<DocumentText>(ins, cols);
-    out.m_linkAccessor = UriAccessor(
-                            out.m_document.links().cbegin(),
-                            out.m_document.links().cend(),
-                            uri,
-                            out.m_document.links().size()
-                        );
-    out.m_imageAccessor = UriAccessor(
-                            out.m_document.images().cbegin(),
-                            out.m_document.images().cend(),
-                            uri,
-                            out.m_document.images().size()
-                        );
+
+    out.m_linkUrisRel.reserve(out.m_document->links().size());
+    for (const auto& link : out.m_document->links())
+    {
+        out.m_linkUrisRel.emplace_back(link.get_url());
+    }// end for link
+
+    out.m_imageUrisRel.reserve(out.m_document->links().size());
+    for (const auto& image : out.m_document->images())
+    {
+        out.m_imageUrisRel.emplace_back(image.get_url());
+    }// end for image
+
+    out.m_linkUrisFull.reserve(out.m_linkUrisRel.size());
+    for (const auto& link : out.m_linkUrisRel)
+    {
+        out.m_linkUrisFull.push_back(Uri::from_relative(uri, link));
+    }// end for link
+
+    out.m_imageUrisFull.reserve(out.m_imageUrisRel.size());
+    for (const auto& image : out.m_imageUrisRel)
+    {
+        out.m_imageUrisFull.push_back(Uri::from_relative(uri, image));
+    }// end for image
 
     return out;
 }// end Page::from_text_stream
@@ -69,24 +93,9 @@ auto Page::from_text_string(
     const size_t cols
 ) -> Page
 {
-    Page    out     = {};
+    std::istringstream      stream(inStr);
 
-    out.m_uri = uri;
-    out.m_document = std::make_unique<DocumentText>(inStr, cols);
-    out.m_linkAccessor = UriAccessor(
-                            out.m_document.links().cbegin(),
-                            out.m_document.links().cend(),
-                            uri,
-                            out.m_document.links().size()
-                        );
-    out.m_imageAccessor = UriAccessor(
-                            out.m_document.images().cbegin(),
-                            out.m_document.images().cend(),
-                            uri,
-                            out.m_document.images().size()
-                        );
-
-    return out;
+    return from_text_stream(stream, uri, cols);
 }// end Page::from_text_string
 
 auto Page::from_html_stream(
@@ -99,18 +108,30 @@ auto Page::from_html_stream(
 
     out.m_uri = uri;
     out.m_document = std::make_unique<DocumentHtml>(ins, cols);
-    out.m_linkAccessor = UriAccessor(
-                            out.m_document.links().cbegin(),
-                            out.m_document.links().cend(),
-                            uri,
-                            out.m_document.links().size()
-                        );
-    out.m_imageAccessor = UriAccessor(
-                            out.m_document.images().cbegin(),
-                            out.m_document.images().cend(),
-                            uri,
-                            out.m_document.images().size()
-                        );
+
+    out.m_linkUrisRel.reserve(out.m_document->links().size());
+    for (const auto& link : out.m_document->links())
+    {
+        out.m_linkUrisRel.emplace_back(link.get_url());
+    }// end for link
+
+    out.m_imageUrisRel.reserve(out.m_document->links().size());
+    for (const auto& image : out.m_document->images())
+    {
+        out.m_imageUrisRel.emplace_back(image.get_url());
+    }// end for image
+
+    out.m_linkUrisFull.reserve(out.m_linkUrisRel.size());
+    for (const auto& link : out.m_linkUrisRel)
+    {
+        out.m_linkUrisFull.push_back(Uri::from_relative(uri, link));
+    }// end for link
+
+    out.m_imageUrisFull.reserve(out.m_imageUrisRel.size());
+    for (const auto& image : out.m_imageUrisRel)
+    {
+        out.m_imageUrisFull.push_back(Uri::from_relative(uri, image));
+    }// end for image
 
     return out;
 }// end Page::from_html_stream
@@ -121,32 +142,23 @@ auto Page::from_html_string(
     const size_t cols
 ) -> Page
 {
-    Page    out     = {};
+    std::istringstream      stream(inStr);
 
-    out.m_uri = uri;
-    out.m_document = std::make_unique<DocumentHtml>(inStr, cols);
-    out.m_linkAccessor = UriAccessor(
-                            out.m_document.links().cbegin(),
-                            out.m_document.links().cend(),
-                            uri,
-                            out.m_document.links().size()
-                        );
-    out.m_imageAccessor = UriAccessor(
-                            out.m_document.images().cbegin(),
-                            out.m_document.images().cend(),
-                            uri,
-                            out.m_document.images().size()
-                        );
-
-    return out;
+    return from_html_stream(stream, uri, cols);
 }// end Page::from_html_string
 
 // === class Page::UriAccessor ============================================
 //
 // ========================================================================
 
+Page::UriAccessor::UriAccessor(void)
+    : std::vector<Uri>()
+{
+    // do nothing
+}// end Page::UriAccessor::UriAccessor
+
 template <typename ITER_T>
-UriAccessor::UriAccessor(
+Page::UriAccessor::UriAccessor(
     ITER_T iter,
     const ITER_T& end,
     const Uri& base,
@@ -157,8 +169,8 @@ UriAccessor::UriAccessor(
 
     for (; iter != end; ++iter)
     {
-        auto&   uri     = *iter;
+        auto&   uri     = iter->get_url();
 
-        push_back(Uri::relative(base, uri));
+        push_back(Uri::from_relative(base, uri));
     }// end 
 }// end UriAccessor::UriAccessor

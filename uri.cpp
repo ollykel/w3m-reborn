@@ -115,11 +115,6 @@ parse_path:
 
         *dest = accum;
     }
-
-    if (path.empty())
-    {
-        path = "/";
-    }
 }// end Uri::Uri(const string& str)
 
 // === public accessor(s) =================================================
@@ -149,38 +144,45 @@ auto Uri::str(void) const
     if (not path.empty())
     {
         out += path;
-        if (not query.empty())
-        {
-            out += "?" + query;
-        }
-        if (not fragment.empty())
-        {
-            out += "#" + fragment;
-        }
+    }
+    if (not query.empty())
+    {
+        out += "?" + query;
+    }
+    if (not fragment.empty())
+    {
+        out += "#" + fragment;
     }
 
     return out;
 }// end Uri::str(void) const -> string
 
 // --- public static function(s) ------------------------------------------
-auto Uri::relative(const type& base, const type& rel)
+auto Uri::from_relative(const type& base, const type& rel)
     -> type
 {
     Uri     out     = rel;
 
     if (out.scheme.empty())
+    {
         out.scheme = base.scheme;
-    if (out.userInfo.empty())
-        out.userInfo = base.userInfo;
+        goto finally;
+    }
     if (out.host.empty())
+    {
+        out.userInfo = base.userInfo;
         out.host = base.host;
-    if (out.port.empty())
         out.port = base.port;
+    }
     if (out.path.empty())
+    {
         out.path = base.path;
+        out.query = base.query;
+    }
 
+finally:
     return out;
-}// end Uri::relative
+}// end Uri::from_relative
 
 std::ostream&   operator<<(std::ostream& outs, const Uri& uri)
 {

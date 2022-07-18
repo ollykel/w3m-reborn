@@ -26,7 +26,7 @@ struct  Uri
         -> string;
 
     // --- public static function(s) --------------------------------------
-    static auto relative(const type& base, const type& rel)
+    static auto from_relative(const type& base, const type& rel)
         -> type;
 };// end struct Uri
 
