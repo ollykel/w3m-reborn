@@ -84,6 +84,11 @@ auto Page::from_text_stream(
         out.m_imageUrisFull.push_back(Uri::from_relative(uri, image));
     }// end for image
 
+    if (out.m_document->title().empty())
+    {
+        out.m_document->set_title(uri.str());
+    }
+
     return out;
 }// end Page::from_text_stream
 
@@ -132,6 +137,11 @@ auto Page::from_html_stream(
     {
         out.m_imageUrisFull.push_back(Uri::from_relative(uri, image));
     }// end for image
+
+    if (out.m_document->title().empty())
+    {
+        out.m_document->set_title(uri.str());
+    }
 
     return out;
 }// end Page::from_html_stream
