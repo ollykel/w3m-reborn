@@ -58,6 +58,12 @@ namespace utils
                             const std::string& str,
                             const char pathSep = '/'
                         );
+
+    template <typename ITERABLE_T>
+    auto join_str(const ITERABLE_T& cont, const std::string& joiner = "")
+        -> std::string;
 };// end namespace utils
+
+#include "utils.tpp"
 
 #endif
