@@ -59,6 +59,36 @@ namespace utils
                             const char pathSep = '/'
                         );
 
+    template <typename ITER_T>
+    void ignore_whitespace(
+        ITER_T& iter,
+        const ITER_T& end
+    );
+
+    template <typename ITER_T>
+    void ignore_chars(
+        ITER_T& iter,
+        const ITER_T& end,
+        const std::string& ignoreStr
+    );
+
+    template <typename ITER_T>
+    auto copy_token_until(
+            ITER_T& iter,
+            const ITER_T& end,
+            const std::string& avoid,
+            const bool escapeChars = false
+        )
+        -> std::string;
+
+    template <typename ITER_T>
+    auto copy_token_squoted(ITER_T& iter, const ITER_T& end)
+        -> std::string;
+
+    template <typename ITER_T>
+    auto copy_token_dquoted(ITER_T& iter, const ITER_T& end)
+        -> std::string;
+
     template <typename ITERABLE_T>
     auto join_str(const ITERABLE_T& cont, const std::string& joiner = "")
         -> std::string;

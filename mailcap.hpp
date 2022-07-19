@@ -16,15 +16,13 @@ class Mailcap
         // --- public accessor(s) -----------------------------------------
         auto get_entry(
                 const string& superType,
-                const string& subType,
-                const string& filenameBase
+                const string& subType
             ) const
-            -> string;
+            -> const Entry*;
         auto get_entry(
-                const string& mimeType,
-                const string& filenameBase
+                const string& mimeType
             ) const
-            -> string;
+            -> const Entry*;
         // --- public mutator(s) ------------------------------------------
         void clear(
             const string& superType = "",
@@ -41,6 +39,10 @@ class Mailcap
                 const Entry& entry
             )
             -> Entry&;
+
+        // --- public static function(s) ----------------------------------
+        static auto split_mimetype(const string& mimeType)
+            -> std::pair<string,string>;
     protected:
         // --- protected member type(s) -----------------------------------
         typedef     std::list<Entry>                    entry_container;
@@ -64,7 +66,11 @@ class Mailcap::Entry
         auto filename_template(void) const
             -> string;
         auto test(void) const
-            -> const string&;
+            -> const Command&;
+        auto has_test(void) const
+            -> bool;
+        auto passes_test(void) const
+            -> bool;
         auto output_type(void) const
             -> const string&;
         auto needs_terminal(void) const
@@ -92,6 +98,12 @@ class Mailcap::Entry
         Command                         m_test                  = {};
         string                          m_outputType            = "";
         bool                            m_needsTerminal         = false;
+
+        // --- protected static function(s) -------------------------------
+        template <typename CONTAINER_T>
+        static void tokenize_fmt_string(CONTAINER_T& dest, const string& str);
 };// end class Mailcap::Entry
+
+#include "mailcap.tpp"
 
 #endif
