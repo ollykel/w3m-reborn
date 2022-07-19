@@ -170,7 +170,24 @@ auto Mailcap::Entry::passes_test(void) const
     {
         return true;
     }
-    return m_test.spawn().wait() == 0;
+
+    auto    sproc   = m_test.spawn();
+
+    sproc.stdin().close();
+
+    while (sproc.stdout())
+    {
+        sproc.stdout().ignore(SIZE_MAX);
+    }
+    sproc.stdout().close();
+
+    while (sproc.stderr())
+    {
+        sproc.stderr().ignore(SIZE_MAX);
+    }
+    sproc.stderr().close();
+
+    return sproc.wait();
 }// end Mailcap::Entry::passes_test
 
 auto Mailcap::Entry::output_type(void) const
@@ -205,7 +222,7 @@ auto Mailcap::Entry::set_filename_template(const string& filename)
 auto Mailcap::Entry::set_test(const string& testCommand)
     -> Entry&
 {
-    m_test = Command(testCommand);
+    m_test = Command(testCommand, true, true, true);
     return *this;
 }// end Mailcap::Entry::set_test
 
