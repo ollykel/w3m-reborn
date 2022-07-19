@@ -174,7 +174,7 @@ auto Mailcap::Entry::passes_test(void) const
 }// end Mailcap::Entry::passes_test
 
 auto Mailcap::Entry::output_type(void) const
-    -> const string&
+    -> const std::pair<string,string>&
 {
     return m_outputType;
 }// end Mailcap::Entry::output_type
@@ -209,10 +209,21 @@ auto Mailcap::Entry::set_test(const string& testCommand)
     return *this;
 }// end Mailcap::Entry::set_test
 
+auto Mailcap::Entry::set_output_type(
+        const string& superType,
+        const string& subType
+    )
+    -> Entry&
+{
+    m_outputType.first = superType;
+    m_outputType.second = subType;
+    return *this;
+}// end Mailcap::Entry::set_output_type
+
 auto Mailcap::Entry::set_output_type(const string& mimeType)
     -> Entry&
 {
-    m_outputType = mimeType;
+    m_outputType = split_mimetype(mimeType);
     return *this;
 }// end Mailcap::Entry::set_output_type
 

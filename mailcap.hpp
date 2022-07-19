@@ -72,7 +72,7 @@ class Mailcap::Entry
         auto passes_test(void) const
             -> bool;
         auto output_type(void) const
-            -> const string&;
+            -> const std::pair<string,string>&;
         auto needs_terminal(void) const
             -> bool;
 
@@ -82,6 +82,11 @@ class Mailcap::Entry
         auto set_filename_template(const string& filename)
             -> Entry&;
         auto set_test(const string& testCommand)
+            -> Entry&;
+        auto set_output_type(
+                const string& superType,
+                const string& subType
+            )
             -> Entry&;
         auto set_output_type(const string& mimeType)
             -> Entry&;
@@ -96,7 +101,7 @@ class Mailcap::Entry
         command_template_container      m_commandTemplate       = {};
         filename_template_container     m_filenameTemplate      = {};
         Command                         m_test                  = {};
-        string                          m_outputType            = "";
+        std::pair<string,string>        m_outputType            = {};
         bool                            m_needsTerminal         = false;
 
         // --- protected static function(s) -------------------------------
