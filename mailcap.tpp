@@ -13,7 +13,7 @@ void Mailcap::Entry::tokenize_fmt_string(CONTAINER_T& dest, const string& str)
         switch (*iter)
         {
             case '%':
-                dest.push_back(token);
+                dest.emplace_back(token);
                 token.clear();
                 ++iter;
                 if (iter == end)
@@ -24,13 +24,16 @@ void Mailcap::Entry::tokenize_fmt_string(CONTAINER_T& dest, const string& str)
 
                     ++iter;
                     param = utils::copy_token_until(iter, end, "}", true);
-                    dest.push_back("%{" + param + "}");
+                    dest.emplace_back("%{" + param + "}");
                     if (iter != end)
+                    {
                         ++iter;
+                        ++iter;
+                    }
                 }
                 else
                 {
-                    dest.push_back("%" + *iter);
+                    dest.emplace_back(string({ '%', *iter }));
                     ++iter;
                 }
                 break;

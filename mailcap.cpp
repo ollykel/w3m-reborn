@@ -15,20 +15,59 @@ auto Mailcap::get_entry(
     ) const
     -> const Entry*
 {
-    auto&   superTypeMap     = m_typeMap.count(superType) ?
-                                m_typeMap.at(superType) :
-                                m_typeMap.at("*");
-    auto&   subTypeEntries   = superTypeMap.count(subType) ?
-                                superTypeMap.at(subType) :
-                                superTypeMap.at("*");
-
-    for (const auto& entry : subTypeEntries)
+    if (m_typeMap.count(superType))
     {
-        if (entry.passes_test())
+        const auto&     superTypeMap    = m_typeMap.at(superType);
+
+        if (superTypeMap.count(subType))
         {
-            return &entry;
+            for (const auto& entry : superTypeMap.at(subType))
+            {
+                if (entry.passes_test())
+                {
+                    return &entry;
+                }
+            }// end for entry
         }
-    }// end for entry
+
+        if (superTypeMap.count("*"))
+        {
+            for (const auto& entry : superTypeMap.at("*"))
+            {
+                if (entry.passes_test())
+                {
+                    return &entry;
+                }
+            }// end for entry
+        }
+    }
+
+    if (m_typeMap.count("*"))
+    {
+        const auto&     superTypeMap    = m_typeMap.at("*");
+
+        if (superTypeMap.count(subType))
+        {
+            for (const auto& entry : superTypeMap.at(subType))
+            {
+                if (entry.passes_test())
+                {
+                    return &entry;
+                }
+            }// end for entry
+        }
+
+        if (superTypeMap.count("*"))
+        {
+            for (const auto& entry : superTypeMap.at("*"))
+            {
+                if (entry.passes_test())
+                {
+                    return &entry;
+                }
+            }// end for entry
+        }
+    }
 
     // if we got here, no suitable command found
     return nullptr;
@@ -83,7 +122,7 @@ auto Mailcap::append_entry(
         );
     }
 
-    auto&   entryCont   = m_typeMap.at(superType).at(subType);
+    auto&   entryCont   = m_typeMap[superType][subType];
 
     entryCont.emplace_front(entry);
     return entryCont.front();
@@ -140,15 +179,15 @@ Mailcap::Entry::Entry(const string& command)
 
 // --- public accessor(s) -------------------------------------------------
 auto Mailcap::Entry::command_template(void) const
-    -> string
+    -> const command_template_container&
 {
-    return utils::join_str(m_commandTemplate);
+    return m_commandTemplate;
 }// end Mailcap::Entry::command_template
 
 auto Mailcap::Entry::filename_template(void) const
-    -> string
+    -> const filename_template_container&
 {
-    return utils::join_str(m_filenameTemplate);
+    return m_filenameTemplate;
 }// end Mailcap::Entry::filename_template
 
 auto Mailcap::Entry::test(void) const
@@ -177,17 +216,17 @@ auto Mailcap::Entry::passes_test(void) const
 
     while (sproc.stdout())
     {
-        sproc.stdout().ignore(SIZE_MAX);
+        sproc.stdout().ignore(INT_MAX);
     }
     sproc.stdout().close();
 
     while (sproc.stderr())
     {
-        sproc.stderr().ignore(SIZE_MAX);
+        sproc.stderr().ignore(INT_MAX);
     }
     sproc.stderr().close();
 
-    return sproc.wait();
+    return sproc.wait() == 0;
 }// end Mailcap::Entry::passes_test
 
 auto Mailcap::Entry::output_type(void) const

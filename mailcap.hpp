@@ -56,15 +56,19 @@ class Mailcap
 class Mailcap::Entry
 {
     public:
+        // --- public member type(s) --------------------------------------
+        typedef     std::vector<string>     command_template_container;
+        typedef     std::vector<string>     filename_template_container;
+
         // --- public constructor(s) --------------------------------------
         Entry(void);
         Entry(const string& command);
 
         // --- public accessor(s) -----------------------------------------
         auto command_template(void) const
-            -> string;
+            -> const command_template_container&;
         auto filename_template(void) const
-            -> string;
+            -> const filename_template_container&;
         auto test(void) const
             -> const Command&;
         auto has_test(void) const
@@ -93,10 +97,6 @@ class Mailcap::Entry
         auto set_needs_terminal(const bool state)
             -> Entry&;
     protected:
-        // --- protected member type(s) -----------------------------------
-        typedef     std::vector<string>     command_template_container;
-        typedef     std::vector<string>     filename_template_container;
-
         // --- protected member variable(s) -------------------------------
         command_template_container      m_commandTemplate       = {};
         filename_template_container     m_filenameTemplate      = {};
