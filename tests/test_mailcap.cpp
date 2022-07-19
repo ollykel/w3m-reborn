@@ -75,20 +75,19 @@ int main(const int argc, const char **argv)
     cout << "Mailcap:" << endl;
     cout << tester << endl;
 
-    cout << "image/jpeg handler: ";
     {
         auto    *entry      = tester.get_entry("image/jpeg");
 
+        cout << "image/jpeg handler: ";
         if (entry)
         {
-            cout << utils::join_str(entry->command_template());
+            cout << utils::join_str(entry->command_template()) << endl;
         }
         else
         {
-            cout << "<NONE>";
+            cout << "<NONE>" << endl;
         }
     }
-    cout << endl;
 
     cout << "image/png handler: ";
     {

@@ -235,11 +235,89 @@ auto Mailcap::Entry::output_type(void) const
     return m_outputType;
 }// end Mailcap::Entry::output_type
 
+auto Mailcap::Entry::output_type_str(void) const
+    -> string
+{
+    if (m_outputType.first.empty() and m_outputType.second.empty())
+    {
+        return "";
+    }
+    return m_outputType.first + '/' + m_outputType.second;
+}// end Mailcap::Entry::output_type_str
+
 auto Mailcap::Entry::needs_terminal(void) const
     -> bool
 {
     return m_needsTerminal;
 }// end Mailcap::Entry::needs_terminal
+
+auto Mailcap::Entry::file_piped(void) const
+    -> bool
+{
+    return m_isFilePiped;
+}// end Mailcap::Entry::file_piped
+
+auto Mailcap::Entry::parse_filename(const string& fileBase) const
+    -> string
+{
+    string      output      = "";
+
+    for (const auto& str : m_filenameTemplate)
+    {
+        if (str == "%s")
+        {
+            output += fileBase;
+        }
+        else
+        {
+            output += str;
+        }
+    }// end for str
+
+    return output;
+}// end Mailcap::Entry::parse_filename
+
+auto Mailcap::Entry::create_command(
+        const string& fileBase,
+        const string& superType,
+        const string& subType
+    ) const
+    -> Command
+{
+    const string    mimeType    = superType + '/' + subType;
+
+    return create_command(fileBase, mimeType);
+}// end Mailcap::Entry::create_command
+
+auto Mailcap::Entry::create_command(
+        const string& fileBase,
+        const string& mimeType
+    ) const
+    -> Command
+{
+    const string    fileName        = parse_filename(fileBase);
+    string          commandStr      = "";
+
+    for (const auto& str : m_commandTemplate)
+    {
+        if (str == "%s")
+        {
+            commandStr += fileName;
+        }
+        else if (str == "%t")
+        {
+            commandStr += mimeType;
+        }
+        else
+        {
+            commandStr += str;
+        }
+    }// end for str
+
+    return Command(commandStr)
+        .set_stdin_piped(file_piped())
+        .set_stdout_piped(not output_type_str().empty());
+}// end Mailcap::Entry::create_command
 
 // --- public mutator(s) --------------------------------------------------
 auto Mailcap::Entry::set_command_template(const string& command)
@@ -247,6 +325,15 @@ auto Mailcap::Entry::set_command_template(const string& command)
 {
     m_commandTemplate.clear();
     tokenize_fmt_string(m_commandTemplate, command);
+    m_isFilePiped = true;
+    for (const auto& str : m_commandTemplate)
+    {
+        if (str == "%s")
+        {
+            m_isFilePiped = false;
+            break;
+        }
+    }// end for str
     return *this;
 }// end Mailcap::Entry::set_command_template
 

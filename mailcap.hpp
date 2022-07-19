@@ -77,8 +77,25 @@ class Mailcap::Entry
             -> bool;
         auto output_type(void) const
             -> const std::pair<string,string>&;
+        auto output_type_str(void) const
+            -> string;
         auto needs_terminal(void) const
             -> bool;
+        auto file_piped(void) const
+            -> bool;
+        auto parse_filename(const string& fileBase) const
+            -> string;
+        auto create_command(
+                const string& fileBase,
+                const string& superType,
+                const string& subType
+            ) const
+            -> Command;
+        auto create_command(
+                const string& fileBase,
+                const string& mimeType
+            ) const
+            -> Command;
 
         // --- public mutator(s) ------------------------------------------
         auto set_command_template(const string& command)
@@ -103,6 +120,7 @@ class Mailcap::Entry
         Command                         m_test                  = {};
         std::pair<string,string>        m_outputType            = {};
         bool                            m_needsTerminal         = false;
+        bool                            m_isFilePiped           = false;
 
         // --- protected static function(s) -------------------------------
         template <typename CONTAINER_T>
