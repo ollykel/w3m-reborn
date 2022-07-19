@@ -28,7 +28,6 @@ void Mailcap::Entry::tokenize_fmt_string(CONTAINER_T& dest, const string& str)
                     if (iter != end)
                     {
                         ++iter;
-                        ++iter;
                     }
                 }
                 else

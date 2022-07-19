@@ -63,6 +63,8 @@ int main(const int argc, const char **argv)
     tester.append_entry("image", "jpeg", { "mpv %s" });
     tester.append_entry("image", "png", { "mpv %s" }).set_test("false");
     tester.append_entry("application", "pdf", { "evince %s" });
+    tester.append_entry("application", "pdf",
+        { "pdf-view --property=%{some_property} %s" });
     tester.append_entry("image", "jpeg", { "viewer --image --file=%s %s" })
         .set_test("false");
     tester.append_entry("image", "png", { "foo %s" }).set_test("which foo");
