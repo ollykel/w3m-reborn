@@ -69,6 +69,8 @@ int main(const int argc, const char **argv)
         .set_test("false");
     tester.append_entry("image", "png", { "foo %s" }).set_test("which foo");
     tester.append_entry("image", "png", { "bar %s" }).set_test("which bar");
+    tester.append_entry("video/mp4",
+        { "do-mailcap --format=\"%%s\" --type=\"%t\" %s" });
 
     cout << "Mailcap:" << endl;
     cout << tester << endl;
