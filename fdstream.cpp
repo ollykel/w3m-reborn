@@ -64,7 +64,14 @@ ifdstream::ifdstream(const int fd)
     m_fd = fd;
     m_bufPtr = std::make_unique<fdstream_streambuf>(fd);
     rdbuf(m_bufPtr.get());
-}// end 
+}// end ifdstream::ifdstream
+
+// --- public accessor(s) -------------------------------------------------
+auto ifdstream::fd(void) const
+    -> int
+{
+    return m_fd;
+}// end ifdstream::fd
 
 // --- public mutator(s) --------------------------------------------------
 void ifdstream::close(void)
@@ -83,7 +90,14 @@ ofdstream::ofdstream(const int fd)
     m_fd = fd;
     m_bufPtr = std::make_unique<fdstream_streambuf>(fd);
     rdbuf(m_bufPtr.get());
-}// end 
+}// end ofdstream::ofdstream
+
+// --- public accessor(s) -------------------------------------------------
+auto ofdstream::fd(void) const
+    -> int
+{
+    return m_fd;
+}// end ofdstream::fd
 
 // --- public mutator(s) --------------------------------------------------
 void ofdstream::close(void)

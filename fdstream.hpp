@@ -62,6 +62,10 @@ class   ifdstream : public std::istream
         // ================================================================
         ifdstream(const int fd);
 
+        // --- public accessor(s) -----------------------------------------
+        auto fd(void) const
+            -> int;
+
         // === public mutator(s) ==========================================
         void close(void);
     protected:
@@ -86,6 +90,10 @@ class   ofdstream : public std::ostream
         //
         // ================================================================
         ofdstream(const int fd);
+
+        // --- public accessor(s) -----------------------------------------
+        auto fd(void) const
+            -> int;
 
         // === public mutator(s) ==========================================
         void close(void);
