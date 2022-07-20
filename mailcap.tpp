@@ -47,4 +47,9 @@ void Mailcap::Entry::tokenize_fmt_string(CONTAINER_T& dest, const string& str)
                 throw std::logic_error("unhandled char");
         }// end switch
     }// end while
+
+    if (not token.empty())
+    {
+        dest.emplace_back(token);
+    }
 }// end Mailcap::Entry::tokenize_fmt_string

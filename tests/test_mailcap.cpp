@@ -59,7 +59,7 @@ int main(const int argc, const char **argv)
 
     MailcapTester       tester;
 
-    tester.append_entry("*", "*", { "cat %s" });
+    tester.append_entry("*", "*", { "cat" });
     tester.append_entry("image", "jpeg", { "mpv %s" });
     tester.append_entry("image", "png", { "mpv %s" }).set_test("false");
     tester.append_entry("application", "pdf", { "evince %s" });
@@ -71,38 +71,39 @@ int main(const int argc, const char **argv)
     tester.append_entry("image", "png", { "bar %s" }).set_test("which bar");
     tester.append_entry("video/mp4",
         { "do-mailcap --format=\"%%s\" --type=\"%t\" %s" });
+    tester.append_entry("text/markdown", { "pandoc -f markdown -t html" })
+        .set_output_type("text/html")
+        .set_test("which pandoc");
 
     cout << "Mailcap:" << endl;
     cout << tester << endl;
 
+    auto    testRunner      = [&tester](const string& mimeType)
     {
-        auto    *entry      = tester.get_entry("image/jpeg");
+        auto    *entry      = tester.get_entry(mimeType);
 
-        cout << "image/jpeg handler: ";
+        cout << mimeType << " handler: ";
         if (entry)
         {
+            auto    cmd     = entry->create_command
+                                ("temp0001.ext", mimeType);
+
             cout << utils::join_str(entry->command_template()) << endl;
+
+            cout << "Command: " << cmd.args().at(0) << endl;
+            cout << "stdin piped? " << cmd.stdin_piped() << endl;
+            cout << "stdout piped? " << cmd.stdout_piped() << endl;
+            cout << endl;
         }
         else
         {
             cout << "<NONE>" << endl;
         }
-    }
+    };// end testRunner
 
-    cout << "image/png handler: ";
-    {
-        auto    *entry      = tester.get_entry("image/png");
-
-        if (entry)
-        {
-            cout << utils::join_str(entry->command_template());
-        }
-        else
-        {
-            cout << "<NONE>";
-        }
-    }
-    cout << endl;
+    testRunner("image/jpeg");
+    testRunner("image/png");
+    testRunner("text/markdown");
 
     return EXIT_SUCCESS;
 }// end main

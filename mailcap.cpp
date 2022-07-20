@@ -260,6 +260,11 @@ auto Mailcap::Entry::file_piped(void) const
 auto Mailcap::Entry::parse_filename(const string& fileBase) const
     -> string
 {
+    if (m_filenameTemplate.empty())
+    {
+        return fileBase;
+    }
+
     string      output      = "";
 
     for (const auto& str : m_filenameTemplate)
