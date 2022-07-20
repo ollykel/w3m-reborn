@@ -104,6 +104,7 @@ int main(const int argc, const char **argv)
     testRunner("image/jpeg");
     testRunner("image/png");
     testRunner("text/markdown");
+    testRunner("null/tester");
 
     return EXIT_SUCCESS;
 }// end main
