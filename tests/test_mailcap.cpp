@@ -78,7 +78,7 @@ int main(const int argc, const char **argv)
     cout << "Mailcap:" << endl;
     cout << tester << endl;
 
-    auto    testRunner      = [&tester](const string& mimeType)
+    const auto      testRunner      = [&tester](const string& mimeType)
     {
         auto    *entry      = tester.get_entry(mimeType);
 
@@ -89,10 +89,15 @@ int main(const int argc, const char **argv)
                                 ("temp0001.ext", mimeType);
 
             cout << utils::join_str(entry->command_template()) << endl;
+            if (entry->output_type_str().length())
+            {
+                cout << "\toutput type: "
+                    << entry->output_type_str() << endl;
+            }
 
-            cout << "Command: " << cmd.args().at(0) << endl;
-            cout << "stdin piped? " << cmd.stdin_piped() << endl;
-            cout << "stdout piped? " << cmd.stdout_piped() << endl;
+            cout << "\tCommand: " << cmd.args().at(0) << endl;
+            cout << "\tstdin piped? " << cmd.stdin_piped() << endl;
+            cout << "\tstdout piped? " << cmd.stdout_piped() << endl;
             cout << endl;
         }
         else
