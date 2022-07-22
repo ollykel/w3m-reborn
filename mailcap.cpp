@@ -139,6 +139,13 @@ auto Mailcap::append_entry(
     return append_entry(mimePair.first, mimePair.second, entry);
 }// end Mailcap::append_entry
 
+auto Mailcap::parse_entry(const string& entryStr)
+    -> Entry&
+{
+    // TODO: implement
+    throw std::logic_error("not implemented");
+}// end Mailcap::parse_entry
+
 // --- public static function(s) ------------------------------------------
 auto Mailcap::split_mimetype(const string& mimeType)
     -> std::pair<string,string>

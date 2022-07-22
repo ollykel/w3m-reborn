@@ -39,6 +39,8 @@ class Mailcap
                 const Entry& entry
             )
             -> Entry&;
+        auto parse_entry(const string& entryStr)
+            -> Entry&;
 
         // --- public static function(s) ----------------------------------
         static auto split_mimetype(const string& mimeType)

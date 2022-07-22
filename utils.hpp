@@ -92,6 +92,22 @@ namespace utils
     template <typename ITERABLE_T>
     auto join_str(const ITERABLE_T& cont, const std::string& joiner = "")
         -> std::string;
+
+    template <typename CONTAINER_T>
+    auto splitn(
+            CONTAINER_T& dest,
+            const std::string& str,
+            const std::string& delims = " \t\r\n",
+            const char escape = '\0',
+            const size_t nSplits = 0
+        )
+        -> size_t;
+
+    template <class DEST_CONT, class SRC_CONT, typename MAP_FUNC>
+    void map(DEST_CONT& dest, const SRC_CONT& src, MAP_FUNC mapFunc);
+
+    template <class CONT, typename OPERATION>
+    void for_each(CONT& cont, OPERATION op);
 };// end namespace utils
 
 #include "utils.tpp"

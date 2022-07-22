@@ -1,4 +1,5 @@
 #include <cctype>
+#include <algorithm>
 #include <unordered_set>
 
 namespace utils
@@ -151,5 +152,68 @@ auto join_str(const ITERABLE_T& cont, const std::string& joiner)
 finally:
     return output;
 }// end join_str
+
+template <typename CONTAINER_T>
+auto splitn(
+        CONTAINER_T& dest,
+        const std::string& str,
+        const std::string& delims,
+        const char escape,
+        const size_t nSplits
+    )
+    -> size_t
+{
+    using namespace std;
+
+    unordered_set<char>     delimSet(delims.begin(), delims.end());
+    size_t                  count           = 0;
+    string                  token           = "";
+    bool                    toEscape        = false;
+
+    for (const char ch : str)
+    {
+        if (ch == escape)
+        {
+            toEscape = true;
+        }
+        else if (delimSet.count(ch) and not toEscape
+            and (not nSplits or count < nSplits))
+        {
+            if (token.length())
+            {
+                dest.push_back(token);
+                token.clear();
+                ++count;
+            }
+        }
+        else
+        {
+            token += ch;
+            toEscape = false;
+        }
+    }
+
+    if (token.length())
+    {
+        dest.push_back(token);
+    }
+
+    return count;
+}// end splitn
+
+template <class DEST_CONT, class SRC_CONT, typename MAP_FUNC>
+void map(DEST_CONT& dest, const SRC_CONT& src, MAP_FUNC mapFunc)
+{
+    for (const auto& elem : src)
+    {
+        dest.push_back(mapFunc(elem));
+    }// end for elem
+}// end map
+
+template <class CONT, typename OPERATION>
+void for_each(CONT& cont, OPERATION op)
+{
+    std::for_each(cont.begin(), cont.end(), op);
+}// end for_each
 
 };// end namespace utils
