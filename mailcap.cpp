@@ -2,6 +2,7 @@
 #include <map>
 
 #include "deps.hpp"
+#include "utils.hpp"
 #include "mailcap.hpp"
 
 // === class Mailcap Implementation =======================================

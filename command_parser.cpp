@@ -1,6 +1,7 @@
 #include "sstream"
 
 #include "deps.hpp"
+#include "utils.hpp"
 #include "command_parser.hpp"
 
 // === public constructor(s) ==============================================

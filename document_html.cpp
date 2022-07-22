@@ -4,6 +4,7 @@
 #include <map>
 
 #include "deps.hpp"
+#include "utils.hpp"
 #include "dom_tree.hpp"
 #include "html_parser_basic.hpp"
 #include "document.hpp"

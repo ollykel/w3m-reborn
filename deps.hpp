@@ -23,7 +23,6 @@
 #include <string>
 #include <vector>
 
-#include "utils.hpp"
 #include "string_exception.hpp"
 #include "container.hpp"
 

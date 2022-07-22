@@ -1,4 +1,5 @@
 #include "../deps.hpp"
+#include "../utils.hpp"
 #include "../mailcap.hpp"
 
 class MailcapTester : public Mailcap

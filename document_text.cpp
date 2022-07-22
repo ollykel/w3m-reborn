@@ -2,6 +2,7 @@
 #include <sstream>
 
 #include "deps.hpp"
+#include "utils.hpp"
 #include "document.hpp"
 #include "document_text.hpp"
 

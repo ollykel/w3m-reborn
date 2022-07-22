@@ -1,6 +1,7 @@
 #include <stack>
 
 #include "deps.hpp"
+#include "utils.hpp"
 #include "html_parser_basic.hpp"
 #include "dom_tree.hpp"
 
