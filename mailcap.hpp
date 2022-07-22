@@ -12,6 +12,7 @@ class Mailcap
     public:
         // --- public member type(s) --------------------------------------
         class Entry;
+        class except_invalid_entry;
 
         // --- public accessor(s) -----------------------------------------
         auto get_entry(
@@ -128,6 +129,13 @@ class Mailcap::Entry
         template <typename CONTAINER_T>
         static void tokenize_fmt_string(CONTAINER_T& dest, const string& str);
 };// end class Mailcap::Entry
+
+class Mailcap::except_invalid_entry : public StringException
+{
+    public:
+        // --- public constructors ----------------------------------------
+        except_invalid_entry(const string& what);
+};// end class Mailcap::except_invalid_entry
 
 #include "mailcap.tpp"
 

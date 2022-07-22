@@ -16,6 +16,7 @@
 #include <memory>
 #include <utility>
 #include <stdexcept>
+#include <exception>
 #include <iostream>
 #include <fstream>
 #include <algorithm>

@@ -142,8 +142,57 @@ auto Mailcap::append_entry(
 auto Mailcap::parse_entry(const string& entryStr)
     -> Entry&
 {
-    // TODO: implement
-    throw std::logic_error("not implemented");
+    std::vector<string>     tokens;
+
+    utils::splitn(tokens, entryStr, ";", '\\');
+
+    if (tokens.size() < 2)
+    {
+        throw except_invalid_entry(
+            "mailcap entry must consist of at least two fields"
+        );
+    }
+
+    for (auto& token : tokens)
+    {
+        // trim whitespace
+        token.erase(0, token.find_first_not_of(" \t\r\n"));
+        token.erase(token.find_last_not_of(" \t\r\n") + 1);
+    }// end for token
+
+    Entry&      entry       = append_entry(tokens.at(0), tokens.at(1));
+
+    for (auto iter = tokens.cbegin() + 2; iter != tokens.cend(); ++iter)
+    {
+        const auto&     token       = *iter;
+
+        if (token == "needsterminal")
+        {
+            entry.set_needs_terminal(true);
+        }
+        else if (token == "copiousoutput")
+        {
+            entry.set_output_type("text", "plain");
+        }
+        else if (token == "x-htmloutput")
+        {
+            entry.set_output_type("text", "html");
+        }
+        else if (not std::strncmp(token.c_str(), "test=", 5))
+        {
+            entry.set_test(token.substr(5));
+        }
+        else if (not std::strncmp(token.c_str(), "nametemplate=", 13))
+        {
+            entry.set_filename_template(token.substr(13));
+        }
+        else if (not std::strncmp(token.c_str(), "x-outputtype=", 13))
+        {
+            entry.set_output_type(token.substr(13));
+        }
+    }// end for iter
+
+    return entry;
 }// end Mailcap::parse_entry
 
 // --- public static function(s) ------------------------------------------
@@ -388,3 +437,13 @@ auto Mailcap::Entry::set_needs_terminal(const bool state)
     m_needsTerminal = state;
     return *this;
 }// end Mailcap::Entry::set_needs_terminal
+
+// === class Mailcap::except_invalid_entry Implementation =================
+//
+// ========================================================================
+
+// --- public constructors ------------------------------------------------
+Mailcap::except_invalid_entry::except_invalid_entry(const string& what)
+{
+    set_text("invalid mailcap entry: " + what);
+}// end Mailcap::except_invalid_entry::except_invalid_entry

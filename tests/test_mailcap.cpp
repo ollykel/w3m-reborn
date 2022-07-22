@@ -41,6 +41,14 @@ auto operator<<(std::ostream& outs, const MailcapTester& obj)
                     outs << utils::join_str(entry.test().args(), " ");
                     outs << '"';
                 }
+                if (entry.needs_terminal())
+                {
+                    outs << "; needsterminal";
+                }
+                if (entry.output_type_str().length())
+                {
+                    outs << "; output type: " << entry.output_type_str();
+                }
                 outs << ',' << endl;
             }
             outs << "\t]," << endl;
@@ -74,6 +82,14 @@ int main(const int argc, const char **argv)
     tester.append_entry("text/markdown", { "pandoc -f markdown -t html" })
         .set_output_type("text/html")
         .set_test("which pandoc");
+    tester.parse_entry(
+        "audio/mp3; mpv --video=no %s; test=which mpv; needsterminal"
+        "; nametemplate=%s.mp3"
+    );
+    tester.parse_entry(
+        "audio/ogg; convert %s -f mp3 -; test=which convert"
+        "; x-outputtype=audio/mp3"
+    );
 
     cout << "Mailcap:" << endl;
     cout << tester << endl;
@@ -109,6 +125,7 @@ int main(const int argc, const char **argv)
     testRunner("image/jpeg");
     testRunner("image/png");
     testRunner("text/markdown");
+    testRunner("audio/mp3");
     testRunner("null/tester");
 
     return EXIT_SUCCESS;
