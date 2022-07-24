@@ -1,3 +1,5 @@
+#include <fstream>
+
 #include "../deps.hpp"
 #include "../utils.hpp"
 #include "../mailcap.hpp"
@@ -128,6 +130,41 @@ int main(const int argc, const char **argv)
     testRunner("text/markdown");
     testRunner("audio/mp3");
     testRunner("null/tester");
+
+    {
+        ifstream    mailcapFile("/etc/mailcap");
+        
+        if (not mailcapFile.fail())
+        {
+            MailcapTester       tester;
+
+            cout << "Testing with /etc/mailcap ..." << endl;
+
+            while (mailcapFile)
+            {
+                string      line        = "";
+
+                getline(mailcapFile, line);
+                if (line.find('#') != string::npos)
+                {
+                    line.erase(line.find('#'));
+                }
+                if (line.find_first_not_of(" \t\r\n"))
+                {
+                    line.erase(0, line.find_first_not_of(" \t\r\n"));
+                }
+
+                if (line.length())
+                {
+                    tester.parse_entry(line);
+                }
+            }// end while
+            mailcapFile.close();
+
+            cout << "Mailcap file:" << endl;
+            cout << tester << endl;
+        }
+    }
 
     return EXIT_SUCCESS;
 }// end main

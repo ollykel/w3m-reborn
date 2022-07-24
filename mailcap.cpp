@@ -125,8 +125,8 @@ auto Mailcap::append_entry(
 
     auto&   entryCont   = m_typeMap[superType][subType];
 
-    entryCont.emplace_front(entry);
-    return entryCont.front();
+    entryCont.emplace_back(entry);
+    return entryCont.back();
 }// end Mailcap::append_entry
 
 auto Mailcap::append_entry(
@@ -378,7 +378,9 @@ auto Mailcap::Entry::create_command(
 
     return Command(commandStr)
         .set_stdin_piped(file_piped())
-        .set_stdout_piped(not output_type_str().empty());
+        .set_stdout_piped(not needs_terminal()
+            or not output_type_str().empty())
+        .set_stderr_piped(not needs_terminal());
 }// end Mailcap::Entry::create_command
 
 // --- public mutator(s) --------------------------------------------------
