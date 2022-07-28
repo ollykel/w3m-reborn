@@ -14,6 +14,10 @@ class Page
         typedef     std::vector<Uri>        link_container;
         typedef     std::vector<Uri>        image_container;
 
+        // --- public constructors ----------------------------------------
+        Page(void);
+        Page(const Page& other);
+
         // --- public accessor(s) -----------------------------------------
         auto document(void) const
             -> const Document&;
@@ -28,6 +32,8 @@ class Page
 
         // --- public mutator(s) ------------------------------------------
         void redraw(const size_t cols);
+        auto operator=(const Page& other)
+            -> Page&;
 
         // --- public static function(s) ----------------------------------
         static auto from_text_stream(
@@ -51,13 +57,24 @@ class Page
                 const size_t cols
             ) -> Page;
     protected:
+        // --- protected member classes -----------------------------------
+        enum class Kind
+        {
+            text,
+            html
+        };// end enum class Kind
+
         // --- protected member variable(s) -------------------------------
+        Kind                m_kind                  = Kind::text;
         Uri                 m_uri                   = {};
         u_ptr<Document>     m_document              = {};
         link_container      m_linkUrisRel           = {};
         link_container      m_linkUrisFull          = {};
         image_container     m_imageUrisRel          = {};
         image_container     m_imageUrisFull         = {};
+    private:
+        // --- private mutators -------------------------------------------
+        void copy_from(const Page& other);
 };// end class Page
 
 #endif

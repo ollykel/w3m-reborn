@@ -11,6 +11,17 @@
 //
 // ========================================================================
 
+// --- public constructors ------------------------------------------------
+Page::Page(void)
+{
+    // do nothing
+}// end Page::Page
+
+Page::Page(const Page& other)
+{
+    copy_from(other);
+}// end Page::Page
+
 // --- public accessor(s) -------------------------------------------------
 auto Page::document(void) const
     -> const Document&
@@ -48,6 +59,17 @@ void Page::redraw(const size_t cols)
     m_document->redraw(cols);
 }// end Page::redraw
 
+auto Page::operator=(const Page& other)
+    -> Page&
+{
+    if (this != &other)
+    {
+        copy_from(other);
+    }
+
+    return *this;
+}// end Page::operator=
+
 // --- public static function(s) ------------------------------------------
 auto Page::from_text_stream(
     std::istream& ins,
@@ -57,6 +79,7 @@ auto Page::from_text_stream(
 {
     Page    out     = {};
 
+    out.m_kind = Kind::text;
     out.m_uri = uri;
     out.m_document = std::make_unique<DocumentText>(ins, cols);
 
@@ -111,6 +134,7 @@ auto Page::from_html_stream(
 {
     Page    out     = {};
 
+    out.m_kind = Kind::html;
     out.m_uri = uri;
     out.m_document = std::make_unique<DocumentHtml>(ins, cols);
 
@@ -156,3 +180,29 @@ auto Page::from_html_string(
 
     return from_html_stream(stream, uri, cols);
 }// end Page::from_html_string
+
+// --- private mutators ---------------------------------------------------
+void Page::copy_from(const Page& other)
+{
+    m_uri               = other.m_uri;
+    m_linkUrisRel       = other.m_linkUrisRel;
+    m_linkUrisFull      = other.m_linkUrisFull;
+    m_imageUrisRel      = other.m_imageUrisRel;
+    m_imageUrisFull     = other.m_imageUrisFull;
+
+    switch (m_kind)
+    {
+        case Kind::text:
+            m_document = std::make_unique<DocumentText>(
+                *static_cast<DocumentText*>(other.m_document.get())
+            );
+            break;
+        case Kind::html:
+            m_document = std::make_unique<DocumentHtml>(
+                *static_cast<DocumentHtml*>(other.m_document.get())
+            );
+            break;
+        default:
+            throw std::logic_error("Unrecognized document kind");
+    }// end switch
+}// end Page::copy_from
