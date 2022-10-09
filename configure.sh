@@ -11,6 +11,7 @@ export BIN=w3m
 export TEST_DIR=tests
 export CPP=g++
 export LD="${CPP}"
+export LDFLAGS="-lncurses"
 export PREFIX="/usr/local"
 
 # parse options from args
@@ -217,7 +218,7 @@ endif
 
 %.out : %.o
 ${TAB}$(if [[ "${LD}" = "${CPP}" ]]; then
-    echo "\$(LD) -o \$@ \$^"
+    echo "\$(LD) -o \$@ \$^ ${LDFLAGS}"
 else
 	echo "\$(LD) ${LDFLAGS} -o \$@ \$^"
 fi)
