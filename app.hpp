@@ -57,6 +57,7 @@ class App
         keymap                  m_keymap                    = {};
         base_commands_map       m_baseCommandDispatcher     = {};
         commands_map            m_commands                  = {};
+        WINDOW                  *m_screen                   = nullptr;
 
         // --- protected mutators -----------------------------------------
         // ------ command functions ---------------------------------------

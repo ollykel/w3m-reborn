@@ -1,3 +1,6 @@
+#include <signal.h>
+#include <curses.h>
+
 #include "deps.hpp"
 #include "app.hpp"
 
@@ -90,7 +93,18 @@ void App::quit(const command_args_container& args)
 
 void App::suspend(const command_args_container& args)
 {
-    // TODO: implement
+    endwin();
+
+    // suspend process
+#ifdef SIGTSTP
+    signal(SIGTSTP, SIG_DFL);
+    kill((pid_t) 0x00, SIGTSTP);
+#else
+    kill((pid_t) 0x00, SIGSTOP);
+#endif
+
+    refresh();
+    redraw({});
 }// end suspend
 
 void App::redraw(const command_args_container& args)
