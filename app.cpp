@@ -88,7 +88,14 @@ void App::quit(const command_args_container& args)
 
     for (auto arg = args.begin(); arg != args.end(); ++arg)
     {
+        if ("--prompt" == *arg or "-p" == *arg)
+        {
+            shouldPrompt = true;
+        }
     }// end for arg
+
+    endwin();
+    // TODO: teardown, call closing scripts
 }// end quit
 
 void App::suspend(const command_args_container& args)
