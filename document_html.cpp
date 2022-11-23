@@ -387,8 +387,20 @@ void    DocumentHtml::append_form(
     Stacks& stacks
 )
 {
+    Form    *newForm    = nullptr;
+
     m_buffer.emplace_back();
-    m_buffer.back().emplace_back("<FORM>");
+
+    // create new form
+    newForm = &emplace_form();
+    stacks.forms.push_back(newForm);
+
+    m_buffer.back().emplace_back("<FORM>");// TODO: remove debug
+
+    append_children(form, cols, fmt, stacks);
+
+    stacks.forms.pop_back();
+
     m_buffer.emplace_back();
 }// end DocumentHtml::append_form(const DomTree::node& form, const size_t cols, Format fmt, Stacks& stacks)
 
