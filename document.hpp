@@ -217,6 +217,11 @@ class       Document::FormInput
             -> const string&;
         auto    value(void) const
             -> const string&;
+        
+        // === public mutator(s) ==========================================
+        void    set_type(Type t);
+        void    set_name(const string& name);
+        void    set_value(const string& value);
     private:
         // === private member variable(s) =================================
         Document        *m_parent       = nullptr;
