@@ -225,6 +225,26 @@ Document::Form::Form(
     m_method = method;
 }// end Document::Form::Form
 
+// === Document::FormInput Implementation =================================
+//
+// ========================================================================
+
+// --- public constructor(s) ----------------------------------------------
+Document::FormInput::FormInput(
+    Document&   parent,
+    size_t      formIndex,
+    Type        type,
+    string      name,
+    string      value
+)
+{
+    m_parent = &parent;
+    m_formIndex = formIndex;
+    m_type = type;
+    m_name = name;
+    m_value = value;
+}
+
 // === Document::BufferIndex Implementation ===============================
 //
 // ========================================================================
