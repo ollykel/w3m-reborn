@@ -108,6 +108,8 @@ void        DocumentHtml::redraw(size_t cols)
     m_buffer.clear();
     m_links.clear();
     m_images.clear();
+    m_forms.clear();
+    m_form_inputs.clear();
 
     for (auto& nd : *m_dom.root())
     {
