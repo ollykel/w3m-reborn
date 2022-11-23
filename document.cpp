@@ -36,6 +36,12 @@ auto Document::images(void) const
     return m_images;
 }// end Document::images
 
+auto Document::forms(void) const
+    -> const form_container&
+{
+    return m_forms;
+}// end Document::forms
+
 // --- public mutator(s) --------------------------------------------------
 void    Document::clear(void)
 {

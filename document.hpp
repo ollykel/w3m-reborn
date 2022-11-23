@@ -2,6 +2,7 @@
 #define __DOCUMENT_HPP__
 
 #include <list>
+#include <map>
 
 #include "deps.hpp"
 
@@ -18,6 +19,8 @@ class   Document
         typedef     std::vector<BufferLine>         buffer_type;
         typedef     std::vector<Reference>          link_container;
         typedef     std::vector<Reference>          image_container;
+        typedef     std::map<string, string>        form_type;
+        typedef     std::vector<form_type>          form_container;
 
         // --- public constructor(s) --------------------------------------
         Document(void);// default
@@ -31,6 +34,8 @@ class   Document
             -> const link_container&;
         auto images(void) const
             -> const image_container&;
+        auto forms(void) const
+            -> const form_container&;
 
         // --- public mutator(s) ------------------------------------------
         void            clear(void);
@@ -45,6 +50,7 @@ class   Document
         buffer_type         m_buffer        = {};
         link_container      m_links         = {};
         image_container     m_images        = {};
+        form_container      m_forms         = {};
 };// end class Document
 
 class   Document::BufferNode
