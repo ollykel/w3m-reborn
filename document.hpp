@@ -138,6 +138,13 @@ class       Document::Form
         typedef     std::vector<FormInput*>         input_ptr_container;
         typedef     std::unordered_set<size_t>      input_index_container;
 
+        // === public constructor(s) ======================================
+        Form(
+            Document *parent,
+            string  action       = "",
+            string  method      = ""
+        );
+
         // === public accessor(s) =========================================
         auto    parent(void) const
             -> const Document*;
@@ -160,13 +167,6 @@ class       Document::Form
         string                      m_action            = "";
         string                      m_method            = "";
         input_index_container       m_input_indices     = {};
-
-        // === private constructor(s) =====================================
-        Form(
-            Document *parent,
-            string  action       = "",
-            string  method      = ""
-        );
 };// end class Document::Form
 
 class       Document::FormInput
