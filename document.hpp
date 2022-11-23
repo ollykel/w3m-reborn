@@ -198,11 +198,23 @@ class       Document::FormInput
             url,
             week,
         };// end enum class Type
+
+        // === public constructor(s) ======================================
+        FormInput(
+            Document    *parent,
+            size_t      formIndex,
+            Type        type        = Type::text,
+            string      name        = "",
+            string      value       = ""
+        );
+
     private:
         // === private member variable(s) =================================
-        Type        m_type      = Type::text;
-        string      m_name      = "";
-        string      m_value     = "";
+        Document        *m_parent       = nullptr;
+        size_t          m_formIndex     = 0;
+        Type            m_type          = Type::text;
+        string          m_name          = "";
+        string          m_value         = "";
 };// end class Document::FormInput
 
 struct      Document::BufferIndex
