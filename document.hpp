@@ -3,6 +3,7 @@
 
 #include <list>
 #include <map>
+#include <unordered_set>
 
 #include "deps.hpp"
 
@@ -12,6 +13,7 @@ class   Document
         // --- public member type(s) --------------------------------------
         class       BufferNode;
         class       Reference;
+        class       Form;
         class       FormInput;
         struct      BufferIndex;
 
@@ -128,6 +130,44 @@ class   Document::Reference
         string                              m_url       = "";
         std::list<Document::BufferIndex>    m_referers  = {};
 };// end class Document::Reference
+
+class       Document::Form
+{
+    public:
+        // === public member type(s) ======================================
+        typedef     std::vector<FormInput*>         input_ptr_container;
+        typedef     std::unordered_set<size_t>      input_index_container;
+
+        // === public accessor(s) =========================================
+        auto    parent(void) const
+            -> const Document*;
+        auto    action(void) const
+            -> const string&;
+        auto    method(void) const
+            -> const string&;
+        auto    inputs(void) const
+            -> input_ptr_container;
+
+        // === public mutator(s) ==========================================
+        auto    input_indices(void)
+            -> input_index_container&;
+        void    set_action(const string& action);
+        void    set_method(const string& method);
+
+    private:
+        // === private member variable(s) =================================
+        Document                    *m_parent           = nullptr;
+        string                      m_action            = "";
+        string                      m_method            = "";
+        input_index_container       m_input_indices     = {};
+
+        // === private constructor(s) =====================================
+        Form(
+            Document *parent,
+            string  action       = "",
+            string  method      = ""
+        );
+};// end class Document::Form
 
 class       Document::FormInput
 {
