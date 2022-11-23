@@ -14,7 +14,67 @@ class   Document
         class       BufferNode;
         class       Reference;
         class       Form;
-        class       FormInput;
+        class       FormInput
+        {
+            public:
+                // --- public member type(s) ------------------------------
+                enum class  Type
+                {
+                    text = 0,
+                    button,
+                    checkbox,
+                    color,
+                    date,
+                    datetime_local,
+                    email,
+                    file,
+                    hidden,
+                    image,
+                    month,
+                    number,
+                    password,
+                    radio,
+                    range,
+                    reset,
+                    search,
+                    submit,
+                    tel,
+                    time,
+                    url,
+                    week,
+                };// end enum class Type
+
+                // --- public constructor(s) ------------------------------
+                FormInput(
+                    Document&   parent,
+                    size_t      formIndex,
+                    Type        type        = Type::text,
+                    string      name        = "",
+                    string      value       = ""
+                );
+
+                // --- public accessor(s) ---------------------------------
+                auto    form(void) const
+                    -> Document::Form&;
+                auto    type(void) const
+                    -> const string&;
+                auto    name(void) const
+                    -> const string&;
+                auto    value(void) const
+                    -> const string&;
+                
+                // --- public mutator(s) ----------------------------------
+                void    set_type(Type t);
+                void    set_name(const string& name);
+                void    set_value(const string& value);
+            private:
+                // --- private member variable(s) -------------------------
+                Document        *m_parent       = nullptr;
+                size_t          m_formIndex     = 0;
+                Type            m_type          = Type::text;
+                string          m_name          = "";
+                string          m_value         = "";
+        };// end class Document::FormInput
         struct      BufferIndex;
 
         typedef     BufferIndex                     BufIdx;
@@ -58,6 +118,16 @@ class   Document
         image_container         m_images        = {};
         form_container          m_forms         = {};
         form_input_container    m_form_inputs   = {};
+
+        // --- protected mutator(s) ---------------------------------------
+        auto    emplace_form(string action = "", string method = "")
+            -> Form&;
+        auto    emplace_form_input(
+                size_t              formIndex,
+                FormInput::Type     type        = FormInput::Type::text,
+                string              name        = "",
+                string              value       = ""
+            ) -> FormInput&;
 };// end class Document
 
 class   Document::BufferNode
@@ -172,68 +242,6 @@ class       Document::Form
         string                      m_method            = "";
         input_index_container       m_input_indices     = {};
 };// end class Document::Form
-
-class       Document::FormInput
-{
-    public:
-        // === public member type(s) ======================================
-        enum class  Type
-        {
-            text = 0,
-            button,
-            checkbox,
-            color,
-            date,
-            datetime_local,
-            email,
-            file,
-            hidden,
-            image,
-            month,
-            number,
-            password,
-            radio,
-            range,
-            reset,
-            search,
-            submit,
-            tel,
-            time,
-            url,
-            week,
-        };// end enum class Type
-
-        // === public constructor(s) ======================================
-        FormInput(
-            Document&   parent,
-            size_t      formIndex,
-            Type        type        = Type::text,
-            string      name        = "",
-            string      value       = ""
-        );
-
-        // === public accessor(s) =========================================
-        auto    form(void) const
-            -> Document::Form&;
-        auto    type(void) const
-            -> const string&;
-        auto    name(void) const
-            -> const string&;
-        auto    value(void) const
-            -> const string&;
-        
-        // === public mutator(s) ==========================================
-        void    set_type(Type t);
-        void    set_name(const string& name);
-        void    set_value(const string& value);
-    private:
-        // === private member variable(s) =================================
-        Document        *m_parent       = nullptr;
-        size_t          m_formIndex     = 0;
-        Type            m_type          = Type::text;
-        string          m_name          = "";
-        string          m_value         = "";
-};// end class Document::FormInput
 
 struct      Document::BufferIndex
 {
