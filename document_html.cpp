@@ -103,7 +103,7 @@ void        DocumentHtml::parse_title_from_data(void)
 // ------ override(s) ---------------------------------------------
 void        DocumentHtml::redraw(size_t cols)
 {
-    std::vector<string>     styleStack;
+    Stacks      stacks;
 
     m_buffer.clear();
     m_links.clear();
@@ -120,13 +120,13 @@ void        DocumentHtml::redraw(size_t cols)
                 // skip <head>
                 if (child.identifier() != "head")
                 {
-                    append_node(child, cols, {}, styleStack);
+                    append_node(child, cols, {}, stacks);
                 }
             }// end for child
         }
         else
         {
-            append_node(nd, cols, {}, styleStack);
+            append_node(nd, cols, {}, stacks);
         }
     }// end for (auto& nd : *m_dom->root())
 
@@ -158,12 +158,12 @@ void    DocumentHtml::append_node(
     const DomTree::node& nd,
     const size_t cols,
     Format fmt,
-    std::vector<string>& styleStack
+    Stacks& stacks
 )
 {
     if (nd.is_text())
     {
-        append_text(nd, cols, fmt, styleStack);
+        append_text(nd, cols, fmt, stacks);
     }
     // ignore scripts
     else if (nd.identifier() == "script")
@@ -179,32 +179,32 @@ void    DocumentHtml::append_node(
     {
         auto func = m_dispatcher.at(nd.identifier());
 
-        (this->*func)(nd, cols, fmt, styleStack);
+        (this->*func)(nd, cols, fmt, stacks);
     }
     else
     {
-        append_other(nd, cols, fmt, styleStack);
+        append_other(nd, cols, fmt, stacks);
     }
-}// end DocumentHtml::append_node(const DomTree::node& nd, const size_t cols, Format fmt, std::vector<string>& styleStack)
+}// end DocumentHtml::append_node(const DomTree::node& nd, const size_t cols, Format fmt, Stacks& stacks)
 
-void    DocumentHtml::append_children(const DomTree::node& nd, const size_t cols, Format fmt, std::vector<string>& styleStack)
+void    DocumentHtml::append_children(const DomTree::node& nd, const size_t cols, Format fmt, Stacks& stacks)
 {
     for (auto iter = nd.cbegin(); iter != nd.cend(); ++iter)
     {
         const auto& child = *iter;
 
-        append_node(child, cols, fmt, styleStack);
+        append_node(child, cols, fmt, stacks);
     }// end for (const auto& child : nd)
-}// end DocumentHtml::append_children(const DomTree::node& nd, const size_t cols, Format fmt, std::vector<string>& styleStack)
+}// end DocumentHtml::append_children(const DomTree::node& nd, const size_t cols, Format fmt, Stacks& stacks)
 
-// === DocumentHtml::append_str(const string& str, const size_t cols, Format fmt, std::vector<string>& styleStack) =====
+// === DocumentHtml::append_str(const string& str, const size_t cols, Format fmt, Stacks& stacks) =====
 //
 // ========================================================================
 void    DocumentHtml::append_str(
     const string& str,
     const size_t cols,
     Format fmt,
-    std::vector<string>& styleStack
+    Stacks& stacks
 )
 {
     using namespace std;
@@ -266,7 +266,7 @@ void    DocumentHtml::append_str(
                     token.erase(0, colsLeft);
                 }
                 m_buffer.back().emplace_back(currLine);
-                for (const auto& styler : styleStack)
+                for (const auto& styler : stacks.styles)
                 {
                     m_buffer.back().back().append_styler(styler);
                 }// end for styler
@@ -286,11 +286,11 @@ void    DocumentHtml::append_str(
     }// end while (inBuf)
 
     m_buffer.back().emplace_back(currLine);
-    for (const auto& styler : styleStack)
+    for (const auto& styler : stacks.styles)
     {
         m_buffer.back().back().append_styler(styler);
     }// end for styler
-}// end DocumentHtml::append_str(const string& str, const size_t cols, Format fmt, std::vector<string>& styleStack)
+}// end DocumentHtml::append_str(const string& str, const size_t cols, Format fmt, Stacks& stacks)
 
 // === DocumentHtml::append_text(const DomTree::node& text) ===============
 //
@@ -298,9 +298,9 @@ void    DocumentHtml::append_str(
 // necessary. Starts at the end of the last line, if space is available.
 //
 // ========================================================================
-void    DocumentHtml::append_text(const DomTree::node& text, const size_t cols, Format fmt, std::vector<string>& styleStack)
+void    DocumentHtml::append_text(const DomTree::node& text, const size_t cols, Format fmt, Stacks& stacks)
 {
-    append_str(text.text(), cols, fmt, styleStack);
+    append_str(text.text(), cols, fmt, stacks);
 }// end DocumentHtml::append_text(const DomTree::node& text)
 
 // === DocumentHtml::append_a =============================================
@@ -313,7 +313,7 @@ void    DocumentHtml::append_a(
     const DomTree::node& a,
     const size_t cols,
     Format fmt,
-    std::vector<string>& styleStack
+    Stacks& stacks
 )
 {
     if (m_buffer.empty())
@@ -325,7 +325,7 @@ void    DocumentHtml::append_a(
     const size_t    startLineIdx = m_buffer.size() - 1;
     const size_t    startNodeIdx = m_buffer.back().size();
 
-    append_children(a, cols, fmt, styleStack);
+    append_children(a, cols, fmt, stacks);
 
     if (not a.attributes.count("href"))
     {
@@ -356,26 +356,26 @@ void    DocumentHtml::append_a(
     }// end for i
 }// end DocumentHtml::append_a(const DomTree::node& a)
 
-// === DocumentHtml::append_br(const DomTree::node& br, const size_t cols, Format fmt, std::vector<string>& styleStack)
+// === DocumentHtml::append_br(const DomTree::node& br, const size_t cols, Format fmt, Stacks& stacks)
 //
 // ========================================================================
-void    DocumentHtml::append_br(const DomTree::node& br, const size_t cols, Format fmt, std::vector<string>& styleStack)
+void    DocumentHtml::append_br(const DomTree::node& br, const size_t cols, Format fmt, Stacks& stacks)
 {
     m_buffer.emplace_back();
-}// end DocumentHtml::append_br(const DomTree::node& br, const size_t cols, Format fmt, std::vector<string>& styleStack)
+}// end DocumentHtml::append_br(const DomTree::node& br, const size_t cols, Format fmt, Stacks& stacks)
 
 void    DocumentHtml::append_div(
     const DomTree::node& div,
     const size_t cols,
     Format fmt,
-    std::vector<string>& styleStack
+    Stacks& stacks
 )
 {
     begin_block(cols, fmt);
-    append_children(div, cols, fmt, styleStack);
-}// end DocumentHtml::append_div(const DomTree::node& br, const size_t cols, Format fmt, std::vector<string>& styleStack)
+    append_children(div, cols, fmt, stacks);
+}// end DocumentHtml::append_div(const DomTree::node& br, const size_t cols, Format fmt, Stacks& stacks)
 
-// === DocumentHtml::append_form(const DomTree::node& form, const size_t cols, Format fmt, std::vector<string>& styleStack)
+// === DocumentHtml::append_form(const DomTree::node& form, const size_t cols, Format fmt, Stacks& stacks)
 //
 // TODO: actually implement
 //
@@ -384,13 +384,13 @@ void    DocumentHtml::append_form(
     const DomTree::node& form,
     const size_t cols,
     Format fmt,
-    std::vector<string>& styleStack
+    Stacks& stacks
 )
 {
     m_buffer.emplace_back();
     m_buffer.back().emplace_back("<FORM>");
     m_buffer.emplace_back();
-}// end DocumentHtml::append_form(const DomTree::node& form, const size_t cols, Format fmt, std::vector<string>& styleStack)
+}// end DocumentHtml::append_form(const DomTree::node& form, const size_t cols, Format fmt, Stacks& stacks)
 
 // === DocumentHtml::append_hn(const DomTree::node& hn) ===================
 //
@@ -404,26 +404,26 @@ void    DocumentHtml::append_hn(
     const DomTree::node& hn,
     const size_t cols,
     Format fmt,
-    std::vector<string>& styleStack
+    Stacks& stacks
 )
 {
-    styleStack.emplace_back(hn.identifier());
+    stacks.styles.emplace_back(hn.identifier());
 
     begin_block(cols, fmt);
-    append_children(hn, cols, fmt, styleStack);
+    append_children(hn, cols, fmt, stacks);
     m_buffer.emplace_back();
 
-    styleStack.pop_back();
+    stacks.styles.pop_back();
 }// end DocumentHtml::append_hn(const DomTree::node& hn)
 
-// === DocumentHtml::append_hr(const DomTree::node& hr, const size_t cols, Format fmt, std::vector<string>& styleStack)
+// === DocumentHtml::append_hr(const DomTree::node& hr, const size_t cols, Format fmt, Stacks& stacks)
 //
 // ========================================================================
 void    DocumentHtml::append_hr(
     const DomTree::node& hr,
     const size_t cols,
     Format fmt,
-    std::vector<string>& styleStack
+    Stacks& stacks
 )
 {
     static size_t       nCols       = 0;
@@ -438,7 +438,7 @@ void    DocumentHtml::append_hr(
     m_buffer.emplace_back();
     m_buffer.back().emplace_back(rule);
     m_buffer.emplace_back();
-}// end DocumentHtml::append_hr(const DomTree::node& hr, const size_t cols, Format fmt, std::vector<string>& styleStack)
+}// end DocumentHtml::append_hr(const DomTree::node& hr, const size_t cols, Format fmt, Stacks& stacks)
 
 // === DocumentHtml::append_img(const DomTree::node& img) =================
 //
@@ -447,7 +447,7 @@ void    DocumentHtml::append_img(
     const DomTree::node& img,
     const size_t cols,
     Format fmt,
-    std::vector<string>& styleStack
+    Stacks& stacks
 )
 {
     using namespace std;
@@ -480,7 +480,7 @@ void    DocumentHtml::append_img(
     }
 
     imgText += ']';
-    append_str(imgText, cols, fmt, styleStack);
+    append_str(imgText, cols, fmt, stacks);
 
     const size_t        linkIdx     = m_images.size();
 
@@ -507,14 +507,14 @@ void    DocumentHtml::append_img(
     }// end for i
 }// end DocumentHtml::append_img(const DomTree::node& img)
 
-// === DocumentHtml::append_ul(const DomTree::node& img, const size_t cols, Format fmt, std::vector<string>& styleStack)
+// === DocumentHtml::append_ul(const DomTree::node& img, const size_t cols, Format fmt, Stacks& stacks)
 //
 // ========================================================================
 void    DocumentHtml::append_ul(
     const DomTree::node& ul,
     const size_t cols,
     Format fmt,
-    std::vector<string>& styleStack
+    Stacks& stacks
 )
 {
     begin_block(cols, fmt);
@@ -530,25 +530,25 @@ void    DocumentHtml::append_ul(
         m_buffer.emplace_back();
         if (child.identifier() == "li")
         {
-            append_li_ul(child, cols, fmt, styleStack);
+            append_li_ul(child, cols, fmt, stacks);
         }
         else
         {
-            append_node(child, cols, fmt, styleStack);
+            append_node(child, cols, fmt, stacks);
         }
     }// end for child
 
     m_buffer.emplace_back();
-}// end DocumentHtml::append_ul(const DomTree::node& ul, const size_t cols, Format fmt, std::vector<string>& styleStack)
+}// end DocumentHtml::append_ul(const DomTree::node& ul, const size_t cols, Format fmt, Stacks& stacks)
 
-// === DocumentHtml::append_ol(const DomTree::node& ol, const size_t cols, Format fmt, std::vector<string>& styleStack)
+// === DocumentHtml::append_ol(const DomTree::node& ol, const size_t cols, Format fmt, Stacks& stacks)
 //
 // ========================================================================
 void    DocumentHtml::append_ol(
     const DomTree::node& ol,
     const size_t cols,
     Format fmt,
-    std::vector<string>& styleStack
+    Stacks& stacks
 )
 {
     begin_block(cols, fmt);
@@ -563,16 +563,16 @@ void    DocumentHtml::append_ol(
         m_buffer.emplace_back();
         if (child.identifier() == "li")
         {
-            append_li_ol(child, cols, fmt, styleStack);
+            append_li_ol(child, cols, fmt, stacks);
             ++fmt.listIndex;
         }
         else
         {
-            append_node(child, cols, fmt, styleStack);
+            append_node(child, cols, fmt, stacks);
         }
     }// end for child
     m_buffer.emplace_back();
-}// end DocumentHtml::append_ol(const DomTree::node& ol, const size_t cols, Format fmt, std::vector<string>& styleStack)
+}// end DocumentHtml::append_ol(const DomTree::node& ol, const size_t cols, Format fmt, Stacks& stacks)
 
 // === DocumentHtml::append_li_ul =========================================
 //
@@ -581,7 +581,7 @@ void    DocumentHtml::append_li_ul(
     const DomTree::node& li,
     const size_t cols,
     Format fmt,
-    std::vector<string>& styleStack
+    Stacks& stacks
 )
 {
     if (fmt.in_list())
@@ -598,7 +598,7 @@ void    DocumentHtml::append_li_ul(
     }
     fmt.set_in_list(false);
     fmt.set_ordered_list(false);
-    append_children(li, cols, fmt, styleStack);
+    append_children(li, cols, fmt, stacks);
 }// end DocumentHtml::append_li_ul
 
 // === DocumentHtml::append_li_ol =========================================
@@ -608,7 +608,7 @@ void    DocumentHtml::append_li_ol(
     const DomTree::node& li,
     const size_t cols,
     Format fmt,
-    std::vector<string>& styleStack
+    Stacks& stacks
 )
 {
     if (fmt.in_list())
@@ -622,7 +622,7 @@ void    DocumentHtml::append_li_ol(
         if (fmt.indent < cols / 2)
             fmt.indent += format.str().length();
     }
-    append_children(li, cols, fmt, styleStack);
+    append_children(li, cols, fmt, stacks);
 }// end DocumentHtml::append_li_ol
 
 // === DocumentHtml::append_p(const DomTree::node& p) =====================
@@ -634,18 +634,18 @@ void    DocumentHtml::append_p(
     const DomTree::node& p,
     const size_t cols,
     Format fmt,
-    std::vector<string>& styleStack
+    Stacks& stacks
 )
 {
     begin_block(cols, fmt);
     fmt.set_block_ignore(false);
-    append_children(p, cols, fmt, styleStack);
+    append_children(p, cols, fmt, stacks);
     // append an extra newline to denote new paragraph
     m_buffer.emplace_back();
     m_buffer.emplace_back();
 }// end DocumentHtml::append_p(const DomTree::node& p)
 
-// === DocumentHtml::append_table(const DomTree::node& table, const size_t cols, Format fmt, std::vector<string>& styleStack)
+// === DocumentHtml::append_table(const DomTree::node& table, const size_t cols, Format fmt, Stacks& stacks)
 //
 // TODO: actually implement
 //
@@ -654,16 +654,16 @@ void    DocumentHtml::append_table(
     const DomTree::node& table,
     const size_t cols,
     Format fmt,
-    std::vector<string>& styleStack
+    Stacks& stacks
 )
 {
     begin_block(cols, fmt);
-    append_hr(table, cols, fmt, styleStack);
-    append_tbody(table, cols, fmt, styleStack);// behavior is mostly the same
+    append_hr(table, cols, fmt, stacks);
+    append_tbody(table, cols, fmt, stacks);// behavior is mostly the same
     m_buffer.emplace_back();
-}// end DocumentHtml::append_table(const DomTree::node& table, const size_t cols, Format fmt, std::vector<string>& styleStack)
+}// end DocumentHtml::append_table(const DomTree::node& table, const size_t cols, Format fmt, Stacks& stacks)
 
-// === DocumentHtml::append_tbody(const DomTree::node& tbody, const size_t cols, Format fmt, std::vector<string>& styleStack)
+// === DocumentHtml::append_tbody(const DomTree::node& tbody, const size_t cols, Format fmt, Stacks& stacks)
 //
 // TODO: actually implement
 //
@@ -672,20 +672,20 @@ void    DocumentHtml::append_tbody(
     const DomTree::node& tbody,
     const size_t cols,
     Format fmt,
-    std::vector<string>& styleStack
+    Stacks& stacks
 )
 {
     for (auto iter = tbody.cbegin(); iter != tbody.cend(); ++iter)
     {
         const auto&     elem        = *iter;
 
-        append_node(elem, cols, fmt, styleStack);
+        append_node(elem, cols, fmt, stacks);
         if (elem.identifier() == "tr")
         {
-            append_hr(tbody, cols, fmt, styleStack);
+            append_hr(tbody, cols, fmt, stacks);
         }
     }// end for iter
-}// end DocumentHtml::append_tbody(const DomTree::node& tbody, const size_t cols, Format fmt, std::vector<string>& styleStack)
+}// end DocumentHtml::append_tbody(const DomTree::node& tbody, const size_t cols, Format fmt, Stacks& stacks)
 
 // === DocumentHtml::append_other(const DomTree::node& nd) ================
 //
@@ -697,10 +697,10 @@ void    DocumentHtml::append_other(
     const DomTree::node& nd,
     const size_t cols,
     Format fmt,
-    std::vector<string>& styleStack
+    Stacks& stacks
 )
 {
-    append_children(nd, cols, fmt, styleStack);
+    append_children(nd, cols, fmt, stacks);
 }// end DocumentHtml::append_other(const DomTree::node& nd)
 
 void    DocumentHtml::begin_block(const size_t cols, Format& fmt)
