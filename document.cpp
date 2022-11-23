@@ -56,6 +56,26 @@ void    Document::set_title(const string& title)
     m_title = title;
 }// end Document::set_title
 
+auto    Document::emplace_form(string action, string method)
+    -> Form&
+{
+    m_forms.emplace_back(*this, action, method);
+
+    return m_forms.back();
+}// end Document::emplace_form
+
+auto    Document::emplace_form_input(
+    size_t              formIndex,
+    FormInput::Type     type,
+    string              name,
+    string              value
+) -> FormInput&
+{
+    m_form_inputs.emplace_back(*this, formIndex, type, name, value);
+
+    return m_form_inputs.back();
+}// end Document::emplace_form_input
+
 // === class Document::BufferNode Implementation ==========================
 //
 // ========================================================================
