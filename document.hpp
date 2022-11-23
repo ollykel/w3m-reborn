@@ -24,6 +24,7 @@ class   Document
         typedef     std::vector<Reference>          image_container;
         typedef     Form                            form_type;
         typedef     std::vector<form_type>          form_container;
+        typedef     std::vector<FormInput>          form_input_container;
 
         // --- public constructor(s) --------------------------------------
         Document(void);// default
@@ -39,6 +40,8 @@ class   Document
             -> const image_container&;
         auto forms(void) const
             -> const form_container&;
+        auto form_inputs(void) const
+            -> const form_input_container&;
 
         // --- public mutator(s) ------------------------------------------
         void            clear(void);
@@ -49,11 +52,12 @@ class   Document
         void set_title(const string& title);
     protected:
         // --- protected member variable(s) -------------------------------
-        string              m_title         = "";
-        buffer_type         m_buffer        = {};
-        link_container      m_links         = {};
-        image_container     m_images        = {};
-        form_container      m_forms         = {};
+        string                  m_title         = "";
+        buffer_type             m_buffer        = {};
+        link_container          m_links         = {};
+        image_container         m_images        = {};
+        form_container          m_forms         = {};
+        form_input_container    m_form_inputs   = {};
 };// end class Document
 
 class   Document::BufferNode
