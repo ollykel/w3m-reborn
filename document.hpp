@@ -201,7 +201,7 @@ class       Document::FormInput
 
         // === public constructor(s) ======================================
         FormInput(
-            Document    *parent,
+            Document&   parent,
             size_t      formIndex,
             Type        type        = Type::text,
             string      name        = "",
@@ -217,7 +217,6 @@ class       Document::FormInput
             -> const string&;
         auto    value(void) const
             -> const string&;
-
     private:
         // === private member variable(s) =================================
         Document        *m_parent       = nullptr;
