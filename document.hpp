@@ -22,7 +22,7 @@ class   Document
         typedef     std::vector<BufferLine>         buffer_type;
         typedef     std::vector<Reference>          link_container;
         typedef     std::vector<Reference>          image_container;
-        typedef     std::map<string, string>        form_type;
+        typedef     Form                            form_type;
         typedef     std::vector<form_type>          form_container;
 
         // --- public constructor(s) --------------------------------------
