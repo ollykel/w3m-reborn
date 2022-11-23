@@ -12,6 +12,7 @@ class   Document
         // --- public member type(s) --------------------------------------
         class       BufferNode;
         class       Reference;
+        class       FormInput;
         struct      BufferIndex;
 
         typedef     BufferIndex                     BufIdx;
@@ -127,6 +128,42 @@ class   Document::Reference
         string                              m_url       = "";
         std::list<Document::BufferIndex>    m_referers  = {};
 };// end class Document::Reference
+
+class       Document::FormInput
+{
+    public:
+        // === public member type(s) ======================================
+        enum class  Type
+        {
+            text = 0,
+            button,
+            checkbox,
+            color,
+            date,
+            datetime_local,
+            email,
+            file,
+            hidden,
+            image,
+            month,
+            number,
+            password,
+            radio,
+            range,
+            reset,
+            search,
+            submit,
+            tel,
+            time,
+            url,
+            week,
+        };// end enum class Type
+    private:
+        // === private member variable(s) =================================
+        Type        m_type      = Type::text;
+        string      m_name      = "";
+        string      m_value     = "";
+};// end class Document::FormInput
 
 struct      Document::BufferIndex
 {
