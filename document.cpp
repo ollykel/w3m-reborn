@@ -209,6 +209,22 @@ void Document::Reference::clear_referers(void)
     m_referers.clear();
 }// end Document::Reference::clear_referers(void)
 
+// === Document::Form Implementation ======================================
+//
+// ========================================================================
+
+// --- public constructor(s) ----------------------------------------------
+Document::Form::Form(
+    Document&   parent,
+    string      action,
+    string      method
+)
+{
+    m_parent = &parent;
+    m_action = action;
+    m_method = method;
+}// end Document::Form::Form
+
 // === Document::BufferIndex Implementation ===============================
 //
 // ========================================================================
