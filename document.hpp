@@ -140,9 +140,9 @@ class       Document::Form
 
         // === public constructor(s) ======================================
         Form(
-            Document *parent,
-            string  action       = "",
-            string  method      = ""
+            Document&   parent,
+            string      action      = "",
+            string      method      = ""
         );
 
         // === public accessor(s) =========================================
