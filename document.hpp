@@ -208,6 +208,16 @@ class       Document::FormInput
             string      value       = ""
         );
 
+        // === public accessor(s) =========================================
+        auto    form(void) const
+            -> Document::Form&;
+        auto    type(void) const
+            -> const string&;
+        auto    name(void) const
+            -> const string&;
+        auto    value(void) const
+            -> const string&;
+
     private:
         // === private member variable(s) =================================
         Document        *m_parent       = nullptr;
