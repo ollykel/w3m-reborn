@@ -380,7 +380,12 @@ void    DocumentHtml::append_div(
 // TODO: actually implement
 //
 // ========================================================================
-void    DocumentHtml::append_form(const DomTree::node& form, const size_t cols, Format fmt, std::vector<string>& styleStack)
+void    DocumentHtml::append_form(
+    const DomTree::node& form,
+    const size_t cols,
+    Format fmt,
+    std::vector<string>& styleStack
+)
 {
     m_buffer.emplace_back();
     m_buffer.back().emplace_back("<FORM>");
