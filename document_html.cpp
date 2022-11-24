@@ -527,18 +527,37 @@ void    DocumentHtml::append_input(
     Stacks& stacks
 )
 {
-    // TODO: actually implement
+    static const string     NULL_STR                = "";
     static const string     DEFAULT_INPUT_TYPE      = "text";
+
     const string&           type    = input.attributes.count("type") ?
                                         input.attributes.at("type") :
                                         DEFAULT_INPUT_TYPE;
+    const string&           value   = input.attributes.count("value") ?
+                                        input.attributes.at("value") :
+                                        NULL_STR;
 
     if ("text" == type)
     {
-        m_buffer.back().emplace_back("[___TEXT_INPUT___]");
+        const string        textInput       = "[___TEXT_INPUT___]";
+
+        if (line_length(m_buffer.back()) + textInput.size() > cols)
+        {
+            m_buffer.emplace_back();
+        }
+
+        m_buffer.back().emplace_back(textInput);
+    }
+    else if (("hidden" != type) and input.attributes.count("value"))
+    {
+        std::stringstream   builder;
+
+        builder << "[<" << value << ">]";
+        m_buffer.back().emplace_back(builder.str());
     }
     else if ("hidden" != type)
     {
+        // TODO: actually implement
         m_buffer.back().emplace_back("[XXX]");
     }
 }// end DocumentHtml::append_input
