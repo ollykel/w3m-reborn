@@ -26,6 +26,7 @@ DocumentHtml::DocumentHtml(void) : Document()
     m_dispatcher["h6"] = &DocumentHtml::append_hn;
     m_dispatcher["hr"] = &DocumentHtml::append_hr;
     m_dispatcher["img"] = &DocumentHtml::append_img;
+    m_dispatcher["input"] = &DocumentHtml::append_input;
     m_dispatcher["ul"] = &DocumentHtml::append_ul;
     m_dispatcher["ol"] = &DocumentHtml::append_ol;
     m_dispatcher["p"] = &DocumentHtml::append_p;
@@ -518,6 +519,29 @@ void    DocumentHtml::append_img(
         j = 0;
     }// end for i
 }// end DocumentHtml::append_img(const DomTree::node& img)
+
+void    DocumentHtml::append_input(
+    const DomTree::node& input,
+    const size_t cols,
+    Format fmt,
+    Stacks& stacks
+)
+{
+    // TODO: actually implement
+    static const string     DEFAULT_INPUT_TYPE      = "text";
+    const string&           type    = input.attributes.count("type") ?
+                                        input.attributes.at("type") :
+                                        DEFAULT_INPUT_TYPE;
+
+    if ("text" == type)
+    {
+        m_buffer.back().emplace_back("[___TEXT_INPUT___]");
+    }
+    else if ("hidden" != type)
+    {
+        m_buffer.back().emplace_back("[XXX]");
+    }
+}// end DocumentHtml::append_input
 
 // === DocumentHtml::append_ul(const DomTree::node& img, const size_t cols, Format fmt, Stacks& stacks)
 //

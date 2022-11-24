@@ -111,6 +111,12 @@ class   DocumentHtml : public Document
             Format fmt,
             Stacks& stacks
         );
+        void    append_input(
+            const DomTree::node& input,
+            const size_t cols,
+            Format fmt,
+            Stacks& stacks
+        );
         void    append_ul(
             const DomTree::node& ul,
             const size_t cols,
