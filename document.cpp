@@ -42,6 +42,12 @@ auto Document::forms(void) const
     return m_forms;
 }// end Document::forms
 
+auto Document::form_inputs(void) const
+    -> const form_input_container&
+{
+    return m_form_inputs;
+}// end Document::form_inputs
+
 // --- public mutator(s) --------------------------------------------------
 void    Document::clear(void)
 {
@@ -224,6 +230,64 @@ Document::Form::Form(
     m_action = action;
     m_method = method;
 }// end Document::Form::Form
+
+// --- public accessor(s) -------------------------------------------------
+auto    Document::Form::parent(void) const
+    -> const Document*
+{
+    return m_parent;
+}// end Document::Form::parent
+
+auto    Document::Form::action(void) const
+    -> const string&
+{
+    return m_action;
+}// end Document::Form::action
+
+auto    Document::Form::method(void) const
+    -> const string&
+{
+    return m_method;
+}// end Document::Form::method
+
+auto    Document::Form::inputs(void) const
+    -> input_const_ptr_container
+{
+    input_const_ptr_container   out;
+
+    for (const auto& index : m_input_indices)
+    {
+        out.push_back(&parent()->form_inputs().at(index));
+    }// end for
+
+    return out;
+}// end Document::Form::inputs
+
+// --- public mutator(s) --------------------------------------------------
+void    Document::Form::insert_input_index(size_t index)
+{
+    m_input_indices.insert(index);
+}// end Document::Form::insert_input_index
+
+void    Document::Form::erase_input_index(size_t index)
+{
+    m_input_indices.erase(index);
+}// end Document::Form::erase_input_index
+
+void    Document::Form::clear_input_indices(void)
+{
+    m_input_indices.clear();
+}// end Document::Form::clear_input_indices
+
+void    Document::Form::set_action(const string& action)
+{
+    m_action = action;
+}// end Document::Form::set_action
+
+void    Document::Form::set_method(const string& method)
+{
+    m_method = method;
+}// end Document::Form::set_method
 
 // === Document::FormInput Implementation =================================
 //

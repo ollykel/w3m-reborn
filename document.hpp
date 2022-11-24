@@ -208,18 +208,19 @@ class   Document::Reference
 class       Document::Form
 {
     public:
-        // === public member type(s) ======================================
+        // --- public member type(s) --------------------------------------
         typedef     std::vector<FormInput*>         input_ptr_container;
+        typedef     std::vector<const FormInput*>   input_const_ptr_container;
         typedef     std::unordered_set<size_t>      input_index_container;
 
-        // === public constructor(s) ======================================
+        // --- public constructor(s) --------------------------------------
         Form(
             Document&   parent,
             string      action      = "",
             string      method      = ""
         );
 
-        // === public accessor(s) =========================================
+        // --- public accessor(s) -----------------------------------------
         auto    parent(void) const
             -> const Document*;
         auto    action(void) const
@@ -227,16 +228,17 @@ class       Document::Form
         auto    method(void) const
             -> const string&;
         auto    inputs(void) const
-            -> input_ptr_container;
+            -> input_const_ptr_container;
 
-        // === public mutator(s) ==========================================
-        auto    input_indices(void)
-            -> input_index_container&;
+        // --- public mutator(s) ------------------------------------------
+        void    insert_input_index(size_t index);
+        void    erase_input_index(size_t index);
+        void    clear_input_indices(void);
         void    set_action(const string& action);
         void    set_method(const string& method);
 
     private:
-        // === private member variable(s) =================================
+        // --- private member variable(s) ---------------------------------
         Document                    *m_parent           = nullptr;
         string                      m_action            = "";
         string                      m_method            = "";
@@ -245,11 +247,11 @@ class       Document::Form
 
 struct      Document::BufferIndex
 {
-    // === public member variable(s) ======================================
+    // --- public member variable(s) --------------------------------------
     size_t      line;
     size_t      col;
 
-    // === public constructor(s) ==========================================
+    // --- public constructor(s) ------------------------------------------
     BufferIndex(size_t lnum, size_t cnum);
 };// end struct Document::BufferIndex
 
