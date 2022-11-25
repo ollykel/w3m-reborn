@@ -6,6 +6,7 @@
 #include <unordered_set>
 
 #include "deps.hpp"
+#include "dom_tree.hpp"
 
 class   Document
 {
@@ -24,11 +25,12 @@ class   Document
 
                 // --- public constructor(s) ------------------------------
                 FormInput(
-                    Document&   parent,
-                    size_t      formIndex,
-                    Type        type        = Type::text,
-                    string      name        = "",
-                    string      value       = ""
+                    Document&               parent,
+                    size_t                  formIndex,
+                    Type                    type        = Type::text,
+                    const DomTree::node     *domNode    = nullptr,
+                    string                  name        = "",
+                    string                  value       = ""
                 );
 
                 // --- public static method(s) ----------------------------
@@ -51,11 +53,12 @@ class   Document
                 void    set_value(const string& value);
             private:
                 // --- private member variable(s) -------------------------
-                Document        *m_parent       = nullptr;
-                size_t          m_formIndex     = 0;
-                Type            m_type          = Type::text;
-                string          m_name          = "";
-                string          m_value         = "";
+                Document                *m_parent       = nullptr;
+                size_t                  m_formIndex     = 0;
+                Type                    m_type          = Type::text;
+                const DomTree::node     *m_domNode      = nullptr;
+                string                  m_name          = "";
+                string                  m_value         = "";
         };// end class Document::FormInput
         struct      BufferIndex;
 
@@ -105,10 +108,11 @@ class   Document
         auto    emplace_form(string action = "", string method = "")
             -> Form&;
         auto    emplace_form_input(
-                size_t              formIndex,
-                FormInput::Type     type        = FormInput::Type::text,
-                string              name        = "",
-                string              value       = ""
+                size_t                  formIndex,
+                FormInput::Type         type        = FormInput::Type::text,
+                const DomTree::node     *domNode    = nullptr,
+                string                  name        = "",
+                string                  value       = ""
             ) -> FormInput&;
 };// end class Document
 
@@ -128,7 +132,8 @@ class   Document::BufferNode
             const string& text = "",
             const bool isReserved = false,
             const cont::Ref& link = {},
-            const cont::Ref& image = {}
+            const cont::Ref& image = {},
+            const cont::Ref& input = {}
         );// type/default
 
         // --- public accessor(s) -----------------------------------------
@@ -140,6 +145,8 @@ class   Document::BufferNode
             -> const cont::Ref&;
         auto image_ref(void) const
             -> const cont::Ref&;
+        auto input_ref(void) const
+            -> const cont::Ref&;
         auto stylers(void) const
             -> const std::vector<string>&;
 
@@ -148,6 +155,7 @@ class   Document::BufferNode
         void set_reserved(const bool state);
         void set_link_ref(const size_t index);
         void set_image_ref(const size_t index);
+        void set_input_ref(const size_t index);
         void append_styler(const string& styler);
         void clear_text(void);
         void clear_link_ref(void);
@@ -160,6 +168,7 @@ class   Document::BufferNode
         styler_container        m_stylers       = {};
         cont::Ref               m_linkRef       = {};
         cont::Ref               m_imageRef      = {};
+        cont::Ref               m_inputRef      = {};
 };// end class Document::BufferNode
 
 class   Document::Reference

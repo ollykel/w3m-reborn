@@ -71,13 +71,14 @@ auto    Document::emplace_form(string action, string method)
 }// end Document::emplace_form
 
 auto    Document::emplace_form_input(
-    size_t              formIndex,
-    FormInput::Type     type,
-    string              name,
-    string              value
+    size_t                  formIndex,
+    FormInput::Type         type,
+    const DomTree::node     *domNode,
+    string                  name,
+    string                  value
 ) -> FormInput&
 {
-    m_form_inputs.emplace_back(*this, formIndex, type, name, value);
+    m_form_inputs.emplace_back(*this, formIndex, type, domNode, name, value);
 
     return m_form_inputs.back();
 }// end Document::emplace_form_input
@@ -90,13 +91,15 @@ Document::BufferNode::BufferNode(
     const string& text,
     const bool isReserved,
     const cont::Ref& link,
-    const cont::Ref& image
+    const cont::Ref& image,
+    const cont::Ref& input
 )
 {
     m_text = text;
     m_isReserved = isReserved;
     m_linkRef = link;
     m_imageRef = image;
+    m_inputRef = input;
 }// end Document::BufferNode::BufferNode(string text, linkIdx, imageIdx)
 
 // --- public accessor(s) -------------------------------------------------
@@ -122,6 +125,12 @@ auto Document::BufferNode::image_ref(void) const
     -> const cont::Ref&
 {
     return m_imageRef;
+}
+
+auto Document::BufferNode::input_ref(void) const
+    -> const cont::Ref&
+{
+    return m_inputRef;
 }
 
 auto Document::BufferNode::stylers(void) const
@@ -150,6 +159,11 @@ void    Document::BufferNode::set_image_ref(const size_t index)
 {
     m_imageRef = index;
 }// end Document::BufferNode::set_image_ref(const size_t index)
+
+void    Document::BufferNode::set_input_ref(const size_t index)
+{
+    m_inputRef = index;
+}// end Document::BufferNode::set_input_ref(const size_t index)
 
 void    Document::BufferNode::append_styler(const string& styler)
 {
@@ -295,15 +309,17 @@ void    Document::Form::set_method(const string& method)
 
 // --- public constructor(s) ----------------------------------------------
 Document::FormInput::FormInput(
-    Document&   parent,
-    size_t      formIndex,
-    Type        type,
-    string      name,
-    string      value
+    Document&               parent,
+    size_t                  formIndex,
+    Type                    type,
+    const DomTree::node     *domNode,
+    string                  name,
+    string                  value
 )
 {
     m_parent = &parent;
     m_formIndex = formIndex;
+    m_domNode = domNode;
     m_type = type;
     m_name = name;
     m_value = value;

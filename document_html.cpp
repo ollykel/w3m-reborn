@@ -542,6 +542,7 @@ void    DocumentHtml::append_input(
     FormInput&          bufInput    = emplace_form_input(
                                         stacks.formIndices.back(),
                                         type,
+                                        &input,
                                         name,
                                         value
                                     );
@@ -561,6 +562,9 @@ void    DocumentHtml::append_input(
                 }
 
                 m_buffer.back().emplace_back(textInput);
+                m_buffer.back().back().set_input_ref(
+                    m_form_inputs.size() - 1
+                );
             }
             break;
         default:
@@ -577,6 +581,10 @@ void    DocumentHtml::append_input(
                     // TODO: actually implement
                     m_buffer.back().emplace_back("[XXX]");
                 }
+
+                m_buffer.back().back().set_input_ref(
+                    m_form_inputs.size() - 1
+                );
             }
     }// end switch
 }// end DocumentHtml::append_input
