@@ -6,3 +6,4 @@ Makefile
 .*.swo
 *.o
 *.out
+document_FormInput_Type_enum.hpp
