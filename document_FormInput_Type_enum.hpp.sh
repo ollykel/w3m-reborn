@@ -14,12 +14,12 @@ cat << _EOF_
 
 enum class Type
 {
-    ${token} = 0
+    ${token} = 0,
 _EOF_
 
 while read token; do
 cat << _EOF_
-    ,${token}
+    ${token},
 _EOF_
 done
 

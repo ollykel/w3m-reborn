@@ -7,20 +7,17 @@
 # Makefile should feed this script appropriate input (i.e. from a .txt
 # file) and output to the appropriate destination (i.e. a .hpp file).
 
-read token
-
 cat << _EOF_
 // Does not use include guards, by design.
 // Should be #include'd at the appropriate location in document.hpp.
 
 static const std::map<string,Type> typeMap =
 {
-    { "${token}", Type::${token} }
 _EOF_
 
 while read token; do
 cat << _EOF_
-    ,{ "${token}", Type::${token} }
+    { "${token}", Type::${token} },
 _EOF_
 done
 
