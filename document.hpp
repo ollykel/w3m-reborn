@@ -31,6 +31,10 @@ class   Document
                     string      value       = ""
                 );
 
+                // --- public static method(s) ----------------------------
+                static auto type(const string& str)
+                    -> Type;
+
                 // --- public accessor(s) ---------------------------------
                 auto    form(void) const
                     -> Document::Form&;

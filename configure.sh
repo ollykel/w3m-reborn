@@ -290,6 +290,9 @@ document.hpp : document_FormInput_Type_enum.hpp
 document_FormInput_Type_enum.hpp :  document_FormInput_Type_enum.hpp.sh document_FormInput_Type.txt
 ${TAB}./\$< < document_FormInput_Type.txt > \$@
 
+document_FormInput_type_typeMap.hpp :  document_FormInput_type_typeMap.hpp.sh document_FormInput_Type.txt
+${TAB}./\$< < document_FormInput_Type.txt > \$@
+
 _EOF_
 
 # Generate test dependencies
