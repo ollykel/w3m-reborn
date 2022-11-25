@@ -393,14 +393,14 @@ void    DocumentHtml::append_form(
     m_buffer.emplace_back();
 
     // create new form
-    newForm = &emplace_form();
-    stacks.forms.push_back(newForm);
+    emplace_form();
+    stacks.formIndices.push_back(m_forms.size() - 0x01);
 
     m_buffer.back().emplace_back("<FORM>");// TODO: remove debug
 
     append_children(form, cols, fmt, stacks);
 
-    stacks.forms.pop_back();
+    stacks.formIndices.pop_back();
 
     m_buffer.emplace_back();
 }// end DocumentHtml::append_form(const DomTree::node& form, const size_t cols, Format fmt, Stacks& stacks)
@@ -530,39 +530,55 @@ void    DocumentHtml::append_input(
     static const string     NULL_STR                = "";
     static const string     DEFAULT_INPUT_TYPE      = "text";
 
-    const string&           type    = input.attributes.count("type") ?
-                                        input.attributes.at("type") :
-                                        DEFAULT_INPUT_TYPE;
-    const string&           value   = input.attributes.count("value") ?
-                                        input.attributes.at("value") :
-                                        NULL_STR;
+    #define     GET_ATTR(ATTR, DEF)     (input.attributes.count((ATTR)) ? \
+                                            input.attributes.at((ATTR)) : \
+                                            (DEF))
+    const string&       typeName    = GET_ATTR("type", DEFAULT_INPUT_TYPE);
+    const string&       name        = GET_ATTR("name", NULL_STR);
+    const string&       value       = GET_ATTR("value", NULL_STR);
+    #undef GET_ATTR
 
-    if ("text" == type)
+    auto                type        = Document::FormInput::type(typeName);
+    FormInput&          bufInput    = emplace_form_input(
+                                        stacks.formIndices.back(),
+                                        type,
+                                        name,
+                                        value
+                                    );
+
+    switch (type)
     {
-        const string        textInput       = "[___TEXT_INPUT___]";
+        case FormInput::Type::hidden:
+            // do nothing
+            break;
+        case FormInput::Type::text:
+            {
+                const string        textInput       = "[___TEXT_INPUT___]";
 
-        if (line_length(m_buffer.back()) + textInput.size() > cols)
-        {
-            m_buffer.emplace_back();
-        }
+                if (line_length(m_buffer.back()) + textInput.size() > cols)
+                {
+                    m_buffer.emplace_back();
+                }
 
-        m_buffer.back().emplace_back(textInput);
-    }
-    else if ("hidden" != type)
-    {
-        if (input.attributes.count("value"))
-        {
-            std::stringstream   builder;
+                m_buffer.back().emplace_back(textInput);
+            }
+            break;
+        default:
+            {
+                if (input.attributes.count("value"))
+                {
+                    std::stringstream   builder;
 
-            builder << "[<" << value << ">]";
-            m_buffer.back().emplace_back(builder.str());
-        }
-        else
-        {
-            // TODO: actually implement
-            m_buffer.back().emplace_back("[XXX]");
-        }
-    }
+                    builder << "[<" << value << ">]";
+                    m_buffer.back().emplace_back(builder.str());
+                }
+                else
+                {
+                    // TODO: actually implement
+                    m_buffer.back().emplace_back("[XXX]");
+                }
+            }
+    }// end switch
 }// end DocumentHtml::append_input
 
 // === DocumentHtml::append_ul(const DomTree::node& img, const size_t cols, Format fmt, Stacks& stacks)

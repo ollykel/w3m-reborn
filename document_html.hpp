@@ -27,7 +27,7 @@ class   DocumentHtml : public Document
         class   Format;
         struct  Stacks
         {
-            std::vector<Form*>      forms;
+            std::vector<size_t>     formIndices;
             std::vector<string>     styles;
         };
 
