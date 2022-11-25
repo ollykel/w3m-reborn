@@ -16,8 +16,9 @@ static const std::map<string,Type> typeMap =
 _EOF_
 
 while read token; do
+    token_cpp="$(sed -e 's/-/_/g' <<< "${token}")"
 cat << _EOF_
-    { "${token}", Type::${token} },
+    { "${token}", Type::${token_cpp} },
 _EOF_
 done
 

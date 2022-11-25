@@ -3,7 +3,7 @@ button
 checkbox
 color
 date
-datetime_local
+datetime-local
 email
 file
 hidden

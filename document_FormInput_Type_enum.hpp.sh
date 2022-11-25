@@ -7,6 +7,7 @@
 # file) and output to the appropriate destination (i.e. a .hpp file).
 
 read token
+token_cpp="$(sed -e 's/-/_/g' <<< "${token}")"
 
 cat << _EOF_
 // Does not use include guards, by design.
@@ -18,8 +19,9 @@ enum class Type
 _EOF_
 
 while read token; do
-cat << _EOF_
-    ${token},
+    token_cpp="$(sed -e 's/-/_/g' <<< "${token}")"
+    cat << _EOF_
+    ${token_cpp},
 _EOF_
 done
 
