@@ -76,10 +76,10 @@ get_deps()
         local target="${file_queue[0]}"
         file_queue=(${file_queue[@]:1})
 
-        [[ ! -f "${target}" ]] && continue
-
         # output the value here
         echo "${target}"
+
+        [[ ! -f "${target}" ]] && continue
 
         IFS=$'\n\r' local deps=($(
             grep -e "^\s*#include\s\+\"\S\+\"\s*\$" < "${target}" | \
