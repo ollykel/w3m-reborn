@@ -287,11 +287,11 @@ cat << _EOF_
 
 document.hpp : document_FormInput_Type_enum.hpp
 
-document_FormInput_Type_enum.hpp :  document_FormInput_Type_enum.hpp.sh document_FormInput_Type.txt
-${TAB}./\$< < document_FormInput_Type.txt > \$@
+document_FormInput_Type_enum.hpp :  document_FormInput_Type_enum.hpp.sh html_form_input_types.txt
+${TAB}./\$< < html_form_input_types.txt > \$@
 
-document_FormInput_type_typeMap.hpp :  document_FormInput_type_typeMap.hpp.sh document_FormInput_Type.txt
-${TAB}./\$< < document_FormInput_Type.txt > \$@
+document_FormInput_type_typeMap.hpp :  document_FormInput_type_typeMap.hpp.sh html_form_input_types.txt
+${TAB}./\$< < html_form_input_types.txt > \$@
 
 _EOF_
 
