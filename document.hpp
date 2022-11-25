@@ -18,31 +18,9 @@ class   Document
         {
             public:
                 // --- public member type(s) ------------------------------
-                enum class  Type
-                {
-                    text = 0,
-                    button,
-                    checkbox,
-                    color,
-                    date,
-                    datetime_local,
-                    email,
-                    file,
-                    hidden,
-                    image,
-                    month,
-                    number,
-                    password,
-                    radio,
-                    range,
-                    reset,
-                    search,
-                    submit,
-                    tel,
-                    time,
-                    url,
-                    week,
-                };// end enum class Type
+
+                // enum class Type
+                #include "document_FormInput_Type_enum.hpp"
 
                 // --- public constructor(s) ------------------------------
                 FormInput(

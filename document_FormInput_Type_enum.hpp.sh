@@ -24,5 +24,5 @@ _EOF_
 done
 
 cat << _EOF_
-}// end enum class Type
+};// end enum class Type
 _EOF_

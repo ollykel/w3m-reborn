@@ -281,6 +281,17 @@ for file_base in ${base_cpp_files[@]}; do
     format_obj_build_deps "${file_base}"
 done
 
+# Misc. dependencies
+cat << _EOF_
+# === MISC. DEPENDENCIES ==================================================
+
+document.hpp : document_FormInput_Type_enum.hpp
+
+document_FormInput_Type_enum.hpp :  document_FormInput_Type_enum.hpp.sh document_FormInput_Type.txt
+${TAB}./\$< < document_FormInput_Type.txt > \$@
+
+_EOF_
+
 # Generate test dependencies
 cat << _EOF_
 # === TESTS ===============================================================
