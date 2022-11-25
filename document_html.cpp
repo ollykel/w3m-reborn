@@ -548,17 +548,20 @@ void    DocumentHtml::append_input(
 
         m_buffer.back().emplace_back(textInput);
     }
-    else if (("hidden" != type) and input.attributes.count("value"))
-    {
-        std::stringstream   builder;
-
-        builder << "[<" << value << ">]";
-        m_buffer.back().emplace_back(builder.str());
-    }
     else if ("hidden" != type)
     {
-        // TODO: actually implement
-        m_buffer.back().emplace_back("[XXX]");
+        if (input.attributes.count("value"))
+        {
+            std::stringstream   builder;
+
+            builder << "[<" << value << ">]";
+            m_buffer.back().emplace_back(builder.str());
+        }
+        else
+        {
+            // TODO: actually implement
+            m_buffer.back().emplace_back("[XXX]");
+        }
     }
 }// end DocumentHtml::append_input
 
