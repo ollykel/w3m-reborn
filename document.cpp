@@ -79,6 +79,7 @@ auto    Document::emplace_form_input(
 ) -> FormInput&
 {
     m_form_inputs.emplace_back(*this, formIndex, type, domNode, name, value);
+    m_forms[formIndex].insert_input_index(m_form_inputs.size() - 1);
 
     return m_form_inputs.back();
 }// end Document::emplace_form_input
