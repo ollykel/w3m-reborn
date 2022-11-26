@@ -12,6 +12,7 @@ class   Document
 {
     public:
         // --- public member type(s) --------------------------------------
+        struct      Config;
         class       BufferNode;
         class       Reference;
         class       Form;
@@ -115,6 +116,16 @@ class   Document
                 string                  value       = ""
             ) -> FormInput&;
 };// end class Document
+
+struct  Document::Config
+{
+    struct
+    {
+        size_t      def;
+        size_t      min;
+        size_t      max;
+    } inputWidth;
+};// end struct Document::Config
 
 class   Document::BufferNode
 {
