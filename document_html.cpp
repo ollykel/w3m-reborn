@@ -388,18 +388,25 @@ void    DocumentHtml::append_form(
     Stacks& stacks
 )
 {
-    Form    *newForm    = nullptr;
+    static const string     NULL_STR        = "";
+
+    Form                    *newForm        = nullptr;
+    // NOTE: will allocate empty strings for these attributes if they are
+    // not set. This is intended behavior.
+    #define     GET_ATTR(ATTR) (form.attributes.count((ATTR)) ? \
+                    form.attributes.at((ATTR)) : \
+                    (NULL_STR))
+    const string&           action          = GET_ATTR("action");
+    const string&           method          = GET_ATTR("method");
+    #undef      GET_ATTR
 
     m_buffer.emplace_back();
 
     // create new form
-    emplace_form();
+    emplace_form(action, method);
+
     stacks.formIndices.push_back(m_forms.size() - 0x01);
-
-    m_buffer.back().emplace_back("<FORM>");// TODO: remove debug
-
     append_children(form, cols, fmt, stacks);
-
     stacks.formIndices.pop_back();
 
     m_buffer.emplace_back();
