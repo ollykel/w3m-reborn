@@ -279,6 +279,19 @@ auto    Document::Form::inputs(void) const
     return out;
 }// end Document::Form::inputs
 
+auto    Document::Form::value(const string& key) const
+    -> const string&
+{
+    static const string     NULL_STR        = "";
+
+    if (not m_values.count(key))
+    {
+        return NULL_STR;
+    }
+
+    return m_values.at(key);
+}// end Document::Form::value
+
 // --- public mutator(s) --------------------------------------------------
 void    Document::Form::insert_input_index(size_t index)
 {
@@ -304,6 +317,16 @@ void    Document::Form::set_method(const string& method)
 {
     m_method = method;
 }// end Document::Form::set_method
+
+void    Document::Form::set_value(const string& key, const string& val)
+{
+    m_values[key] = val;
+}// end Document::Form::set_value
+
+void    Document::Form::erase_value(const string& key)
+{
+    m_values.erase(key);
+}// end Document::Form::erase_value
 
 // === Document::FormInput Implementation =================================
 //

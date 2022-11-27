@@ -230,6 +230,8 @@ class       Document::Form
             -> const string&;
         auto    inputs(void) const
             -> input_const_ptr_container;
+        auto    value(const string& key) const
+            -> const string&;
 
         // --- public mutator(s) ------------------------------------------
         void    insert_input_index(size_t index);
@@ -237,6 +239,8 @@ class       Document::Form
         void    clear_input_indices(void);
         void    set_action(const string& action);
         void    set_method(const string& method);
+        void    set_value(const string& key, const string& val);
+        void    erase_value(const string& key);
 
     private:
         // --- private member variable(s) ---------------------------------
@@ -244,6 +248,7 @@ class       Document::Form
         string                      m_action            = "";
         string                      m_method            = "";
         input_index_container       m_input_indices     = {};
+        std::map<string,string>     m_values            = {};
 };// end class Document::Form
 
 struct      Document::BufferIndex
