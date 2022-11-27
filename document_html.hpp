@@ -12,9 +12,17 @@ class   DocumentHtml : public Document
 {
     public:
         // === public constructor(s) ======================================
-        DocumentHtml(void);// default
-        DocumentHtml(std::istream& ins, const size_t cols);// type 1
-        DocumentHtml(const string& text, const size_t cols);// type 2
+        DocumentHtml(const Document::Config& cfg);// default
+        DocumentHtml(
+            const Document::Config& cfg,
+            std::istream& ins,
+            const size_t cols
+        );// type 1
+        DocumentHtml(
+            const Document::Config& cfg,
+            const string& text,
+            const size_t cols
+        );// type 2
 
         // === public mutator(s) ==========================================
         void        from_stream(std::istream& ins, const size_t cols);

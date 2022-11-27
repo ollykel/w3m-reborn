@@ -12,7 +12,15 @@ class   Document
 {
     public:
         // --- public member type(s) --------------------------------------
-        struct      Config;
+        struct  Config
+        {
+            struct
+            {
+                size_t      def;
+                size_t      min;
+                size_t      max;
+            } inputWidth;
+        };// end struct Document::Config
         class       BufferNode;
         class       Reference;
         class       Form;
@@ -73,7 +81,7 @@ class   Document
         typedef     std::vector<FormInput>          form_input_container;
 
         // --- public constructor(s) --------------------------------------
-        Document(void);// default
+        Document(const Config& cfg);// default
 
         // --- public accessor(s) -----------------------------------------
         auto title(void) const
@@ -98,6 +106,7 @@ class   Document
         void set_title(const string& title);
     protected:
         // --- protected member variable(s) -------------------------------
+        Config                  m_config        = {};
         string                  m_title         = "";
         buffer_type             m_buffer        = {};
         link_container          m_links         = {};
@@ -116,16 +125,6 @@ class   Document
                 string                  value       = ""
             ) -> FormInput&;
 };// end class Document
-
-struct  Document::Config
-{
-    struct
-    {
-        size_t      def;
-        size_t      min;
-        size_t      max;
-    } inputWidth;
-};// end struct Document::Config
 
 class   Document::BufferNode
 {

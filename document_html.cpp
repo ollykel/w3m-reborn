@@ -11,7 +11,8 @@
 #include "document_html.hpp"
 
 // === public constructor(s) ======================================
-DocumentHtml::DocumentHtml(void) : Document()
+DocumentHtml::DocumentHtml(const Document::Config& cfg)
+    : Document(cfg)
 {
     // initialize dispatcher
     m_dispatcher["a"] = &DocumentHtml::append_a;
@@ -34,14 +35,20 @@ DocumentHtml::DocumentHtml(void) : Document()
     m_dispatcher["tbody"] = &DocumentHtml::append_tbody;
 }// end DocumentHtml(void)
 
-DocumentHtml::DocumentHtml(std::istream& ins, const size_t cols)
-    : DocumentHtml()
+DocumentHtml::DocumentHtml(
+    const Document::Config& cfg,
+    std::istream& ins,
+    const size_t cols
+) : DocumentHtml(cfg)
 {
     from_stream(ins, cols);
 }// end DocumentHtml(std::istream& ins, const size_t cols)
 
-DocumentHtml::DocumentHtml(const string& text, const size_t cols)
-    : DocumentHtml()
+DocumentHtml::DocumentHtml(
+    const Document::Config& cfg,
+    const string& text,
+    const size_t cols
+) : DocumentHtml(cfg)
 {
     from_string(text, cols);
 }// end DocumentHtml(const string& text, const size_t cols)

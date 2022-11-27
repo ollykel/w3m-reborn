@@ -11,12 +11,13 @@ int main(const int argc, const char **argv)
 {
     using namespace std;
 
-    const size_t        numCols     = argc > 1 ? atoi(argv[1]) : 80;
-    const size_t        numCols2    = numCols * 2;
+    const Document::Config  cfg         = {};// TODO: meaningful defaults
+    const size_t            numCols     = argc > 1 ? atoi(argv[1]) : 80;
+    const size_t            numCols2    = numCols * 2;
 
     try
     {
-        DocumentText        doc(cin, numCols);
+        DocumentText        doc(cfg, cin, numCols);
 
         cout << "Printing document buffer..." << endl << "===" << endl;
 

@@ -11,13 +11,27 @@ class   DocumentText : public Document
 {
     public:
         // === public constructor(s) ======================================
-        DocumentText(void);// default
-        DocumentText(std::istream& ins, const size_t cols);// type 1
-        DocumentText(const string& text, const size_t cols);// type 2
+        DocumentText(const Document::Config& cfg);// default
+        DocumentText(
+            const Document::Config& cfg,
+            std::istream& ins,
+            const size_t cols
+        );// type 1
+        DocumentText(
+            const Document::Config& cfg,
+            const string& text,
+            const size_t cols
+        );// type 2
 
         // === public mutator(s) ==========================================
-        void        from_stream(std::istream& ins, const size_t cols);
-        void        from_string(const string& text, const size_t cols);
+        void    from_stream(
+            std::istream& ins,
+            const size_t cols
+        );
+        void    from_string(
+            const string& text,
+            const size_t cols
+        );
         // ------ override(s) ---------------------------------------------
         void        redraw(size_t cols) override;
     protected:

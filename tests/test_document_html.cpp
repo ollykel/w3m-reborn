@@ -7,8 +7,11 @@ class   DocumentHtmlTester : public DocumentHtml
 {
     public:
         // === public constructor(s) ======================================
-        DocumentHtmlTester(std::istream& ins, const size_t cols)
-            : DocumentHtml(ins, cols) {}
+        DocumentHtmlTester(
+            const Document::Config& cfg,
+            std::istream& ins,
+            const size_t cols
+        ) : DocumentHtml(cfg, ins, cols) {}
         // === public accessor(s) =========================================
         const DomTree&      dom(void) const
             { return m_dom; }
@@ -27,12 +30,13 @@ int main(const int argc, const char **argv)
 {
     using namespace std;
 
-    const size_t        numCols     = argc > 1 ? atoi(argv[1]) : 80;
-    const size_t        numCols2    = numCols * 2;
+    const size_t            numCols     = argc > 1 ? atoi(argv[1]) : 80;
+    const size_t            numCols2    = numCols * 2;
+    const Document::Config  cfg         = {};// TODO: meaningful defaults
 
     try
     {
-        DocumentHtmlTester  doc(cin, numCols);
+        DocumentHtmlTester  doc(cfg, cin, numCols);
 
         cout << doc.dom() << endl;
 

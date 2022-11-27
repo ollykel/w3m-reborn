@@ -12,9 +12,9 @@
 // ========================================================================
 
 // --- public constructors ------------------------------------------------
-Page::Page(void)
+Page::Page(const Config& cfg)
 {
-    // do nothing
+    m_config = cfg;
 }// end Page::Page
 
 Page::Page(const Page& other)
@@ -72,16 +72,17 @@ auto Page::operator=(const Page& other)
 
 // --- public static function(s) ------------------------------------------
 auto Page::from_text_stream(
+    const Config& cfg,
     std::istream& ins,
     const Uri& uri,
     const size_t cols
 ) -> Page
 {
-    Page    out     = {};
+    Page    out     = { cfg };
 
     out.m_kind = Kind::text;
     out.m_uri = uri;
-    out.m_document = std::make_unique<DocumentText>(ins, cols);
+    out.m_document = std::make_unique<DocumentText>(cfg.document, ins, cols);
 
     out.m_linkUrisRel.reserve(out.m_document->links().size());
     for (const auto& link : out.m_document->links())
@@ -116,6 +117,7 @@ auto Page::from_text_stream(
 }// end Page::from_text_stream
 
 auto Page::from_text_string(
+    const Config& cfg,
     const string& inStr,
     const Uri& uri,
     const size_t cols
@@ -123,20 +125,25 @@ auto Page::from_text_string(
 {
     std::istringstream      stream(inStr);
 
-    return from_text_stream(stream, uri, cols);
+    return from_text_stream(cfg, stream, uri, cols);
 }// end Page::from_text_string
 
 auto Page::from_html_stream(
+    const Config& cfg,
     std::istream& ins,
     const Uri& uri,
     const size_t cols
 ) -> Page
 {
-    Page    out     = {};
+    Page    out     = { cfg };
 
     out.m_kind = Kind::html;
     out.m_uri = uri;
-    out.m_document = std::make_unique<DocumentHtml>(ins, cols);
+    out.m_document = std::make_unique<DocumentHtml>(
+        cfg.document,
+        ins,
+        cols
+    );
 
     out.m_linkUrisRel.reserve(out.m_document->links().size());
     for (const auto& link : out.m_document->links())
@@ -171,6 +178,7 @@ auto Page::from_html_stream(
 }// end Page::from_html_stream
 
 auto Page::from_html_string(
+    const Config& cfg,
     const string& inStr,
     const Uri& uri,
     const size_t cols
@@ -178,12 +186,13 @@ auto Page::from_html_string(
 {
     std::istringstream      stream(inStr);
 
-    return from_html_stream(stream, uri, cols);
+    return from_html_stream(cfg, stream, uri, cols);
 }// end Page::from_html_string
 
 // --- private mutators ---------------------------------------------------
 void Page::copy_from(const Page& other)
 {
+    m_config            = other.m_config;
     m_uri               = other.m_uri;
     m_linkUrisRel       = other.m_linkUrisRel;
     m_linkUrisFull      = other.m_linkUrisFull;

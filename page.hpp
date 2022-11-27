@@ -14,8 +14,14 @@ class Page
         typedef     std::vector<Uri>        link_container;
         typedef     std::vector<Uri>        image_container;
 
+        // --- public member class(es) ------------------------------------
+        struct Config
+        {
+            Document::Config    document;
+        };// end struct Page::Config
+
         // --- public constructors ----------------------------------------
-        Page(void);
+        Page(const Config& cfg);
         Page(const Page& other);
 
         // --- public accessor(s) -----------------------------------------
@@ -37,21 +43,25 @@ class Page
 
         // --- public static function(s) ----------------------------------
         static auto from_text_stream(
+                const Config& cfg,
                 std::istream& ins,
                 const Uri& uri,
                 const size_t cols
             ) -> Page;
         static auto from_text_string(
+                const Config& cfg,
                 const string& inStr,
                 const Uri& uri,
                 const size_t cols
             ) -> Page;
         static auto from_html_stream(
+                const Config& cfg,
                 std::istream& ins,
                 const Uri& uri,
                 const size_t cols
             ) -> Page;
         static auto from_html_string(
+                const Config& cfg,
                 const string& inStr,
                 const Uri& uri,
                 const size_t cols
@@ -65,6 +75,7 @@ class Page
         };// end enum class Kind
 
         // --- protected member variable(s) -------------------------------
+        Config              m_config                = {};
         Kind                m_kind                  = Kind::text;
         Uri                 m_uri                   = {};
         u_ptr<Document>     m_document              = {};

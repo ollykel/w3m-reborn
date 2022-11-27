@@ -5,9 +5,9 @@
 //
 // ========================================================================
 
-Document::Document(void)
+Document::Document(const Config& cfg)
 {
-    // do nothing
+    m_config = cfg;
 }// end Document::Document(void)
 
 // --- public accessor(s) -------------------------------------------------

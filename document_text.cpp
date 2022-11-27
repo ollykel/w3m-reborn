@@ -7,17 +7,26 @@
 #include "document_text.hpp"
 
 // === public constructor(s) ======================================
-DocumentText::DocumentText(void) : Document()
+DocumentText::DocumentText(const Document::Config& cfg)
+    : Document(cfg)
 {
     // do nothing
 }// end DocumentText(void)
 
-DocumentText::DocumentText(std::istream& ins, const size_t cols) : Document()
+DocumentText::DocumentText(
+    const Document::Config& cfg,
+    std::istream& ins,
+    const size_t cols
+) : DocumentText(cfg)
 {
     from_stream(ins, cols);
 }// end DocumentText(std::istream& ins, const size_t cols)
 
-DocumentText::DocumentText(const string& text, const size_t cols) : Document()
+DocumentText::DocumentText(
+    const Document::Config& cfg,
+    const string& text,
+    const size_t cols
+) : DocumentText(cfg)
 {
     from_string(text, cols);
 }// end DocumentText(const string& text, const size_t cols)
