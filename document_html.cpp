@@ -566,7 +566,12 @@ void    DocumentHtml::append_input(
         case FormInput::Type::hidden:
             // do nothing
             break;
+        // text-based input fields
         case FormInput::Type::text:
+        case FormInput::Type::email:
+        case FormInput::Type::password:
+        case FormInput::Type::search:
+        case FormInput::Type::url:
             {
                 const size_t    width           = m_config.inputWidth.def;
                 const string    textInput       = string(width, '_');
