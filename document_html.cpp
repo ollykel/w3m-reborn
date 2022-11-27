@@ -568,17 +568,24 @@ void    DocumentHtml::append_input(
             break;
         case FormInput::Type::text:
             {
-                const string        textInput       = "[___TEXT_INPUT___]";
+                const size_t    width           = m_config.inputWidth.def;
+                const string    textInput       = string(width, '_');
 
-                if (line_length(m_buffer.back()) + textInput.size() > cols)
+                if (line_length(m_buffer.back()) + width + 2 > cols)
                 {
                     m_buffer.emplace_back();
                 }
+
+                // initial bracket
+                m_buffer.back().emplace_back("[");
 
                 m_buffer.back().emplace_back(textInput);
                 m_buffer.back().back().set_input_ref(
                     m_form_inputs.size() - 1
                 );
+
+                // terminal bracket
+                m_buffer.back().emplace_back("]");
             }
             break;
         default:
