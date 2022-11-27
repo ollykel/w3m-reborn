@@ -562,36 +562,95 @@ void    DocumentHtml::append_input(
                                     );
     const size_t        inputIndex  = m_form_inputs.size() - 0x01;
 
+    #define     FMT_FIELD_INC(FMT)  \
+    { \
+        if (line_length(m_buffer.back()) + (FMT).size() > cols) \
+        { \
+            m_buffer.emplace_back(); \
+        } \
+    \
+        m_buffer.back().emplace_back((FMT)); \
+        m_buffer.back().back().set_input_ref(inputIndex); \
+    }
+
+    #define     FMT_FIELD_ENCLOSED(FMT, OPEN, CLOSE)  \
+    { \
+        const string    fmt     = (FMT); \
+        \
+        if (line_length(m_buffer.back()) + fmt.size() + 0x02 > cols) \
+        { \
+            m_buffer.emplace_back(); \
+        } \
+    \
+        m_buffer.back().emplace_back((OPEN)); \
+        FMT_FIELD_INC(fmt); \
+        m_buffer.back().emplace_back((CLOSE)); \
+    }
+
+    #define     FMT_FIELD(FMT)  FMT_FIELD_ENCLOSED(FMT, "[", "]")
+
     switch (type)
     {
         case FormInput::Type::hidden:
             // do nothing
             break;
         // text-based input fields
+        // input handlers should take care to validate input based on type
         case FormInput::Type::text:
         case FormInput::Type::email:
         case FormInput::Type::password:
         case FormInput::Type::search:
         case FormInput::Type::url:
+        case FormInput::Type::number:
+        case FormInput::Type::range:
             {
-                const size_t    width           = m_config.inputWidth.def;
-                const string    textInput       = string(width, '_');
+                const size_t    remLen
+                    = value.size() >= m_config.inputWidth.def ?
+                    0 : value.size() - m_config.inputWidth.def;
+                const string    rem     = string(remLen, ' ');
 
-                if (line_length(m_buffer.back()) + width + 2 > cols)
-                {
-                    m_buffer.emplace_back();
-                }
-
-                // initial bracket
-                m_buffer.back().emplace_back("[");
-
-                m_buffer.back().emplace_back(textInput);
-                m_buffer.back().back().set_input_ref(inputIndex);
-
-                // terminal bracket
-                m_buffer.back().emplace_back("]");
+                FMT_FIELD(value + rem);
             }
             break;
+        // button-based input fields
+        case FormInput::Type::button:
+        case FormInput::Type::submit:
+        case FormInput::Type::reset:
+            FMT_FIELD_INC("[<" + value + ">]");
+            break;
+        case FormInput::Type::checkbox:
+            FMT_FIELD(value.size() ? "X" : " ");
+            break;
+        case FormInput::Type::color:
+            FMT_FIELD(value.size() ? value : "#RRGGBB");
+            break;
+        case FormInput::Type::date:
+            FMT_FIELD(value.size() ? value : "YYYY-MM-DD");
+            break;
+        case FormInput::Type::datetime_local:
+            FMT_FIELD(value.size() ? value : "YYYY-MM-DD hh:mm:ss");
+            break;
+        // file input fields
+        case FormInput::Type::file:
+        case FormInput::Type::image:
+            FMT_FIELD(value.size() ? value : "{{FILE}}");
+            break;
+        case FormInput::Type::month:
+            FMT_FIELD(value.size() ? value : "YYYY-MM");
+            break;
+        case FormInput::Type::radio:
+            FMT_FIELD_ENCLOSED((value.size() ? "*" : " "), "(", ")");
+            break;
+        case FormInput::Type::tel:
+            FMT_FIELD(value.size() ? value : "(+1) (NNN) NNN-NNNN");
+            break;
+        case FormInput::Type::time:
+            FMT_FIELD(value.size() ? value : "hh:mm:ss");
+            break;
+        case FormInput::Type::week:
+            FMT_FIELD(value.size() ? value : "YYYY-WW");
+            break;
+        // unhandled/undefined fields
         default:
             {
                 if (input.attributes.count("value"))
@@ -610,6 +669,8 @@ void    DocumentHtml::append_input(
                 m_buffer.back().back().set_input_ref(inputIndex);
             }
     }// end switch
+    #undef  FMT_FIELD
+    #undef  FMT_FIELD_INC
 }// end DocumentHtml::append_input
 
 // === DocumentHtml::append_ul(const DomTree::node& img, const size_t cols, Format fmt, Stacks& stacks)
