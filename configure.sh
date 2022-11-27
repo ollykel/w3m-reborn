@@ -17,8 +17,8 @@ export PREFIX="/usr/local"
 # misc. files
 generated_files=(
     document_html_entMap.gen.hpp
-    document_FormInput_Type_enum.hpp 
-    document_FormInput_type_typeMap.hpp
+    document_FormInput_Type_enum.gen.hpp 
+    document_FormInput_type_typeMap.gen.hpp
 )
 
 # parse options from args
@@ -296,10 +296,10 @@ cat << _EOF_
 document_html_entMap.gen.hpp : document_html_entMap.hpp.sh html_entities.csv
 ${TAB}./\$< < html_entities.csv > \$@
 
-document_FormInput_Type_enum.hpp :  document_FormInput_Type_enum.hpp.sh html_form_input_types.txt
+document_FormInput_Type_enum.gen.hpp :  document_FormInput_Type_enum.hpp.sh html_form_input_types.txt
 ${TAB}./\$< < html_form_input_types.txt > \$@
 
-document_FormInput_type_typeMap.hpp :  document_FormInput_type_typeMap.hpp.sh html_form_input_types.txt
+document_FormInput_type_typeMap.gen.hpp :  document_FormInput_type_typeMap.hpp.sh html_form_input_types.txt
 ${TAB}./\$< < html_form_input_types.txt > \$@
 
 _EOF_

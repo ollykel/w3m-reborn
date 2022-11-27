@@ -332,7 +332,7 @@ auto Document::FormInput::type(const string& str)
     -> Type
 {
     // static const std::map<string,Type> typeMap
-    #include "document_FormInput_type_typeMap.hpp"
+    #include "document_FormInput_type_typeMap.gen.hpp"
 
     return typeMap.at(str);
 }// end Document::FormInput::type

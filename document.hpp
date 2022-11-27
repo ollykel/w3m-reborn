@@ -30,7 +30,7 @@ class   Document
                 // --- public member type(s) ------------------------------
 
                 // enum class Type
-                #include "document_FormInput_Type_enum.hpp"
+                #include "document_FormInput_Type_enum.gen.hpp"
 
                 // --- public constructor(s) ------------------------------
                 FormInput(
