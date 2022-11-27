@@ -232,6 +232,8 @@ class       Document::Form
             -> input_const_ptr_container;
         auto    value(const string& key) const
             -> const string&;
+        auto    values(void) const
+            -> const std::map<string,string>&;
 
         // --- public mutator(s) ------------------------------------------
         void    insert_input_index(size_t index);

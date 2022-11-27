@@ -292,6 +292,12 @@ auto    Document::Form::value(const string& key) const
     return m_values.at(key);
 }// end Document::Form::value
 
+auto    Document::Form::values(void) const
+    -> const std::map<string,string>&
+{
+    return m_values;
+}// end Document::Form::values
+
 // --- public mutator(s) --------------------------------------------------
 void    Document::Form::insert_input_index(size_t index)
 {
