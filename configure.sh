@@ -293,8 +293,6 @@ done
 cat << _EOF_
 # === MISC. DEPENDENCIES ==================================================
 
-document.hpp : document_FormInput_Type_enum.hpp
-
 document_html_entMap.gen.hpp : document_html_entMap.hpp.sh html_entities.csv
 ${TAB}./\$< < html_entities.csv > \$@
 
