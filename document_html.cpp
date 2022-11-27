@@ -606,8 +606,10 @@ void    DocumentHtml::append_input(
             {
                 const size_t    remLen
                     = value.size() >= m_config.inputWidth.def ?
-                    0 : value.size() - m_config.inputWidth.def;
-                const string    rem     = string(remLen, ' ');
+                    0 : m_config.inputWidth.def - value.size();
+                const string    rem     = remLen ?
+                    string(remLen, ' ') :
+                    "";
 
                 FMT_FIELD(value + rem);
             }
