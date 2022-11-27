@@ -552,9 +552,11 @@ void    DocumentHtml::append_input(
     const string&       value       = GET_ATTR("value", NULL_STR);
     #undef GET_ATTR
 
+    const size_t        formIdx     = stacks.formIndices.back();
+    Document::Form&     form        = m_forms.at(formIdx);
     auto                type        = Document::FormInput::type(typeName);
     FormInput&          bufInput    = emplace_form_input(
-                                        stacks.formIndices.back(),
+                                        formIdx,
                                         type,
                                         &input,
                                         name,
@@ -592,7 +594,10 @@ void    DocumentHtml::append_input(
     switch (type)
     {
         case FormInput::Type::hidden:
-            // do nothing
+            if (value.size())
+            {
+                form.set_value(name, value);
+            }
             break;
         // text-based input fields
         // input handlers should take care to validate input based on type
@@ -611,6 +616,10 @@ void    DocumentHtml::append_input(
                     string(remLen, ' ') :
                     "";
 
+                if (value.size())
+                {
+                    form.set_value(name, value);
+                }
                 FMT_FIELD(value + rem);
             }
             break;
@@ -621,15 +630,31 @@ void    DocumentHtml::append_input(
             FMT_FIELD_INC("[<" + value + ">]");
             break;
         case FormInput::Type::checkbox:
+            if (value.size())
+            {
+                form.set_value(name, value);
+            }
             FMT_FIELD(value.size() ? "X" : " ");
             break;
         case FormInput::Type::color:
+            if (value.size())
+            {
+                form.set_value(name, value);
+            }
             FMT_FIELD(value.size() ? value : "#RRGGBB");
             break;
         case FormInput::Type::date:
+            if (value.size())
+            {
+                form.set_value(name, value);
+            }
             FMT_FIELD(value.size() ? value : "YYYY-MM-DD");
             break;
         case FormInput::Type::datetime_local:
+            if (value.size())
+            {
+                form.set_value(name, value);
+            }
             FMT_FIELD(value.size() ? value : "YYYY-MM-DD hh:mm:ss");
             break;
         // file input fields
@@ -638,18 +663,38 @@ void    DocumentHtml::append_input(
             FMT_FIELD(value.size() ? value : "{{FILE}}");
             break;
         case FormInput::Type::month:
+            if (value.size())
+            {
+                form.set_value(name, value);
+            }
             FMT_FIELD(value.size() ? value : "YYYY-MM");
             break;
         case FormInput::Type::radio:
+            if (input.attributes.count("checked") and value.size())
+            {
+                form.set_value(name, value);
+            }
             FMT_FIELD_ENCLOSED((value.size() ? "*" : " "), "(", ")");
             break;
         case FormInput::Type::tel:
+            if (value.size())
+            {
+                form.set_value(name, value);
+            }
             FMT_FIELD(value.size() ? value : "(+1) (NNN) NNN-NNNN");
             break;
         case FormInput::Type::time:
+            if (value.size())
+            {
+                form.set_value(name, value);
+            }
             FMT_FIELD(value.size() ? value : "hh:mm:ss");
             break;
         case FormInput::Type::week:
+            if (value.size())
+            {
+                form.set_value(name, value);
+            }
             FMT_FIELD(value.size() ? value : "YYYY-WW");
             break;
         // unhandled/undefined fields
