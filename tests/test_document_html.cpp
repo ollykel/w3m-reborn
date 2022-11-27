@@ -1,3 +1,5 @@
+#include <climits>
+
 #include "../deps.hpp"
 #include "../html_parser.hpp"
 #include "../dom_tree.hpp"
@@ -32,7 +34,14 @@ int main(const int argc, const char **argv)
 
     const size_t            numCols     = argc > 1 ? atoi(argv[1]) : 80;
     const size_t            numCols2    = numCols * 2;
-    const Document::Config  cfg         = {};// TODO: meaningful defaults
+    const Document::Config  cfg         = {
+        // rows
+        {
+            40,         // def
+            0,          // min
+            SIZE_MAX,   // max
+        },
+    };// TODO: meaningful defaults
 
     try
     {
