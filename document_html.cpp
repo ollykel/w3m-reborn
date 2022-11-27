@@ -560,6 +560,7 @@ void    DocumentHtml::append_input(
                                         name,
                                         value
                                     );
+    const size_t        inputIndex  = m_form_inputs.size() - 0x01;
 
     switch (type)
     {
@@ -585,9 +586,7 @@ void    DocumentHtml::append_input(
                 m_buffer.back().emplace_back("[");
 
                 m_buffer.back().emplace_back(textInput);
-                m_buffer.back().back().set_input_ref(
-                    m_form_inputs.size() - 1
-                );
+                m_buffer.back().back().set_input_ref(inputIndex);
 
                 // terminal bracket
                 m_buffer.back().emplace_back("]");
@@ -608,9 +607,7 @@ void    DocumentHtml::append_input(
                     m_buffer.back().emplace_back("[XXX]");
                 }
 
-                m_buffer.back().back().set_input_ref(
-                    m_form_inputs.size() - 1
-                );
+                m_buffer.back().back().set_input_ref(inputIndex);
             }
     }// end switch
 }// end DocumentHtml::append_input
