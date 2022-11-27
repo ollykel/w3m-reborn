@@ -14,6 +14,13 @@ export LD="${CPP}"
 export LDFLAGS="-lncurses"
 export PREFIX="/usr/local"
 
+# misc. files
+generated_files=(
+    document_html_entMap.gen.hpp
+    document_FormInput_Type_enum.hpp 
+    document_FormInput_type_typeMap.hpp
+)
+
 # parse options from args
 while [[ $# -gt 0 ]]; do
     IFS='=' read key val <<< "$1"
@@ -233,6 +240,7 @@ all : main.out tests
 # =========================================================================
 clean:
 ${TAB}\$(RM) main.out
+${TAB}\$(RM) ${generated_files[@]}
 ${TAB}\$(RM) ${base_obj_files[@]}
 ${TAB}\$(RM) ${test_obj_files[@]}
 ${TAB}\$(RM) ${test_out_files[@]}
