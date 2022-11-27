@@ -287,6 +287,9 @@ cat << _EOF_
 
 document.hpp : document_FormInput_Type_enum.hpp
 
+document_html_entMap.gen.hpp : document_html_entMap.hpp.sh html_entities.csv
+${TAB}./\$< < html_entities.csv > \$@
+
 document_FormInput_Type_enum.hpp :  document_FormInput_Type_enum.hpp.sh html_form_input_types.txt
 ${TAB}./\$< < html_form_input_types.txt > \$@
 
