@@ -37,7 +37,7 @@ class   Document
                     Document&               parent,
                     size_t                  formIndex,
                     Type                    type        = Type::text,
-                    const DomTree::node     *domNode    = nullptr,
+                    DomTree::node           *domNode    = nullptr,
                     string                  name        = "",
                     string                  value       = ""
                 );
@@ -50,7 +50,7 @@ class   Document
                 auto    form(void) const
                     -> Document::Form&;
                 auto    type(void) const
-                    -> const string&;
+                    -> Type;
                 auto    name(void) const
                     -> const string&;
                 auto    value(void) const
@@ -65,7 +65,7 @@ class   Document
                 Document                *m_parent       = nullptr;
                 size_t                  m_formIndex     = 0;
                 Type                    m_type          = Type::text;
-                const DomTree::node     *m_domNode      = nullptr;
+                DomTree::node           *m_domNode      = nullptr;
                 string                  m_name          = "";
                 string                  m_value         = "";
         };// end class Document::FormInput
@@ -118,11 +118,11 @@ class   Document
         auto    emplace_form(string action = "", string method = "")
             -> Form&;
         auto    emplace_form_input(
-                size_t                  formIndex,
-                FormInput::Type         type        = FormInput::Type::text,
-                const DomTree::node     *domNode    = nullptr,
-                string                  name        = "",
-                string                  value       = ""
+                size_t              formIndex,
+                FormInput::Type     type        = FormInput::Type::text,
+                DomTree::node       *domNode    = nullptr,
+                string              name        = "",
+                string              value       = ""
             ) -> FormInput&;
 };// end class Document
 

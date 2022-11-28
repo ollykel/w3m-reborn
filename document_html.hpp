@@ -46,7 +46,7 @@ class   DocumentHtml : public Document
         std::map<
             string,
             void (DocumentHtml::*)(
-                const DomTree::node&,
+                DomTree::node&,
                 const size_t,
                 Format,
                 Stacks&)
@@ -54,13 +54,13 @@ class   DocumentHtml : public Document
 
         // === protected mutator(s) =======================================
         void    append_node(
-            const DomTree::node& nd,
+            DomTree::node& nd,
             const size_t cols,
             Format fmt,
             Stacks& stacks
         );
         void    append_children(
-            const DomTree::node& nd,
+            DomTree::node& nd,
             const size_t cols,
             Format fmt,
             Stacks& stacks
@@ -72,103 +72,103 @@ class   DocumentHtml : public Document
             Stacks& stacks
         );
         void    append_text(
-            const DomTree::node& text,
+            DomTree::node& text,
             const size_t cols,
             Format fmt,
             Stacks& stacks
         );
         void    append_a(
-            const DomTree::node& a,
+            DomTree::node& a,
             const size_t cols,
             Format fmt,
             Stacks& stacks
         );
         void    append_br(
-            const DomTree::node& br,
+            DomTree::node& br,
             const size_t cols,
             Format fmt,
             Stacks& stacks
         );
         void    append_div(
-            const DomTree::node& div,
+            DomTree::node& div,
             const size_t cols,
             Format fmt,
             Stacks& stacks
         );
         void    append_form(
-            const DomTree::node& form,
+            DomTree::node& form,
             const size_t cols,
             Format fmt,
             Stacks& stacks
         );
         void    append_hn(
-            const DomTree::node& hn,
+            DomTree::node& hn,
             const size_t cols,
             Format fmt,
             Stacks& stacks
         );
         void    append_hr(
-            const DomTree::node& hr,
+            DomTree::node& hr,
             const size_t cols,
             Format fmt,
             Stacks& stacks
         );
         void    append_img(
-            const DomTree::node& img,
+            DomTree::node& img,
             const size_t cols,
             Format fmt,
             Stacks& stacks
         );
         void    append_input(
-            const DomTree::node& input,
+            DomTree::node& input,
             const size_t cols,
             Format fmt,
             Stacks& stacks
         );
         void    append_ul(
-            const DomTree::node& ul,
+            DomTree::node& ul,
             const size_t cols,
             Format fmt,
             Stacks& stacks
         );
         void    append_ol(
-            const DomTree::node& ol,
+            DomTree::node& ol,
             const size_t cols,
             Format fmt,
             Stacks& stacks
         );
         void    append_li_ul(
-            const DomTree::node& li,
+            DomTree::node& li,
             const size_t cols,
             Format fmt,
             Stacks& stacks
         );
         void    append_li_ol(
-            const DomTree::node& li,
+            DomTree::node& li,
             const size_t cols,
             Format fmt,
             Stacks& stacks
         );
         void    append_p(
-            const DomTree::node& p,
+            DomTree::node& p,
             const size_t cols,
             Format fmt,
             Stacks& stacks
         );
         void    append_table(
-            const DomTree::node& table,
+            DomTree::node& table,
             const size_t cols,
             Format fmt,
             Stacks& stacks
         );
         void    append_tbody(
-            const DomTree::node& tbody,
+            DomTree::node& tbody,
             const size_t cols,
             Format fmt,
             Stacks& stacks
         );
         void    append_other(
-            const DomTree::node& nd,
+            DomTree::node& nd,
             const size_t cols,
             Format fmt,
             Stacks& stacks

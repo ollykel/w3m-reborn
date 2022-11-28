@@ -163,7 +163,7 @@ void        DocumentHtml::redraw(size_t cols)
 //
 // ========================================================================
 void    DocumentHtml::append_node(
-    const DomTree::node& nd,
+    DomTree::node& nd,
     const size_t cols,
     Format fmt,
     Stacks& stacks
@@ -193,17 +193,17 @@ void    DocumentHtml::append_node(
     {
         append_other(nd, cols, fmt, stacks);
     }
-}// end DocumentHtml::append_node(const DomTree::node& nd, const size_t cols, Format fmt, Stacks& stacks)
+}// end DocumentHtml::append_node(DomTree::node& nd, const size_t cols, Format fmt, Stacks& stacks)
 
-void    DocumentHtml::append_children(const DomTree::node& nd, const size_t cols, Format fmt, Stacks& stacks)
+void    DocumentHtml::append_children(DomTree::node& nd, const size_t cols, Format fmt, Stacks& stacks)
 {
-    for (auto iter = nd.cbegin(); iter != nd.cend(); ++iter)
+    for (auto iter = nd.begin(); iter != nd.end(); ++iter)
     {
-        const auto& child = *iter;
+        auto& child = *iter;
 
         append_node(child, cols, fmt, stacks);
     }// end for (const auto& child : nd)
-}// end DocumentHtml::append_children(const DomTree::node& nd, const size_t cols, Format fmt, Stacks& stacks)
+}// end DocumentHtml::append_children(DomTree::node& nd, const size_t cols, Format fmt, Stacks& stacks)
 
 // === DocumentHtml::append_str(const string& str, const size_t cols, Format fmt, Stacks& stacks) =====
 //
@@ -300,16 +300,16 @@ void    DocumentHtml::append_str(
     }// end for styler
 }// end DocumentHtml::append_str(const string& str, const size_t cols, Format fmt, Stacks& stacks)
 
-// === DocumentHtml::append_text(const DomTree::node& text) ===============
+// === DocumentHtml::append_text(DomTree::node& text) ===============
 //
 // Draws a text node at the end of the buffer, broken over several lines if
 // necessary. Starts at the end of the last line, if space is available.
 //
 // ========================================================================
-void    DocumentHtml::append_text(const DomTree::node& text, const size_t cols, Format fmt, Stacks& stacks)
+void    DocumentHtml::append_text(DomTree::node& text, const size_t cols, Format fmt, Stacks& stacks)
 {
     append_str(text.text(), cols, fmt, stacks);
-}// end DocumentHtml::append_text(const DomTree::node& text)
+}// end DocumentHtml::append_text(DomTree::node& text)
 
 // === DocumentHtml::append_a =============================================
 //
@@ -318,7 +318,7 @@ void    DocumentHtml::append_text(const DomTree::node& text, const size_t cols, 
 //
 // ========================================================================
 void    DocumentHtml::append_a(
-    const DomTree::node& a,
+    DomTree::node& a,
     const size_t cols,
     Format fmt,
     Stacks& stacks
@@ -362,18 +362,18 @@ void    DocumentHtml::append_a(
 
         j = 0;
     }// end for i
-}// end DocumentHtml::append_a(const DomTree::node& a)
+}// end DocumentHtml::append_a(DomTree::node& a)
 
-// === DocumentHtml::append_br(const DomTree::node& br, const size_t cols, Format fmt, Stacks& stacks)
+// === DocumentHtml::append_br(DomTree::node& br, const size_t cols, Format fmt, Stacks& stacks)
 //
 // ========================================================================
-void    DocumentHtml::append_br(const DomTree::node& br, const size_t cols, Format fmt, Stacks& stacks)
+void    DocumentHtml::append_br(DomTree::node& br, const size_t cols, Format fmt, Stacks& stacks)
 {
     m_buffer.emplace_back();
-}// end DocumentHtml::append_br(const DomTree::node& br, const size_t cols, Format fmt, Stacks& stacks)
+}// end DocumentHtml::append_br(DomTree::node& br, const size_t cols, Format fmt, Stacks& stacks)
 
 void    DocumentHtml::append_div(
-    const DomTree::node& div,
+    DomTree::node& div,
     const size_t cols,
     Format fmt,
     Stacks& stacks
@@ -381,15 +381,15 @@ void    DocumentHtml::append_div(
 {
     begin_block(cols, fmt);
     append_children(div, cols, fmt, stacks);
-}// end DocumentHtml::append_div(const DomTree::node& br, const size_t cols, Format fmt, Stacks& stacks)
+}// end DocumentHtml::append_div(DomTree::node& br, const size_t cols, Format fmt, Stacks& stacks)
 
-// === DocumentHtml::append_form(const DomTree::node& form, const size_t cols, Format fmt, Stacks& stacks)
+// === DocumentHtml::append_form(DomTree::node& form, const size_t cols, Format fmt, Stacks& stacks)
 //
 // TODO: actually implement
 //
 // ========================================================================
 void    DocumentHtml::append_form(
-    const DomTree::node& form,
+    DomTree::node& form,
     const size_t cols,
     Format fmt,
     Stacks& stacks
@@ -417,9 +417,9 @@ void    DocumentHtml::append_form(
     stacks.formIndices.pop_back();
 
     m_buffer.emplace_back();
-}// end DocumentHtml::append_form(const DomTree::node& form, const size_t cols, Format fmt, Stacks& stacks)
+}// end DocumentHtml::append_form(DomTree::node& form, const size_t cols, Format fmt, Stacks& stacks)
 
-// === DocumentHtml::append_hn(const DomTree::node& hn) ===================
+// === DocumentHtml::append_hn(DomTree::node& hn) ===================
 //
 // Append a header (i.e. h1, h2, h3, etc.)
 //
@@ -428,7 +428,7 @@ void    DocumentHtml::append_form(
 //
 // ========================================================================
 void    DocumentHtml::append_hn(
-    const DomTree::node& hn,
+    DomTree::node& hn,
     const size_t cols,
     Format fmt,
     Stacks& stacks
@@ -441,13 +441,13 @@ void    DocumentHtml::append_hn(
     m_buffer.emplace_back();
 
     stacks.styles.pop_back();
-}// end DocumentHtml::append_hn(const DomTree::node& hn)
+}// end DocumentHtml::append_hn(DomTree::node& hn)
 
-// === DocumentHtml::append_hr(const DomTree::node& hr, const size_t cols, Format fmt, Stacks& stacks)
+// === DocumentHtml::append_hr(DomTree::node& hr, const size_t cols, Format fmt, Stacks& stacks)
 //
 // ========================================================================
 void    DocumentHtml::append_hr(
-    const DomTree::node& hr,
+    DomTree::node& hr,
     const size_t cols,
     Format fmt,
     Stacks& stacks
@@ -465,13 +465,13 @@ void    DocumentHtml::append_hr(
     m_buffer.emplace_back();
     m_buffer.back().emplace_back(rule);
     m_buffer.emplace_back();
-}// end DocumentHtml::append_hr(const DomTree::node& hr, const size_t cols, Format fmt, Stacks& stacks)
+}// end DocumentHtml::append_hr(DomTree::node& hr, const size_t cols, Format fmt, Stacks& stacks)
 
-// === DocumentHtml::append_img(const DomTree::node& img) =================
+// === DocumentHtml::append_img(DomTree::node& img) =================
 //
 // ========================================================================
 void    DocumentHtml::append_img(
-    const DomTree::node& img,
+    DomTree::node& img,
     const size_t cols,
     Format fmt,
     Stacks& stacks
@@ -532,10 +532,10 @@ void    DocumentHtml::append_img(
 
         j = 0;
     }// end for i
-}// end DocumentHtml::append_img(const DomTree::node& img)
+}// end DocumentHtml::append_img(DomTree::node& img)
 
 void    DocumentHtml::append_input(
-    const DomTree::node& input,
+    DomTree::node& input,
     const size_t cols,
     Format fmt,
     Stacks& stacks
@@ -720,11 +720,11 @@ void    DocumentHtml::append_input(
     #undef  FMT_FIELD_INC
 }// end DocumentHtml::append_input
 
-// === DocumentHtml::append_ul(const DomTree::node& img, const size_t cols, Format fmt, Stacks& stacks)
+// === DocumentHtml::append_ul(DomTree::node& img, const size_t cols, Format fmt, Stacks& stacks)
 //
 // ========================================================================
 void    DocumentHtml::append_ul(
-    const DomTree::node& ul,
+    DomTree::node& ul,
     const size_t cols,
     Format fmt,
     Stacks& stacks
@@ -736,9 +736,9 @@ void    DocumentHtml::append_ul(
     if (fmt.listLevel)
         fmt.indent += 2;
 
-    for (auto iter = ul.cbegin(); iter != ul.cend(); ++iter)
+    for (auto iter = ul.begin(); iter != ul.end(); ++iter)
     {
-        const auto& child = *iter;
+        auto& child = *iter;
 
         m_buffer.emplace_back();
         if (child.identifier() == "li")
@@ -752,13 +752,13 @@ void    DocumentHtml::append_ul(
     }// end for child
 
     m_buffer.emplace_back();
-}// end DocumentHtml::append_ul(const DomTree::node& ul, const size_t cols, Format fmt, Stacks& stacks)
+}// end DocumentHtml::append_ul(DomTree::node& ul, const size_t cols, Format fmt, Stacks& stacks)
 
-// === DocumentHtml::append_ol(const DomTree::node& ol, const size_t cols, Format fmt, Stacks& stacks)
+// === DocumentHtml::append_ol(DomTree::node& ol, const size_t cols, Format fmt, Stacks& stacks)
 //
 // ========================================================================
 void    DocumentHtml::append_ol(
-    const DomTree::node& ol,
+    DomTree::node& ol,
     const size_t cols,
     Format fmt,
     Stacks& stacks
@@ -769,9 +769,9 @@ void    DocumentHtml::append_ol(
     fmt.set_ordered_list(true);
     fmt.listIndex = 1;
 
-    for (auto iter = ol.cbegin(); iter != ol.cend(); ++iter)
+    for (auto iter = ol.begin(); iter != ol.end(); ++iter)
     {
-        const auto& child = *iter;
+        auto& child = *iter;
 
         m_buffer.emplace_back();
         if (child.identifier() == "li")
@@ -785,13 +785,13 @@ void    DocumentHtml::append_ol(
         }
     }// end for child
     m_buffer.emplace_back();
-}// end DocumentHtml::append_ol(const DomTree::node& ol, const size_t cols, Format fmt, Stacks& stacks)
+}// end DocumentHtml::append_ol(DomTree::node& ol, const size_t cols, Format fmt, Stacks& stacks)
 
 // === DocumentHtml::append_li_ul =========================================
 //
 // ========================================================================
 void    DocumentHtml::append_li_ul(
-    const DomTree::node& li,
+    DomTree::node& li,
     const size_t cols,
     Format fmt,
     Stacks& stacks
@@ -818,7 +818,7 @@ void    DocumentHtml::append_li_ul(
 //
 // ========================================================================
 void    DocumentHtml::append_li_ol(
-    const DomTree::node& li,
+    DomTree::node& li,
     const size_t cols,
     Format fmt,
     Stacks& stacks
@@ -838,13 +838,13 @@ void    DocumentHtml::append_li_ol(
     append_children(li, cols, fmt, stacks);
 }// end DocumentHtml::append_li_ol
 
-// === DocumentHtml::append_p(const DomTree::node& p) =====================
+// === DocumentHtml::append_p(DomTree::node& p) =====================
 //
 // TODO: implement, with styling (see append_hn)
 //
 // ========================================================================
 void    DocumentHtml::append_p(
-    const DomTree::node& p,
+    DomTree::node& p,
     const size_t cols,
     Format fmt,
     Stacks& stacks
@@ -856,15 +856,15 @@ void    DocumentHtml::append_p(
     // append an extra newline to denote new paragraph
     m_buffer.emplace_back();
     m_buffer.emplace_back();
-}// end DocumentHtml::append_p(const DomTree::node& p)
+}// end DocumentHtml::append_p(DomTree::node& p)
 
-// === DocumentHtml::append_table(const DomTree::node& table, const size_t cols, Format fmt, Stacks& stacks)
+// === DocumentHtml::append_table(DomTree::node& table, const size_t cols, Format fmt, Stacks& stacks)
 //
 // TODO: actually implement
 //
 // ========================================================================
 void    DocumentHtml::append_table(
-    const DomTree::node& table,
+    DomTree::node& table,
     const size_t cols,
     Format fmt,
     Stacks& stacks
@@ -874,23 +874,23 @@ void    DocumentHtml::append_table(
     append_hr(table, cols, fmt, stacks);
     append_tbody(table, cols, fmt, stacks);// behavior is mostly the same
     m_buffer.emplace_back();
-}// end DocumentHtml::append_table(const DomTree::node& table, const size_t cols, Format fmt, Stacks& stacks)
+}// end DocumentHtml::append_table(DomTree::node& table, const size_t cols, Format fmt, Stacks& stacks)
 
-// === DocumentHtml::append_tbody(const DomTree::node& tbody, const size_t cols, Format fmt, Stacks& stacks)
+// === DocumentHtml::append_tbody(DomTree::node& tbody, const size_t cols, Format fmt, Stacks& stacks)
 //
 // TODO: actually implement
 //
 // ========================================================================
 void    DocumentHtml::append_tbody(
-    const DomTree::node& tbody,
+    DomTree::node& tbody,
     const size_t cols,
     Format fmt,
     Stacks& stacks
 )
 {
-    for (auto iter = tbody.cbegin(); iter != tbody.cend(); ++iter)
+    for (auto iter = tbody.begin(); iter != tbody.end(); ++iter)
     {
-        const auto&     elem        = *iter;
+        auto&     elem        = *iter;
 
         append_node(elem, cols, fmt, stacks);
         if (elem.identifier() == "tr")
@@ -898,23 +898,23 @@ void    DocumentHtml::append_tbody(
             append_hr(tbody, cols, fmt, stacks);
         }
     }// end for iter
-}// end DocumentHtml::append_tbody(const DomTree::node& tbody, const size_t cols, Format fmt, Stacks& stacks)
+}// end DocumentHtml::append_tbody(DomTree::node& tbody, const size_t cols, Format fmt, Stacks& stacks)
 
-// === DocumentHtml::append_other(const DomTree::node& nd) ================
+// === DocumentHtml::append_other(DomTree::node& nd) ================
 //
 // TODO: actually implement in a meaningful way; current implementation
 // just appends all children of the node.
 //
 // ========================================================================
 void    DocumentHtml::append_other(
-    const DomTree::node& nd,
+    DomTree::node& nd,
     const size_t cols,
     Format fmt,
     Stacks& stacks
 )
 {
     append_children(nd, cols, fmt, stacks);
-}// end DocumentHtml::append_other(const DomTree::node& nd)
+}// end DocumentHtml::append_other(DomTree::node& nd)
 
 void    DocumentHtml::begin_block(const size_t cols, Format& fmt)
 {

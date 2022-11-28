@@ -72,11 +72,11 @@ auto    Document::emplace_form(string action, string method)
 }// end Document::emplace_form
 
 auto    Document::emplace_form_input(
-    size_t                  formIndex,
-    FormInput::Type         type,
-    const DomTree::node     *domNode,
-    string                  name,
-    string                  value
+    size_t              formIndex,
+    FormInput::Type     type,
+    DomTree::node       *domNode,
+    string              name,
+    string              value
 ) -> FormInput&
 {
     m_form_inputs.emplace_back(*this, formIndex, type, domNode, name, value);
@@ -340,12 +340,12 @@ void    Document::Form::erase_value(const string& key)
 
 // --- public constructor(s) ----------------------------------------------
 Document::FormInput::FormInput(
-    Document&               parent,
-    size_t                  formIndex,
-    Type                    type,
-    const DomTree::node     *domNode,
-    string                  name,
-    string                  value
+    Document&      parent,
+    size_t         formIndex,
+    Type           type,
+    DomTree::node  *domNode,
+    string         name,
+    string         value
 )
 {
     m_parent = &parent;
@@ -365,6 +365,57 @@ auto Document::FormInput::type(const string& str)
 
     return typeMap.at(str);
 }// end Document::FormInput::type
+
+// --- public accessor(s) -------------------------------------------------
+auto    Document::FormInput::form(void) const
+    -> Document::Form&
+{
+    return m_parent->m_forms.at(m_formIndex);
+}// end Document::FormInput::form
+
+auto    Document::FormInput::type(void) const
+    -> Type
+{
+    return m_type;
+}// end Document::FormInput::type
+
+auto    Document::FormInput::name(void) const
+    -> const string&
+{
+    return m_name;
+}// end Document::FormInput::name
+
+auto    Document::FormInput::value(void) const
+    -> const string&
+{
+    return m_value;
+}// end Document::FormInput::value
+
+// --- public mutator(s) --------------------------------------------------
+void    Document::FormInput::set_type(Type t)
+{
+    m_type = t;
+}// end Document::FormInput::set_type
+
+void    Document::FormInput::set_name(const string& name)
+{
+    m_name = name;
+
+    if (m_domNode)
+    {
+        m_domNode->attributes["name"] = name;
+    }
+}// end Document::FormInput::set_name
+
+void    Document::FormInput::set_value(const string& value)
+{
+    m_value = value;
+
+    if (m_domNode)
+    {
+        m_domNode->attributes["value"] = value;
+    }
+}// end Document::FormInput::set_value
 
 // === Document::BufferIndex Implementation ===============================
 //
