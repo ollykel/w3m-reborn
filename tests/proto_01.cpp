@@ -12,6 +12,7 @@
 
 struct Config
 {
+    string                  initUrl;
     Document::Config        document;
 };// end struct Config
 
@@ -29,6 +30,8 @@ int main(const int argc, const char **argv, const char **envp)
     int         wstatus;
     pid_t       child;
     Config      config      = {
+        // initUrl
+        "",
         {
             // inputWidth
             {
@@ -38,6 +41,21 @@ int main(const int argc, const char **argv, const char **envp)
             },
         },
     };
+
+    // get url
+    if (argc > 1)
+    {
+        config.initUrl = argv[1];
+    }
+    else
+    {
+        const char  *url    = getenv("WWW_HOME");
+
+        if (url)
+        {
+            config.initUrl = url;
+        }
+    }
 
     // initialize screen
     initscr();
@@ -84,11 +102,21 @@ int runtime(const Config& cfg)
     const string    msg01   = "Hello World!";
     const string    msg02   = "Press 'q' to exit.";
 
+    WINDOW  *page;
     char    key;
 
     // TODO: meaningfully implement
 
     werase(stdscr);
+
+    if (not cfg.initUrl.size())
+    {
+        waddnstr(stdscr, "ERROR: no url given", COLS);
+        wrefresh(stdscr);
+
+        sleep(3);
+        return EXIT_FAILURE;
+    }
 
     // print messages
     for (int i = 0; i < msg01.size(); ++i)
