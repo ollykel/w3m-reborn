@@ -20,11 +20,12 @@
 #define     COLOR_PAIR_LINK_CURRENT     0x05
 #define     COLOR_PAIR_LINK_VISITED     0x06
 
-struct  ColorPair
+struct  Attrib
 {
     short   fg;
     short   bg;
-};// end struct ColorPair
+    int     attr;
+};// end struct Attrib
 
 struct  Config
 {
@@ -32,13 +33,13 @@ struct  Config
     string                  initUrl;
     struct
     {
-        ColorPair       standard;
-        ColorPair       input;
-        ColorPair       image;
-        ColorPair       link;
-        ColorPair       linkCurrent;
-        ColorPair       linkVisited;
-    }                       colors;
+        Attrib      standard;
+        Attrib      input;
+        Attrib      image;
+        Attrib      link;
+        Attrib      linkCurrent;
+        Attrib      linkVisited;
+    }                       attribs;
     Document::Config        document;
 };// end struct Config
 
@@ -60,14 +61,14 @@ int main(const int argc, const char **argv, const char **envp)
         "curl --include ${W3M_URL}",
         // initUrl
         "",
-        // colors
+        // attribs
         {
-            { COLOR_DEFAULT, COLOR_DEFAULT },// standard
-            { COLOR_RED, COLOR_DEFAULT },// input
-            { COLOR_GREEN, COLOR_DEFAULT },// image
-            { COLOR_BLUE, COLOR_DEFAULT },// link
-            { COLOR_CYAN, COLOR_DEFAULT },// linkCurrent
-            { COLOR_MAGENTA, COLOR_DEFAULT },// linkVisited
+            { COLOR_WHITE, COLOR_DEFAULT, A_NORMAL },// standard
+            { COLOR_RED, COLOR_DEFAULT, A_UNDERLINE },// input
+            { COLOR_GREEN, COLOR_DEFAULT, A_BOLD },// image
+            { COLOR_BLUE, COLOR_DEFAULT, A_NORMAL },// link
+            { COLOR_CYAN, COLOR_DEFAULT, A_NORMAL },// linkCurrent
+            { COLOR_MAGENTA, COLOR_DEFAULT, A_NORMAL },// linkVisited
         },
         {
             // inputWidth
@@ -163,33 +164,33 @@ int runtime(const Config& cfg)
     // init colors
     init_pair(
         COLOR_PAIR_STANDARD,
-        cfg.colors.standard.fg,
-        cfg.colors.standard.bg
+        cfg.attribs.standard.fg,
+        cfg.attribs.standard.bg
     );
     init_pair(
         COLOR_PAIR_INPUT,
-        cfg.colors.input.fg,
-        cfg.colors.input.bg
+        cfg.attribs.input.fg,
+        cfg.attribs.input.bg
     );
     init_pair(
         COLOR_PAIR_IMAGE,
-        cfg.colors.image.fg,
-        cfg.colors.image.bg
+        cfg.attribs.image.fg,
+        cfg.attribs.image.bg
     );
     init_pair(
         COLOR_PAIR_LINK,
-        cfg.colors.link.fg,
-        cfg.colors.link.bg
+        cfg.attribs.link.fg,
+        cfg.attribs.link.bg
     );
     init_pair(
         COLOR_PAIR_LINK_CURRENT,
-        cfg.colors.linkCurrent.fg,
-        cfg.colors.linkCurrent.bg
+        cfg.attribs.linkCurrent.fg,
+        cfg.attribs.linkCurrent.bg
     );
     init_pair(
         COLOR_PAIR_LINK_VISITED,
-        cfg.colors.linkVisited.fg,
-        cfg.colors.linkVisited.bg
+        cfg.attribs.linkVisited.fg,
+        cfg.attribs.linkVisited.bg
     );
 
     auto        sproc       = fetch.spawn();
@@ -264,23 +265,27 @@ int runtime(const Config& cfg)
 
         for (const auto& node : line)
         {
-            // choose colors
+            // choose attribs
             if (node.input_ref())
             {
+                wattrset(page, cfg.attribs.input.attr);
                 wcolor_set(page, COLOR_PAIR_INPUT, NULL);
             }
             else if (node.image_ref())
             {
+                wattrset(page, cfg.attribs.image.attr);
                 wcolor_set(page, COLOR_PAIR_IMAGE, NULL);
             }
             else if (node.link_ref())
             {
                 // TODO: differentiate types of links
+                wattrset(page, cfg.attribs.link.attr);
                 wcolor_set(page, COLOR_PAIR_LINK, NULL);
             }
             else
             {
                 // standard
+                wattrset(page, A_NORMAL);
                 wcolor_set(page, COLOR_PAIR_STANDARD, NULL);
             }
             mvwaddnstr(page, i, j, node.text().c_str(), remCols);
@@ -290,6 +295,7 @@ int runtime(const Config& cfg)
     }// end for i
 
     wcolor_set(page, 0, NULL);
+    wattrset(page, A_NORMAL);
     prefresh(page, currLine, 0, 0, 0, LINES - 1, COLS - 1);
     wnoutrefresh(stdscr);
 
