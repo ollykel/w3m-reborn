@@ -294,6 +294,7 @@ int runtime(const Config& cfg)
         }// end for node
     }// end for i
 
+    wmove(page, 0, 0);
     wcolor_set(page, 0, NULL);
     wattrset(page, A_NORMAL);
     prefresh(page, currLine, 0, 0, 0, LINES - 1, COLS - 1);
