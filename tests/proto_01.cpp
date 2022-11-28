@@ -11,10 +11,34 @@
 #include "../dom_tree.hpp"
 #include "../document_html.hpp"
 
-struct Config
+#define     COLOR_DEFAULT               0x00
+
+#define     COLOR_PAIR_STANDARD         0x01
+#define     COLOR_PAIR_INPUT            0x02
+#define     COLOR_PAIR_IMAGE            0x03
+#define     COLOR_PAIR_LINK             0x04
+#define     COLOR_PAIR_LINK_CURRENT     0x05
+#define     COLOR_PAIR_LINK_VISITED     0x06
+
+struct  ColorPair
+{
+    short   fg;
+    short   bg;
+};// end struct ColorPair
+
+struct  Config
 {
     string                  fetchCommand;
     string                  initUrl;
+    struct
+    {
+        ColorPair       standard;
+        ColorPair       input;
+        ColorPair       image;
+        ColorPair       link;
+        ColorPair       linkCurrent;
+        ColorPair       linkVisited;
+    }                       colors;
     Document::Config        document;
 };// end struct Config
 
@@ -32,9 +56,19 @@ int main(const int argc, const char **argv, const char **envp)
     int         wstatus;
     pid_t       child;
     Config      config      = {
-        // initUrl
+        // fetchCommand
         "curl --include ${W3M_URL}",
+        // initUrl
         "",
+        // colors
+        {
+            { COLOR_DEFAULT, COLOR_DEFAULT },// standard
+            { COLOR_RED, COLOR_DEFAULT },// input
+            { COLOR_GREEN, COLOR_DEFAULT },// image
+            { COLOR_BLUE, COLOR_DEFAULT },// link
+            { COLOR_CYAN, COLOR_DEFAULT },// linkCurrent
+            { COLOR_MAGENTA, COLOR_DEFAULT },// linkVisited
+        },
         {
             // inputWidth
             {
@@ -126,6 +160,38 @@ int runtime(const Config& cfg)
         return EXIT_FAILURE;
     }
 
+    // init colors
+    init_pair(
+        COLOR_PAIR_STANDARD,
+        cfg.colors.standard.fg,
+        cfg.colors.standard.bg
+    );
+    init_pair(
+        COLOR_PAIR_INPUT,
+        cfg.colors.input.fg,
+        cfg.colors.input.bg
+    );
+    init_pair(
+        COLOR_PAIR_IMAGE,
+        cfg.colors.image.fg,
+        cfg.colors.image.bg
+    );
+    init_pair(
+        COLOR_PAIR_LINK,
+        cfg.colors.link.fg,
+        cfg.colors.link.bg
+    );
+    init_pair(
+        COLOR_PAIR_LINK_CURRENT,
+        cfg.colors.linkCurrent.fg,
+        cfg.colors.linkCurrent.bg
+    );
+    init_pair(
+        COLOR_PAIR_LINK_VISITED,
+        cfg.colors.linkVisited.fg,
+        cfg.colors.linkVisited.bg
+    );
+
     auto        sproc       = fetch.spawn();
 
     while (sproc.stdout())
@@ -198,12 +264,32 @@ int runtime(const Config& cfg)
 
         for (const auto& node : line)
         {
+            // choose colors
+            if (node.input_ref())
+            {
+                wcolor_set(page, COLOR_PAIR_INPUT, NULL);
+            }
+            else if (node.image_ref())
+            {
+                wcolor_set(page, COLOR_PAIR_IMAGE, NULL);
+            }
+            else if (node.link_ref())
+            {
+                // TODO: differentiate types of links
+                wcolor_set(page, COLOR_PAIR_LINK, NULL);
+            }
+            else
+            {
+                // standard
+                wcolor_set(page, COLOR_PAIR_STANDARD, NULL);
+            }
             mvwaddnstr(page, i, j, node.text().c_str(), remCols);
             j += node.text().size();
             remCols -= node.text().size();
         }// end for node
     }// end for i
 
+    wcolor_set(page, 0, NULL);
     prefresh(page, currLine, 0, 0, 0, LINES - 1, COLS - 1);
     wnoutrefresh(stdscr);
 
