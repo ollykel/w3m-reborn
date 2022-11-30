@@ -20,6 +20,72 @@
 #define     COLOR_PAIR_LINK_CURRENT     0x05
 #define     COLOR_PAIR_LINK_VISITED     0x06
 
+class   Viewer
+{
+    public:
+        // === public constructors ========================================
+        Viewer(WINDOW *pad, Document *doc)
+        {
+            m_pad = pad;
+            m_doc = doc;
+            m_bufLineIter = doc->buffer().begin();
+            m_bufNodeIter = m_bufLineIter->begin();
+            m_isSinglePage = (doc->buffer().size() < LINES);
+        }// end constructor
+
+        // === public mutators ============================================
+        void    refresh(void)
+        {
+            size_t      currBufLine     = m_currLine + m_currCursLine;
+
+            wmove(m_pad, currBufLine, m_currCol);
+            prefresh(m_pad, m_currLine, 0, 0, 0, LINES - 1, COLS - 1);
+        }// end refresh
+        void    line_down(size_t nLines)
+        {
+            if (m_isSinglePage)
+            {
+                return;
+            }
+
+            m_currLine += nLines;
+
+            if (m_currLine >= m_doc->buffer().size() - LINES)
+            {
+                m_currLine = m_doc->buffer().size() - LINES;
+            }
+
+            refresh();
+        }// end line_down
+
+        void    line_up(size_t nLines)
+        {
+            if (m_isSinglePage or m_currLine < LINES)
+            {
+                return;
+            }
+
+            m_currLine -= nLines;
+
+            refresh();
+        }// end line_up
+
+        void    curs_down(size_t nLines);
+        void    curs_up(size_t nLines);
+        void    curs_left(size_t nCols);
+        void    curs_right(size_t nCols);
+    private:
+        // === private member variables ===================================
+        WINDOW                                  *m_pad              = nullptr;
+        Document                                *m_doc              = nullptr;
+        Document::buffer_type::const_iterator   m_bufLineIter;
+        Document::BufferLine::const_iterator    m_bufNodeIter;
+        size_t                                  m_currLine          = 0;
+        size_t                                  m_currCursLine      = 0;
+        size_t                                  m_currCol           = 0;
+        bool                                    m_isSinglePage      = false;
+};// end class Viewer
+
 struct  Attrib
 {
     short   fg;
@@ -139,9 +205,21 @@ int runtime(const Config& cfg)
     Command         fetch           = Command(cfg.fetchCommand)
                                     .set_env("W3M_URL", cfg.initUrl)
                                     .set_stdout_piped(true);
-    string          contentType     = "";
-    int             maxCols         = 0;
-    int             currLine        = 0;
+    string                  contentType     = "";
+    int                     maxCols         = 0;
+    int                     currLine        = 0;
+    int                     currCol         = 0;
+    int                     currCursLine    = 0;
+    Document::BufferNode    *currNode       = nullptr;
+    int                     currNodeCol     = 0;
+    bool                    isSinglePage;
+
+    // buffer iterators
+    Document::buffer_type::const_iterator       bufLineIter;
+    Document::BufferLine::const_iterator        bufNodeIter;
+    size_t                                      currBufLine;
+    size_t                                      bufNodeIdx;
+    size_t                                      bufNodeRem;
 
     WINDOW          *page;
     DocumentHtml    doc(cfg.document);
@@ -254,6 +332,15 @@ int runtime(const Config& cfg)
     sproc.stdout().close();
     sproc.wait();
 
+    isSinglePage = doc.buffer().size() < LINES;
+    bufLineIter = doc.buffer().begin();
+    currBufLine = 0;
+    bufNodeIter = bufLineIter->begin();
+    bufNodeIdx = 0;
+    bufNodeRem = (bufNodeIter == bufLineIter->end()) ?
+        0 :
+        bufNodeIter->text().size();
+
     // create and draw page
     page = newpad(doc.buffer().size(), COLS);
 
@@ -294,7 +381,7 @@ int runtime(const Config& cfg)
         }// end for node
     }// end for i
 
-    wmove(page, 0, 0);
+    wmove(page, currLine + currCursLine, currCol);
     wcolor_set(page, 0, NULL);
     wattrset(page, A_NORMAL);
     prefresh(page, currLine, 0, 0, 0, LINES - 1, COLS - 1);
@@ -305,19 +392,68 @@ int runtime(const Config& cfg)
     {
         switch ((key = wgetch(stdscr)))
         {
+            // move cursor down
             case 'j':
-                if (currLine < doc.buffer().size() - LINES)
+                if (
+                    (currCursLine < LINES - 1)
+                    and
+                    (currBufLine < doc.buffer().size() - 1)
+                )
                 {
+                    ++bufLineIter;
+                    ++currCursLine;
+                    break;
+                }
+            // move page up
+            case 'J':
+                if (
+                    (currLine + LINES < doc.buffer().size())
+                    and
+                    (currBufLine < doc.buffer().size() - 1)
+                )
+                {
+                    ++bufLineIter;
                     ++currLine;
                 }
                 break;
+            // move cursor up
             case 'k':
+                if (currCursLine > 0)
+                {
+                    --currCursLine;
+                    break;
+                }
+            // move page down
+            case 'K':
                 if (currLine)
                 {
                     --currLine;
                 }
                 break;
+            // move cursor left
+            case 'h':
+                if (currCol)
+                {
+                    --currCol;
+                }
+                break;
+            // move cursor right
+            case 'l':
+                if (currCol < COLS - 1)
+                {
+                    ++currCol;
+                }
+                break;
+            // move cursor to first column
+            case '0':
+                currCol = 0;
+                bufNodeIter = bufLineIter->begin();
+                break;
             case 'b':
+                if (isSinglePage)
+                {
+                    break;
+                }
                 currLine -= LINES;
                 if (currLine < 0)
                 {
@@ -325,6 +461,10 @@ int runtime(const Config& cfg)
                 }
                 break;
             case ' ':
+                if (isSinglePage)
+                {
+                    break;
+                }
                 currLine += LINES;
                 if (currLine >= doc.buffer().size() - LINES)
                 {
@@ -333,15 +473,29 @@ int runtime(const Config& cfg)
                 break;
             case 'g':
                 currLine = 0;
+                currCursLine = 0;
                 break;
             case 'G':
-                currLine = max(doc.buffer().size() - LINES, 0LU);
+                if (doc.buffer().size() >= LINES)
+                {
+                    currLine = doc.buffer().size() - LINES - 1;
+                }
+                else
+                {
+                    currLine = 0;
+                }
+                currCursLine = min(
+                    doc.buffer().size() - 1,
+                    static_cast<size_t>(LINES - 1)
+                );
                 break;
             case 'q':
             case 'Q':
                 // exit
                 return EXIT_SUCCESS;
         }// end switch
+        currBufLine = currLine + currCursLine;
+        wmove(page, currBufLine, currCol);
         prefresh(
             page,
             currLine, 0,
