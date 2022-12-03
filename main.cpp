@@ -41,6 +41,7 @@ class   Viewer
             wmove(m_pad, currBufLine, m_currCol);
             prefresh(m_pad, m_currLine, 0, 0, 0, LINES - 1, COLS - 1);
         }// end refresh
+
         void    line_down(size_t nLines)
         {
             if (m_isSinglePage)
