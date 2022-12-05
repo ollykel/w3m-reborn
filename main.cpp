@@ -523,7 +523,6 @@ int runtime(const Config& cfg)
                 view.curs_down(doc.buffer().size() - 1);
                 break;
             case 'q':
-            case 'Q':
                 {
                     WINDOW  *promptWin  = subwin(stdscr, 1, COLS, LINES - 1, 0);
 
@@ -544,9 +543,13 @@ int runtime(const Config& cfg)
                         default:
                             delwin(promptWin);
                             view.refresh();
+                            wnoutrefresh(stdscr);
                             break;
                     }// end switch
                 }
+                break;
+            case 'Q':
+                return EXIT_SUCCESS;
         }// end switch
     }// end while
 
