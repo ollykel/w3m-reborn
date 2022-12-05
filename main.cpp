@@ -524,8 +524,29 @@ int runtime(const Config& cfg)
                 break;
             case 'q':
             case 'Q':
-                // exit
-                return EXIT_SUCCESS;
+                {
+                    WINDOW  *promptWin  = subwin(stdscr, 1, COLS, LINES - 1, 0);
+
+                    mvwaddnstr(
+                        promptWin,
+                        0, 0,
+                        "Are you sure you want to quit? (y/N):",
+                        COLS
+                    );
+                    wrefresh(promptWin);
+                    prefresh(page, 0, 0, 0, 0, LINES, COLS);
+
+                    switch (wgetch(promptWin))
+                    {
+                        case 'y':
+                        case 'Y':
+                            return EXIT_SUCCESS;
+                        default:
+                            delwin(promptWin);
+                            view.refresh();
+                            break;
+                    }// end switch
+                }
         }// end switch
     }// end while
 
