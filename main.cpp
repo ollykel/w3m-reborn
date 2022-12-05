@@ -42,13 +42,8 @@ class   Viewer
             prefresh(m_pad, m_currLine, 0, 0, 0, LINES - 1, COLS - 1);
         }// end refresh
 
-        void    line_down(size_t nLines)
+        void    line_down(size_t nLines = 1)
         {
-            if (m_isSinglePage)
-            {
-                return;
-            }
-
             m_currLine += nLines;
 
             if (m_currLine >= m_doc->buffer().size() - LINES)
@@ -59,22 +54,113 @@ class   Viewer
             refresh();
         }// end line_down
 
-        void    line_up(size_t nLines)
+        void    line_up(size_t nLines = 1)
         {
-            if (m_isSinglePage or m_currLine < LINES)
+            if (m_isSinglePage or not m_currLine)
             {
                 return;
             }
 
-            m_currLine -= nLines;
+            if (m_currLine > nLines)
+            {
+                m_currLine -= nLines;
+            }
+            else
+            {
+                m_currLine = 0;
+            }
 
             refresh();
         }// end line_up
 
-        void    curs_down(size_t nLines);
-        void    curs_up(size_t nLines);
-        void    curs_left(size_t nCols);
-        void    curs_right(size_t nCols);
+        void    curs_down(size_t nLines = 1)
+        {
+            const size_t    currBufLine     = m_currLine + m_currCursLine;
+            size_t          cursLineDiff    = LINES - m_currCursLine - 1;
+            
+            if (!nLines)
+            {
+                return;
+            }
+
+            if (nLines > cursLineDiff)
+            {
+                nLines -= cursLineDiff;
+            }
+            else
+            {
+                cursLineDiff = nLines;
+                nLines = 0;
+            }
+
+            m_bufLineIter += cursLineDiff;
+            m_currCursLine += cursLineDiff;
+
+            // if we are at page bttom, move page down
+            if (nLines)
+            {
+                line_down(nLines);
+            }
+            else
+            {
+                refresh();
+            }
+        }// end curs_down
+
+        void    curs_up(size_t nLines = 1)
+        {
+            const size_t    currBufLine     = m_currLine + m_currCursLine;
+            
+            if (!nLines)
+            {
+                return;
+            }
+
+            if (nLines > m_currCursLine)
+            {
+                nLines -= m_currCursLine;
+                m_currCursLine = 0;
+                if (m_currLine)
+                {
+                    line_up(nLines);
+                }
+                else
+                {
+                    refresh();
+                }
+            }
+            else
+            {
+                m_currCursLine -= nLines;
+                refresh();
+            }
+        }// end curs_up
+
+        void    curs_left(size_t nCols = 1)
+        {
+            if (nCols > m_currCol)
+            {
+                m_currCol = 0;
+            }
+            else
+            {
+                m_currCol -= nCols;
+            }
+
+            refresh();
+        }// end curs_left
+
+        void    curs_right(size_t nCols = 1)
+        {
+            m_currCol += nCols;
+
+            if (m_currCol >= COLS)
+            {
+                m_currCol = COLS - 1;
+            }
+
+            refresh();
+        }// end curs_right
     private:
         // === private member variables ===================================
         WINDOW                                  *m_pad              = nullptr;
@@ -388,6 +474,9 @@ int runtime(const Config& cfg)
     prefresh(page, currLine, 0, 0, 0, LINES - 1, COLS - 1);
     wnoutrefresh(stdscr);
 
+    // init viewer
+    Viewer      view(page, &doc);
+
     // wait for keypress
     while (true)
     {
@@ -395,114 +484,49 @@ int runtime(const Config& cfg)
         {
             // move cursor down
             case 'j':
-                if (
-                    (currCursLine < LINES - 1)
-                    and
-                    (currBufLine < doc.buffer().size() - 1)
-                )
-                {
-                    ++bufLineIter;
-                    ++currCursLine;
-                    break;
-                }
+                view.curs_down();
+                break;
             // move page up
             case 'J':
-                if (
-                    (currLine + LINES < doc.buffer().size())
-                    and
-                    (currBufLine < doc.buffer().size() - 1)
-                )
-                {
-                    ++bufLineIter;
-                    ++currLine;
-                }
+                view.line_down();
                 break;
             // move cursor up
             case 'k':
-                if (currCursLine > 0)
-                {
-                    --currCursLine;
-                    break;
-                }
+                view.curs_up();
+                break;
             // move page down
             case 'K':
-                if (currLine)
-                {
-                    --currLine;
-                }
+                view.line_up();
                 break;
             // move cursor left
             case 'h':
-                if (currCol)
-                {
-                    --currCol;
-                }
+                view.curs_left();
                 break;
             // move cursor right
             case 'l':
-                if (currCol < COLS - 1)
-                {
-                    ++currCol;
-                }
+                view.curs_right();
                 break;
             // move cursor to first column
             case '0':
-                currCol = 0;
-                bufNodeIter = bufLineIter->begin();
+                view.curs_left(SIZE_MAX);
                 break;
             case 'b':
-                if (isSinglePage)
-                {
-                    break;
-                }
-                currLine -= LINES;
-                if (currLine < 0)
-                {
-                    currLine = 0;
-                }
+                view.line_up(LINES);
                 break;
             case ' ':
-                if (isSinglePage)
-                {
-                    break;
-                }
-                currLine += LINES;
-                if (currLine >= doc.buffer().size() - LINES)
-                {
-                    currLine = doc.buffer().size() - LINES;
-                }
+                view.line_down(LINES);
                 break;
             case 'g':
-                currLine = 0;
-                currCursLine = 0;
+                view.curs_up(SIZE_MAX);
                 break;
             case 'G':
-                if (doc.buffer().size() >= LINES)
-                {
-                    currLine = doc.buffer().size() - LINES - 1;
-                }
-                else
-                {
-                    currLine = 0;
-                }
-                currCursLine = min(
-                    doc.buffer().size() - 1,
-                    static_cast<size_t>(LINES - 1)
-                );
+                view.curs_down(doc.buffer().size() - 1);
                 break;
             case 'q':
             case 'Q':
                 // exit
                 return EXIT_SUCCESS;
         }// end switch
-        currBufLine = currLine + currCursLine;
-        wmove(page, currBufLine, currCol);
-        prefresh(
-            page,
-            currLine, 0,
-            0, 0,
-            LINES - 1, COLS - 1
-        );
     }// end while
 
     return EXIT_SUCCESS;
