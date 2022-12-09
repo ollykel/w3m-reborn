@@ -119,6 +119,9 @@ void        DocumentHtml::redraw(size_t cols)
     m_forms.clear();
     m_form_inputs.clear();
 
+    emplace_form("", "");
+    stacks.formIndices.push_back(0);
+
     for (auto& nd : *m_dom.root())
     {
         if (nd.identifier() == "document" or nd.identifier() == "html")
