@@ -20,12 +20,36 @@
 #define     COLOR_PAIR_LINK_CURRENT     0x05
 #define     COLOR_PAIR_LINK_VISITED     0x06
 
+struct  Attrib
+{
+    short   fg;
+    short   bg;
+    int     attr;
+};// end struct Attrib
+
+struct  Config
+{
+    string                  fetchCommand;
+    string                  initUrl;
+    struct
+    {
+        Attrib      standard;
+        Attrib      input;
+        Attrib      image;
+        Attrib      link;
+        Attrib      linkCurrent;
+        Attrib      linkVisited;
+    }                       attribs;
+    Document::Config        document;
+};// end struct Config
+
 class   Viewer
 {
     public:
         // === public constructors ========================================
-        Viewer(WINDOW *pad, Document *doc)
+        Viewer(const Config& cfg, WINDOW *pad, Document *doc)
         {
+            m_cfg = cfg;
             m_pad = pad;
             m_doc = doc;
             m_bufLineIter = doc->buffer().begin();
@@ -37,6 +61,28 @@ class   Viewer
         void    refresh(void)
         {
             size_t      currBufLine     = m_currLine + m_currCursLine;
+            auto&       bufLine         = m_doc->buffer().at(currBufLine);
+            size_t      colDiff         = m_currCol;
+            size_t      nCols           = 0;
+            size_t      nodeSize        = 0;
+
+            m_bufNodeIter = bufLine.begin();
+
+            while (
+                (m_bufNodeIter != bufLine.end())
+                and
+                (colDiff >= (nodeSize = m_bufNodeIter->text().size()))
+            )
+            {
+                colDiff -= nodeSize;
+                nCols += nodeSize;
+                ++m_bufNodeIter;
+            }// end while
+
+            if (m_bufNodeIter == bufLine.end())
+            {
+                m_currCol = std::min(m_currCol, nCols);
+            }
 
             wmove(m_pad, currBufLine, m_currCol);
             prefresh(m_pad, m_currLine, 0, 0, 0, LINES - 1, COLS - 1);
@@ -93,7 +139,6 @@ class   Viewer
                 nLines = 0;
             }
 
-            m_bufLineIter += cursLineDiff;
             m_currCursLine += cursLineDiff;
 
             // if we are at page bttom, move page down
@@ -161,9 +206,67 @@ class   Viewer
 
             refresh();
         }// end curs_right
+
+        auto    curr_url(void)
+            -> const string&
+        {
+            static const string     NULL_STR    = "";
+
+            size_t      currBufLine     = m_currLine + m_currCursLine;
+            auto&       bufLine         = m_doc->buffer().at(currBufLine);
+
+            if ((m_bufNodeIter != bufLine.end()) and (m_bufNodeIter->link_ref()))
+            {
+                return m_doc->links().at(m_bufNodeIter->link_ref()).get_url();
+            }
+
+            return NULL_STR;
+        }// end curr_url
+
+        void    disp_status(const string& str)
+        {
+            string  status  = str + string(COLS - str.size(), ' ');
+
+            m_statusWin = subwin(stdscr, 1, COLS, LINES - 1, 0);
+            mvwaddnstr(m_statusWin, 0, 0, status.c_str(), COLS);
+            wrefresh(m_statusWin);
+            prefresh(m_pad, 0, 0, 0, 0, LINES, COLS);
+        }// end disp_status
+
+        void    clear_status(void)
+        {
+            if (m_statusWin)
+            {
+                return;
+            }
+            delwin(m_statusWin);
+            wnoutrefresh(stdscr);
+            m_statusWin = nullptr;
+        }// end clear_status
+
+        auto    prompt_char(const string& str)
+            -> char
+        {
+            WINDOW      *promptWin  = subwin(stdscr, 1, COLS, LINES-1, 0);
+            string      prompt      = str + string(COLS - str.size(), ' ');
+            char        out;
+
+            mvwaddnstr(promptWin, 0, 0, prompt.c_str(), COLS);
+            wrefresh(promptWin);
+            prefresh(m_pad, 0, 0, 0, 0, LINES, COLS);
+
+            out = wgetch(promptWin);
+            delwin(promptWin);
+            refresh();
+            wnoutrefresh(stdscr);
+
+            return out;
+        }// end prompt
     private:
         // === private member variables ===================================
+        Config                                  m_cfg;
         WINDOW                                  *m_pad              = nullptr;
+        WINDOW                                  *m_statusWin        = nullptr;
         Document                                *m_doc              = nullptr;
         Document::buffer_type::const_iterator   m_bufLineIter;
         Document::BufferLine::const_iterator    m_bufNodeIter;
@@ -172,29 +275,6 @@ class   Viewer
         size_t                                  m_currCol           = 0;
         bool                                    m_isSinglePage      = false;
 };// end class Viewer
-
-struct  Attrib
-{
-    short   fg;
-    short   bg;
-    int     attr;
-};// end struct Attrib
-
-struct  Config
-{
-    string                  fetchCommand;
-    string                  initUrl;
-    struct
-    {
-        Attrib      standard;
-        Attrib      input;
-        Attrib      image;
-        Attrib      link;
-        Attrib      linkCurrent;
-        Attrib      linkVisited;
-    }                       attribs;
-    Document::Config        document;
-};// end struct Config
 
 // === Function Prototypes ================================================
 int runtime(const Config& cfg);
@@ -475,7 +555,7 @@ int runtime(const Config& cfg)
     wnoutrefresh(stdscr);
 
     // init viewer
-    Viewer      view(page, &doc);
+    Viewer      view(cfg, page, &doc);
 
     // wait for keypress
     while (true)
@@ -510,6 +590,9 @@ int runtime(const Config& cfg)
             case '0':
                 view.curs_left(SIZE_MAX);
                 break;
+            case '$':
+                view.curs_right(COLS);
+                break;
             case 'b':
                 view.line_up(LINES);
                 break;
@@ -522,29 +605,23 @@ int runtime(const Config& cfg)
             case 'G':
                 view.curs_down(doc.buffer().size() - 1);
                 break;
+            case 'u':
+                {
+                    const string&   str     = view.curr_url();
+
+                    if (not str.empty())
+                    {
+                        view.disp_status(str);
+                    }
+                }
+                break;
             case 'q':
                 {
-                    WINDOW  *promptWin  = subwin(stdscr, 1, COLS, LINES - 1, 0);
-
-                    mvwaddnstr(
-                        promptWin,
-                        0, 0,
-                        "Are you sure you want to quit? (y/N):",
-                        COLS
-                    );
-                    wrefresh(promptWin);
-                    prefresh(page, 0, 0, 0, 0, LINES, COLS);
-
-                    switch (wgetch(promptWin))
+                    switch (view.prompt_char("Are you sure you want to quit? (y/N):"))
                     {
                         case 'y':
                         case 'Y':
                             return EXIT_SUCCESS;
-                        default:
-                            delwin(promptWin);
-                            view.refresh();
-                            wnoutrefresh(stdscr);
-                            break;
                     }// end switch
                 }
                 break;
