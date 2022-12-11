@@ -11,7 +11,7 @@
 #include "dom_tree.hpp"
 #include "document_html.hpp"
 
-#define     COLOR_DEFAULT               0x00
+#define     COLOR_DEFAULT               -1
 
 #define     COLOR_PAIR_STANDARD         0x01
 #define     COLOR_PAIR_INPUT            0x02
@@ -337,6 +337,7 @@ int main(const int argc, const char **argv, const char **envp)
     keypad(stdscr, TRUE);
     wtimeout(stdscr, 100);
     start_color();
+    use_default_colors();
 
     switch ((child = fork()))
     {
