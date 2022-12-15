@@ -57,7 +57,15 @@ class   Viewer
             m_isSinglePage = (doc->buffer().size() < LINES);
 
             redraw();
-        }// end constructor
+        }// end type constructor
+
+        ~Viewer(void)
+        {
+            if (m_pad)
+            {
+                delwin(m_pad);
+            }
+        }// end destructor
 
         // === public mutators ============================================
         void    refresh(void)
