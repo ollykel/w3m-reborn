@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <climits>
+#include <map>
 
 #include <curses.h>
 #include <sys/types.h>
@@ -330,6 +331,111 @@ class   Viewer
         bool                                    m_isSinglePage      = false;
 };// end class Viewer
 
+class DocumentFetcher
+{
+    public:
+        // --- public constructors ----------------------------------------
+        DocumentFetcher(const string& shellCmd, const Document::Config& documentConfig)
+        {
+            m_cmd = Command(shellCmd);
+            m_cmd.set_stdout_piped(true);
+            m_documentConfig = documentConfig;
+        }// end constructor
+
+        // --- public accessors -------------------------------------------
+        auto    fetch_url(const string& url, std::map<string, string>& headers) const
+            -> s_ptr<Document>
+        {
+            Command             cmd         = m_cmd;
+            s_ptr<Document>     docPtr;
+
+            cmd.set_env("W3M_URL", url);
+
+            auto        sproc   = cmd.spawn();
+
+            while (sproc.stdout())
+            {
+                string      line;
+                string      key;
+                string      val;
+                size_t      colonIdx;
+
+                getline(sproc.stdout(), line);
+
+                if (line.empty() or (line.size() == 1 and line[0] == '\r'))
+                {
+                    break;
+                }
+
+                colonIdx = line.find(':');
+
+                if (string::npos == colonIdx)
+                {
+                    continue;
+                }
+
+                key = line.substr(0, line.find(':'));
+
+                for (auto& ch : key)
+                {
+                    key = tolower(ch);
+                }// end for
+
+                for (auto iter = line.begin() + colonIdx; iter != line.end(); ++iter)
+                {
+                    if (' ' != *iter and '\t' != *iter)
+                    {
+                        for (auto iterB = iter; iter != line.end(); ++iter)
+                        {
+                            if (';' == *iterB)
+                            {
+                                val = string(iter, iterB);
+                                break;
+                            }
+                        }// end for
+                        if (val.empty())
+                        {
+                            val = string(iter, line.end());
+                        }
+                        break;
+                    }
+                }// end for
+
+                headers[key] = val;
+            }// end while
+
+            // TODO: differentiate document types
+            // if (headers.at("content-type") == "document/html")
+            {
+                DocumentHtml    *docHtml    = new DocumentHtml(m_documentConfig);
+
+                docPtr.reset(docHtml);
+                docHtml->from_stream(sproc.stdout(), COLS);
+
+                sproc.stdout().close();
+                sproc.wait();
+            }
+
+            return docPtr;
+        }// end fetch_url
+
+        // --- public mutators --------------------------------------------
+        void    set_property(const string& key, const string& val)
+        {
+            m_cmd.set_env(key, val);
+        }// end set_property
+
+        auto    document_config(void)
+            -> Document::Config&
+        {
+            return m_documentConfig;
+        }
+    private:
+        // --- private member variables -----------------------------------
+        Command             m_cmd;
+        Document::Config    m_documentConfig;
+};// end class DocumentFetcher
+
 // === Function Prototypes ================================================
 int runtime(const Config& cfg);
 
@@ -424,26 +530,13 @@ int runtime(const Config& cfg)
 {
     using namespace std;
 
-    Command         fetch           = Command(cfg.fetchCommand)
-                                    .set_env("W3M_URL", cfg.initUrl)
-                                    .set_stdout_piped(true);
-    string                  contentType     = "";
-    int                     maxCols         = 0;
-    int                     currLine        = 0;
-    int                     currCol         = 0;
-    int                     currCursLine    = 0;
-    Document::BufferNode    *currNode       = nullptr;
-    int                     currNodeCol     = 0;
-    bool                    isSinglePage;
+    std::map<string,string>     headers         = {};
+    DocumentFetcher             fetcher         = {
+                                                    cfg.fetchCommand,
+                                                    cfg.document
+                                                };
+    s_ptr<Document>         documentPtr;
 
-    // buffer iterators
-    Document::buffer_type::const_iterator       bufLineIter;
-    Document::BufferLine::const_iterator        bufNodeIter;
-    size_t                                      currBufLine;
-    size_t                                      bufNodeIdx;
-    size_t                                      bufNodeRem;
-
-    WINDOW          *page;
     DocumentHtml    doc(cfg.document);
     char            key;
 
@@ -493,78 +586,11 @@ int runtime(const Config& cfg)
         cfg.attribs.linkVisited.bg
     );
 
-    auto        sproc       = fetch.spawn();
-
-    while (sproc.stdout())
-    {
-        string      line;
-        string      key;
-        string      val;
-        size_t      colonIdx;
-
-        getline(sproc.stdout(), line);
-
-        if (line.empty() or (line.size() == 1 and line[0] == '\r'))
-        {
-            break;
-        }
-
-        colonIdx = line.find(':');
-
-        if (string::npos == colonIdx)
-        {
-            continue;
-        }
-
-        key = line.substr(0, line.find(':'));
-
-        for (auto& ch : key)
-        {
-            key = tolower(ch);
-        }// end for
-
-        for (auto iter = line.begin() + colonIdx; iter != line.end(); ++iter)
-        {
-            if (' ' != *iter and '\t' != *iter)
-            {
-                for (auto iterB = iter; iter != line.end(); ++iter)
-                {
-                    if (';' == *iterB)
-                    {
-                        val = string(iter, iterB);
-                        break;
-                    }
-                }// end for
-                if (val.empty())
-                {
-                    val = string(iter, line.end());
-                }
-                break;
-            }
-        }// end for
-
-        if ("content-type" == key)
-        {
-            contentType = val;
-        }
-    }// end while
-
-    doc.from_stream(sproc.stdout(), COLS);
-
-    sproc.stdout().close();
-    sproc.wait();
-
-    isSinglePage = doc.buffer().size() < LINES;
-    bufLineIter = doc.buffer().begin();
-    currBufLine = 0;
-    bufNodeIter = bufLineIter->begin();
-    bufNodeIdx = 0;
-    bufNodeRem = (bufNodeIter == bufLineIter->end()) ?
-        0 :
-        bufNodeIter->text().size();
+    // fetch document from url
+    documentPtr = fetcher.fetch_url(cfg.initUrl, headers);
 
     // init viewer
-    Viewer      view(cfg, &doc);
+    Viewer      view(cfg, documentPtr.get());
 
     // wait for keypress
     while (true)
