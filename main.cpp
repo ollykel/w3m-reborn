@@ -48,7 +48,7 @@ class   Viewer
 {
     public:
         // === public constructors ========================================
-        Viewer(const Config& cfg, Document *doc)
+        Viewer(const Config& cfg = {}, Document *doc = nullptr)
         {
             m_cfg = cfg;
             m_doc = doc;
