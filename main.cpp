@@ -47,14 +47,15 @@ class   Viewer
 {
     public:
         // === public constructors ========================================
-        Viewer(const Config& cfg, WINDOW *pad, Document *doc)
+        Viewer(const Config& cfg, Document *doc)
         {
             m_cfg = cfg;
-            m_pad = pad;
             m_doc = doc;
             m_bufLineIter = doc->buffer().begin();
             m_bufNodeIter = m_bufLineIter->begin();
             m_isSinglePage = (doc->buffer().size() < LINES);
+
+            redraw();
         }// end constructor
 
         // === public mutators ============================================
@@ -87,6 +88,59 @@ class   Viewer
             wmove(m_pad, currBufLine, m_currCol);
             prefresh(m_pad, m_currLine, 0, 0, 0, LINES - 1, COLS - 1);
         }// end refresh
+
+        void redraw(void)
+        {
+            if (m_pad)
+            {
+                delwin(m_pad);
+            }
+
+            m_pad = newpad(m_doc->buffer().size(), COLS);
+
+            for (int i = 0; i < m_doc->buffer().size(); ++i)
+            {
+                const auto&     line        = m_doc->buffer().at(i);
+                int             j           = 0;
+                int             remCols     = COLS;
+
+                for (const auto& node : line)
+                {
+                    // choose attribs
+                    if (node.input_ref())
+                    {
+                        wattrset(m_pad, m_cfg.attribs.input.attr);
+                        wcolor_set(m_pad, COLOR_PAIR_INPUT, NULL);
+                    }
+                    else if (node.image_ref())
+                    {
+                        wattrset(m_pad, m_cfg.attribs.image.attr);
+                        wcolor_set(m_pad, COLOR_PAIR_IMAGE, NULL);
+                    }
+                    else if (node.link_ref())
+                    {
+                        // TODO: differentiate types of links
+                        wattrset(m_pad, m_cfg.attribs.link.attr);
+                        wcolor_set(m_pad, COLOR_PAIR_LINK, NULL);
+                    }
+                    else
+                    {
+                        // standard
+                        wattrset(m_pad, A_NORMAL);
+                        wcolor_set(m_pad, COLOR_PAIR_STANDARD, NULL);
+                    }
+                    mvwaddnstr(m_pad, i, j, node.text().c_str(), remCols);
+                    j += node.text().size();
+                    remCols -= node.text().size();
+                }// end for node
+            }// end for i
+
+            wmove(m_pad, m_currLine + m_currCursLine, m_currCol);
+            wcolor_set(m_pad, 0, NULL);
+            wattrset(m_pad, A_NORMAL);
+            prefresh(m_pad, m_currLine, 0, 0, 0, LINES - 1, COLS - 1);
+            wnoutrefresh(stdscr);
+        }// end void redraw
 
         void    line_down(size_t nLines = 1)
         {
@@ -509,54 +563,8 @@ int runtime(const Config& cfg)
         0 :
         bufNodeIter->text().size();
 
-    // create and draw page
-    page = newpad(doc.buffer().size(), COLS);
-
-    for (int i = 0; i < doc.buffer().size(); ++i)
-    {
-        const auto&     line        = doc.buffer().at(i);
-        int             j           = 0;
-        int             remCols     = COLS;
-
-        for (const auto& node : line)
-        {
-            // choose attribs
-            if (node.input_ref())
-            {
-                wattrset(page, cfg.attribs.input.attr);
-                wcolor_set(page, COLOR_PAIR_INPUT, NULL);
-            }
-            else if (node.image_ref())
-            {
-                wattrset(page, cfg.attribs.image.attr);
-                wcolor_set(page, COLOR_PAIR_IMAGE, NULL);
-            }
-            else if (node.link_ref())
-            {
-                // TODO: differentiate types of links
-                wattrset(page, cfg.attribs.link.attr);
-                wcolor_set(page, COLOR_PAIR_LINK, NULL);
-            }
-            else
-            {
-                // standard
-                wattrset(page, A_NORMAL);
-                wcolor_set(page, COLOR_PAIR_STANDARD, NULL);
-            }
-            mvwaddnstr(page, i, j, node.text().c_str(), remCols);
-            j += node.text().size();
-            remCols -= node.text().size();
-        }// end for node
-    }// end for i
-
-    wmove(page, currLine + currCursLine, currCol);
-    wcolor_set(page, 0, NULL);
-    wattrset(page, A_NORMAL);
-    prefresh(page, currLine, 0, 0, 0, LINES - 1, COLS - 1);
-    wnoutrefresh(stdscr);
-
     // init viewer
-    Viewer      view(cfg, page, &doc);
+    Viewer      view(cfg, &doc);
 
     // wait for keypress
     while (true)
