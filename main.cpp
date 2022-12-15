@@ -59,15 +59,53 @@ class   Viewer
             redraw();
         }// end type constructor
 
+        Viewer(const Viewer& other)
+        {
+            copy_from(other);
+        }// end copy constructor
+
         ~Viewer(void)
+        {
+            destruct();
+        }// end destructor
+
+        // === public mutators ============================================
+        auto    operator=(const Viewer& other)
+            -> Viewer&
+        {
+            if (this != &other)
+            {
+                destruct();
+                copy_from(other);
+            }
+
+            return *this;
+        }// end operator=
+
+        void    destruct(void)
         {
             if (m_pad)
             {
                 delwin(m_pad);
+                m_pad = nullptr;
             }
-        }// end destructor
+            if (m_statusWin)
+            {
+                delwin(m_statusWin);
+                m_statusWin = nullptr;
+            }
+        }// end destruct
 
-        // === public mutators ============================================
+        void    copy_from(const Viewer& other)
+        {
+            m_cfg = other.m_cfg;
+            m_doc = other.m_doc;
+            m_currLine = other.m_currLine;
+            m_currCursLine = other.m_currCursLine;
+            m_currCol = other.m_currCol;
+            m_isSinglePage = other.m_isSinglePage;
+        }// end copy_from
+
         void    refresh(void)
         {
             size_t      currBufLine     = m_currLine + m_currCursLine;
