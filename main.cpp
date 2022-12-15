@@ -52,11 +52,17 @@ class   Viewer
         {
             m_cfg = cfg;
             m_doc = doc;
-            m_bufLineIter = doc->buffer().begin();
-            m_bufNodeIter = m_bufLineIter->begin();
-            m_isSinglePage = (doc->buffer().size() < LINES);
+            if (m_doc)
+            {
+                m_bufLineIter = doc->buffer().begin();
+                m_bufNodeIter = m_bufLineIter->begin();
+                m_isSinglePage = (doc->buffer().size() < LINES);
+            }
 
-            redraw();
+            if (m_pad)
+            {
+                redraw();
+            }
         }// end type constructor
 
         Viewer(const Viewer& other)
@@ -104,6 +110,11 @@ class   Viewer
             m_currCursLine = other.m_currCursLine;
             m_currCol = other.m_currCol;
             m_isSinglePage = other.m_isSinglePage;
+
+            if (m_doc)
+            {
+                redraw();
+            }
         }// end copy_from
 
         void    refresh(void)
@@ -587,13 +598,15 @@ int runtime(const Config& cfg)
                                                     cfg.fetchCommand,
                                                     cfg.document
                                                 };
+    std::vector<Page>       pages;
+    Page                    *currPage;
+    Viewer                  *currViewer;
     s_ptr<Document>         documentPtr;
 
     DocumentHtml    doc(cfg.document);
     char            key;
 
-    // TODO: meaningfully implement
-
+    // print error message and exit if no initial url
     if (cfg.initUrl.empty())
     {
         curs_set(0);
@@ -639,10 +652,13 @@ int runtime(const Config& cfg)
     );
 
     // fetch document from url
-    documentPtr = fetcher.fetch_url(cfg.initUrl, headers);
+    pages.emplace_back();
+    currPage = &pages.back();
+    currViewer = &currPage->viewer;
 
-    // init viewer
-    Viewer      view(cfg, documentPtr.get());
+    // fetch url, init viewer
+    currPage->documentPtr = fetcher.fetch_url(cfg.initUrl, headers);
+    *currViewer = Viewer(cfg, currPage->documentPtr.get());
 
     // wait for keypress
     while (true)
@@ -651,60 +667,60 @@ int runtime(const Config& cfg)
         {
             // move cursor down
             case 'j':
-                view.curs_down();
+                currViewer->curs_down();
                 break;
             // move page up
             case 'J':
-                view.line_down();
+                currViewer->line_down();
                 break;
             // move cursor up
             case 'k':
-                view.curs_up();
+                currViewer->curs_up();
                 break;
             // move page down
             case 'K':
-                view.line_up();
+                currViewer->line_up();
                 break;
             // move cursor left
             case 'h':
-                view.curs_left();
+                currViewer->curs_left();
                 break;
             // move cursor right
             case 'l':
-                view.curs_right();
+                currViewer->curs_right();
                 break;
             // move cursor to first column
             case '0':
-                view.curs_left(SIZE_MAX);
+                currViewer->curs_left(SIZE_MAX);
                 break;
             case '$':
-                view.curs_right(COLS);
+                currViewer->curs_right(COLS);
                 break;
             case 'b':
-                view.line_up(LINES);
+                currViewer->line_up(LINES);
                 break;
             case ' ':
-                view.line_down(LINES);
+                currViewer->line_down(LINES);
                 break;
             case 'g':
-                view.curs_up(SIZE_MAX);
+                currViewer->curs_up(SIZE_MAX);
                 break;
             case 'G':
-                view.curs_down(doc.buffer().size() - 1);
+                currViewer->curs_down(doc.buffer().size() - 1);
                 break;
             case 'u':
                 {
-                    const string&   str     = view.curr_url();
+                    const string&   str     = currViewer->curr_url();
 
                     if (not str.empty())
                     {
-                        view.disp_status(str);
+                        currViewer->disp_status(str);
                     }
                 }
                 break;
             case 'q':
                 {
-                    switch (view.prompt_char("Are you sure you want to quit? (y/N):"))
+                    switch (currViewer->prompt_char("Are you sure you want to quit? (y/N):"))
                     {
                         case 'y':
                         case 'Y':
