@@ -482,6 +482,12 @@ class DocumentFetcher
         Document::Config    m_documentConfig;
 };// end class DocumentFetcher
 
+struct Page
+{
+    s_ptr<Document>     documentPtr;
+    Viewer              viewer;
+};// end struct Page
+
 // === Function Prototypes ================================================
 int runtime(const Config& cfg);
 
