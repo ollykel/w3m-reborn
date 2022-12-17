@@ -342,12 +342,17 @@ class   Viewer
 
         void    disp_status(const string& str)
         {
-            string  status  = str + string(COLS - str.size(), ' ');
+            string  status  = str;
 
+            if (status.size() < COLS)
+            {
+                status += string(COLS - str.size(), ' ');
+            }
+
+            refresh();
             m_statusWin = subwin(stdscr, 1, COLS, LINES - 1, 0);
             mvwaddnstr(m_statusWin, 0, 0, status.c_str(), COLS);
             wrefresh(m_statusWin);
-            prefresh(m_pad, 0, 0, 0, 0, LINES, COLS);
         }// end disp_status
 
         void    clear_status(void)
