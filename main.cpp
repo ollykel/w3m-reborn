@@ -23,6 +23,9 @@
 #define     COLOR_PAIR_LINK_CURRENT     0x05
 #define     COLOR_PAIR_LINK_VISITED     0x06
 
+// === TODO: move to header file ==========================================
+#define     CTRL(KEY)   ((KEY) & 0x1f)
+
 struct  Attrib
 {
     short   fg;
@@ -375,7 +378,81 @@ class   Viewer
             wnoutrefresh(stdscr);
 
             return out;
-        }// end prompt
+        }// end prompt_char
+
+        auto    prompt_string(const string& prompt)
+            -> string
+        {
+            WINDOW      *promptWin  = subwin(stdscr, 1, COLS, LINES-1, 0);
+            size_t      inputLen    = COLS - prompt.size();
+            string      inputPadding(inputLen, ' ');
+            string      out         = "";
+            int         key;
+
+            mvwaddnstr(promptWin, 0, 0, prompt.c_str(), COLS);
+            mvwaddnstr(
+                promptWin,
+                0,
+                prompt.size(),
+                string(inputLen, ' ').c_str(),
+                inputLen
+            );
+            wrefresh(promptWin);
+            wmove(promptWin, 0, prompt.size());
+
+            while ((key = wgetch(promptWin)))
+            {
+                int     inputIdx;
+                int     cursIdx;
+
+                if (cursIdx > COLS - 1)
+                {
+                    cursIdx = COLS - 1;
+                }
+
+                switch (key)
+                {
+                    case KEY_ENTER:
+                    case '\n':
+                        goto exit_while;
+                    case KEY_BACKSPACE:
+                    case CTRL('h'):
+                        if (not out.empty())
+                        {
+                            out.pop_back();
+                        }
+                        break;
+                    case CTRL('u'):
+                        out.clear();
+                        break;
+                    default:
+                        out += key;
+                        break;
+                }// end switch
+
+                inputIdx = out.size() >= inputLen ?
+                    out.size() - inputLen + 1 :
+                    0;
+
+                cursIdx = prompt.size() + out.size();
+
+                if (cursIdx > COLS - 1)
+                {
+                    cursIdx = COLS - 1;
+                }
+
+                mvwaddstr(promptWin, 0, prompt.size(), inputPadding.c_str());
+                mvwaddstr(promptWin, 0, prompt.size(), out.c_str() + inputIdx);
+                wrefresh(promptWin);
+                wmove(promptWin, 0, cursIdx);
+            }// end while
+exit_while:
+            delwin(promptWin);
+            refresh();
+            wnoutrefresh(stdscr);
+
+            return out;
+        }// end prompt_string
     private:
         // === private member variables ===================================
         Config                                  m_cfg;
@@ -715,6 +792,16 @@ int runtime(const Config& cfg)
             case 'u':
                 {
                     const string&   str     = currViewer->curr_url();
+
+                    if (not str.empty())
+                    {
+                        currViewer->disp_status(str);
+                    }
+                }
+                break;
+            case 'U':
+                {
+                    const string&   str     = currViewer->prompt_string("Goto URL:");
 
                     if (not str.empty())
                     {
