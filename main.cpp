@@ -12,6 +12,7 @@
 #include "html_parser.hpp"
 #include "dom_tree.hpp"
 #include "document_html.hpp"
+#include "uri.hpp"
 
 #define     COLOR_DEFAULT               -1
 
@@ -498,6 +499,7 @@ struct Page
 {
     s_ptr<Document>     documentPtr;
     Viewer              viewer;
+    Uri                 uri;
 };// end struct Page
 
 // === Function Prototypes ================================================
@@ -658,6 +660,7 @@ int runtime(const Config& cfg)
     currViewer = &currPage->viewer;
 
     // fetch url, init viewer
+    currPage->uri = cfg.initUrl;
     currPage->documentPtr = fetcher.fetch_url(cfg.initUrl, headers);
     *currViewer = Viewer(cfg, currPage->documentPtr.get());
 
@@ -721,7 +724,9 @@ int runtime(const Config& cfg)
                 break;
             case '\n':
                 {
-                    const string&   url     = currViewer->curr_url();
+                    const string&   url         = currViewer->curr_url();
+                    Uri             uri         = Uri::from_relative(currPage->uri, url);
+                    std::map<string, string>    headers;
 
                     if (not url.empty())
                     {
@@ -731,7 +736,8 @@ int runtime(const Config& cfg)
                         currViewer = &currPage->viewer;
 
                         // fetch url, init viewer
-                        currPage->documentPtr = fetcher.fetch_url(url, headers);
+                        currPage->uri = uri;
+                        currPage->documentPtr = fetcher.fetch_url(uri.str(), headers);
                         *currViewer = Viewer(cfg, currPage->documentPtr.get());
                         currViewer->refresh();
                     }
