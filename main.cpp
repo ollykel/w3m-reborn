@@ -122,7 +122,7 @@ class   Viewer
             }
         }// end copy_from
 
-        void    refresh(void)
+        void    refresh(bool retouch = false)
         {
             size_t      currBufLine     = m_currLine + m_currCursLine;
             auto&       bufLine         = m_doc->buffer().at(currBufLine);
@@ -146,6 +146,18 @@ class   Viewer
             if (m_bufNodeIter == bufLine.end())
             {
                 m_currCol = std::min(m_currCol, nCols);
+            }
+
+            if (retouch)
+            {
+                string      padding(COLS, ' ');
+
+                for (int i = 0; i < LINES; ++i)
+                {
+                    mvwaddstr(stdscr, i, 0, padding.c_str());
+                }// end for
+
+                wrefresh(stdscr);
             }
 
             wmove(m_pad, currBufLine, m_currCol);
@@ -792,6 +804,9 @@ int runtime(const Config& cfg)
                 break;
             case ' ':
                 currViewer->line_down(LINES);
+                break;
+            case CTRL('l'):
+                currViewer->refresh(true);
                 break;
             case 'g':
                 currViewer->curs_up(SIZE_MAX);
