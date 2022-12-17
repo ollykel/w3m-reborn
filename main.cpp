@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <climits>
 #include <map>
+#include <list>
 
 #include <curses.h>
 #include <sys/types.h>
@@ -598,7 +599,7 @@ int runtime(const Config& cfg)
                                                     cfg.fetchCommand,
                                                     cfg.document
                                                 };
-    std::vector<Page>       pages;
+    std::list<Page>         pages;
     Page                    *currPage;
     Viewer                  *currViewer;
     s_ptr<Document>         documentPtr;
@@ -651,7 +652,7 @@ int runtime(const Config& cfg)
         cfg.attribs.linkVisited.bg
     );
 
-    // fetch document from url
+    // emplace new page
     pages.emplace_back();
     currPage = &pages.back();
     currViewer = &currPage->viewer;
@@ -715,6 +716,24 @@ int runtime(const Config& cfg)
                     if (not str.empty())
                     {
                         currViewer->disp_status(str);
+                    }
+                }
+                break;
+            case '\n':
+                {
+                    const string&   url     = currViewer->curr_url();
+
+                    if (not url.empty())
+                    {
+                        // emplace new page
+                        pages.emplace_back();
+                        currPage = &pages.back();
+                        currViewer = &currPage->viewer;
+
+                        // fetch url, init viewer
+                        currPage->documentPtr = fetcher.fetch_url(url, headers);
+                        *currViewer = Viewer(cfg, currPage->documentPtr.get());
+                        currViewer->refresh();
                     }
                 }
                 break;
