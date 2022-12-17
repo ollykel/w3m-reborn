@@ -816,6 +816,7 @@ int runtime(const Config& cfg)
                     }
                 }
                 break;
+            case KEY_ENTER:
             case '\n':
                 {
                     const string&   url         = currViewer->curr_url();
