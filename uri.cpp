@@ -166,18 +166,22 @@ auto Uri::from_relative(const type& base, const type& rel)
     if (out.scheme.empty())
     {
         out.scheme = base.scheme;
-        goto finally;
     }
     if (out.host.empty())
     {
         out.userInfo = base.userInfo;
         out.host = base.host;
         out.port = base.port;
-    }
-    if (out.path.empty())
-    {
-        out.path = base.path;
-        out.query = base.query;
+
+        if (out.path.empty())
+        {
+            out.path = base.path;
+
+            if (out.query.empty())
+            {
+                out.query = base.query;
+            }
+        }
     }
 
 finally:
