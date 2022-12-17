@@ -787,6 +787,9 @@ int runtime(const Config& cfg)
             case 'b':
                 currViewer->line_up(LINES);
                 break;
+            case 'c':
+                currViewer->disp_status(currPage->uri.str());
+                break;
             case ' ':
                 currViewer->line_down(LINES);
                 break;
