@@ -811,11 +811,23 @@ int runtime(const Config& cfg)
                 break;
             case 'U':
                 {
-                    const string&   str     = currViewer->prompt_string("Goto URL:");
+                    const string&   url     = currViewer->prompt_string("Goto URL:");
 
-                    if (not str.empty())
+                    if (not url.empty())
                     {
-                        currViewer->disp_status(str);
+                        Uri             uri         = Uri::from_relative(currPage->uri, url);
+                        std::map<string, string>    headers;
+
+                        // emplace new page
+                        pages.emplace_back();
+                        currPage = &pages.back();
+                        currViewer = &currPage->viewer;
+
+                        // fetch url, init viewer
+                        currPage->uri = uri;
+                        currPage->documentPtr = fetcher.fetch_url(uri.str(), headers);
+                        *currViewer = Viewer(cfg, currPage->documentPtr.get());
+                        currViewer->refresh();
                     }
                 }
                 break;
