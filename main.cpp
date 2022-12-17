@@ -394,6 +394,7 @@ class   Viewer
             string      out         = "";
             int         key;
 
+            refresh();
             mvwaddnstr(promptWin, 0, 0, prompt.c_str(), COLS);
             mvwaddnstr(
                 promptWin,
