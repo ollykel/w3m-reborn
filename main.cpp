@@ -373,6 +373,7 @@ class   Viewer
             string      prompt      = str + string(COLS - str.size(), ' ');
             char        out;
 
+            refresh();
             mvwaddnstr(promptWin, 0, 0, prompt.c_str(), COLS);
             wrefresh(promptWin);
             prefresh(m_pad, 0, 0, 0, 0, LINES, COLS);
