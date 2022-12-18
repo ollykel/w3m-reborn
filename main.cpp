@@ -217,6 +217,25 @@ class   Viewer
             wnoutrefresh(stdscr);
         }// end void redraw
 
+        void    goto_point(size_t line, size_t col)
+        {
+            m_currLine = line;
+
+            if (m_currLine >= m_doc->buffer().size() - LINES)
+            {
+                m_currLine = m_doc->buffer().size() - LINES;
+            }
+
+            m_currCol = col;
+
+            if (m_currCol >= COLS)
+            {
+                m_currCol = COLS - 1;
+            }
+
+            refresh();
+        }// end goto_point
+
         void    line_down(size_t nLines = 1)
         {
             m_currLine += nLines;
@@ -849,22 +868,33 @@ int runtime(const Config& cfg)
             case KEY_ENTER:
             case '\n':
                 {
-                    const string&   url         = currViewer->curr_url();
-                    Uri             uri         = Uri::from_relative(currPage->uri, url);
                     std::map<string, string>    headers;
+                    Uri     currUrl     = currViewer->curr_url();
+                    Uri     targetUri;
 
-                    if (not url.empty())
+                    if (not currUrl.empty())
                     {
-                        // emplace new page
-                        pages.emplace_back();
-                        currPage = &pages.back();
-                        currViewer = &currPage->viewer;
+                        if (currUrl.is_fragment())
+                        {
+                            const string&   section = currUrl.fragment;
+                            auto    idx
+                                = currPage->documentPtr->get_section_index(section);
+                        }
+                        else
+                        {
+                            targetUri = Uri::from_relative(currPage->uri, currUrl);
 
-                        // fetch url, init viewer
-                        currPage->uri = uri;
-                        currPage->documentPtr = fetcher.fetch_url(uri.str(), headers);
-                        *currViewer = Viewer(cfg, currPage->documentPtr.get());
-                        currViewer->refresh(true);
+                            // emplace new page
+                            pages.emplace_back();
+                            currPage = &pages.back();
+                            currViewer = &currPage->viewer;
+
+                            // fetch url, init viewer
+                            currPage->uri = targetUri;
+                            currPage->documentPtr = fetcher.fetch_url(targetUri.str(), headers);
+                            *currViewer = Viewer(cfg, currPage->documentPtr.get());
+                            currViewer->refresh(true);
+                        }
                     }
                 }
                 break;
