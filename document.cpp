@@ -1,3 +1,5 @@
+#include <climits>
+
 #include "deps.hpp"
 #include "document.hpp"
 
@@ -47,6 +49,16 @@ auto Document::form_inputs(void) const
 {
     return m_form_inputs;
 }// end Document::form_inputs
+
+auto Document::get_section_index(const string& id) const
+    -> buffer_index_type
+{
+    if (not m_sections.count(id))
+    {
+        return { SIZE_MAX, SIZE_MAX };
+    }
+    return m_sections.at(id);
+}// end Document::get_section_index
 
 // --- public mutator(s) --------------------------------------------------
 void    Document::clear(void)

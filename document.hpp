@@ -70,6 +70,11 @@ class   Document
                 string                  m_value         = "";
         };// end class Document::FormInput
         struct      BufferIndex;
+        struct      buffer_index_type
+        {
+            size_t      line;
+            size_t      node;
+        };// end buffer_index_type
 
         typedef     BufferIndex                     BufIdx;
         typedef     std::vector<BufferNode>         BufferLine;
@@ -96,6 +101,8 @@ class   Document
             -> const form_container&;
         auto form_inputs(void) const
             -> const form_input_container&;
+        auto get_section_index(const string& id) const
+            -> buffer_index_type;
 
         // --- public mutator(s) ------------------------------------------
         void            clear(void);
@@ -105,6 +112,9 @@ class   Document
         }
         void set_title(const string& title);
     protected:
+        // --- protected member types -------------------------------------
+        typedef     std::map<string,buffer_index_type>      section_map;
+        
         // --- protected member variable(s) -------------------------------
         Config                  m_config        = {};
         string                  m_title         = "";
@@ -113,6 +123,7 @@ class   Document
         image_container         m_images        = {};
         form_container          m_forms         = {};
         form_input_container    m_form_inputs   = {};
+        section_map             m_sections      = {};
 
         // --- protected mutator(s) ---------------------------------------
         auto    emplace_form(string action = "", string method = "")
