@@ -72,8 +72,12 @@ class   Document
         struct      BufferIndex;
         struct      buffer_index_type
         {
+            // --- member variables ---------------------------------------
             size_t      line;
             size_t      node;
+
+            // --- operator overloaders -----------------------------------
+            operator bool(void) const;
         };// end buffer_index_type
 
         typedef     BufferIndex                     BufIdx;

@@ -440,3 +440,13 @@ Document::BufferIndex::BufferIndex(size_t lnum, size_t cnum)
     line = lnum;
     col = cnum;
 }// end Document::BufferIndex::BufferIndex(size_t lnum, size_t cnum)
+
+// === Document::buffer_index_type Implementation =========================
+//
+// ========================================================================
+
+// --- public accessors ---------------------------------------------------
+Document::buffer_index_type::operator bool(void) const
+{
+    return (line != SIZE_MAX) and (node != SIZE_MAX);
+}// end operator bool
