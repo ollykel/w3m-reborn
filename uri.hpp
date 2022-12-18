@@ -24,6 +24,8 @@ struct  Uri
     // --- public accessor(s) ---------------------------------------------
     auto    str(void) const
         -> string;
+    auto    empty(void) const
+        -> bool;
 
     // --- public static function(s) --------------------------------------
     static auto from_relative(const type& base, const type& rel)

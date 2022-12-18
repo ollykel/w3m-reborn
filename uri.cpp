@@ -157,6 +157,19 @@ auto Uri::str(void) const
     return out;
 }// end Uri::str(void) const -> string
 
+auto    Uri::empty(void) const
+    -> bool
+{
+    return
+        scheme.empty() and
+        userInfo.empty() and
+        host.empty() and
+        port.empty() and
+        path.empty() and
+        query.empty() and
+        fragment.empty();
+}// end Uri::empty(void) const -> bool
+
 // --- public static function(s) ------------------------------------------
 auto Uri::from_relative(const type& base, const type& rel)
     -> type
