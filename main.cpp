@@ -632,7 +632,7 @@ int main(const int argc, const char **argv, const char **envp)
     pid_t       child;
     Config      config      = {
         // fetchCommand
-        "curl --include ${W3M_URL}",
+        "curl --include --user-agent \"${W3M_USER_AGENT}\" ${W3M_URL}",
         // initUrl
         "",
         // attribs
