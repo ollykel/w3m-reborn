@@ -170,6 +170,19 @@ auto    Uri::empty(void) const
         fragment.empty();
 }// end Uri::empty(void) const -> bool
 
+auto    Uri::is_fragment(void) const
+    -> bool
+{
+    return
+        (not fragment.empty()) and
+        scheme.empty() and
+        userInfo.empty() and
+        host.empty() and
+        port.empty() and
+        path.empty() and
+        query.empty();
+}// end Uri::is_fragment(void) const -> bool
+
 // --- public static function(s) ------------------------------------------
 auto Uri::from_relative(const type& base, const type& rel)
     -> type

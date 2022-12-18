@@ -26,6 +26,8 @@ struct  Uri
         -> string;
     auto    empty(void) const
         -> bool;
+    auto    is_fragment(void) const
+        -> bool;
 
     // --- public static function(s) --------------------------------------
     static auto from_relative(const type& base, const type& rel)
