@@ -879,6 +879,18 @@ int runtime(const Config& cfg)
                             const string&   section = currUrl.fragment;
                             auto    idx
                                 = currPage->documentPtr->get_section_index(section);
+
+                            if (idx)
+                            {
+                                currViewer->goto_point(idx.line, 0);
+                            }
+                            else
+                            {
+                                currViewer->disp_status(
+                                    "ERROR: could not find #" +
+                                    currUrl.fragment
+                                );
+                            }
                         }
                         else
                         {
