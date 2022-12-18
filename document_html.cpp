@@ -172,6 +172,10 @@ void    DocumentHtml::append_node(
     Stacks& stacks
 )
 {
+    const size_t    currLines   = m_buffer.size();
+    const size_t    currNodes   = (not currLines) ?
+                                    0 : m_buffer.back().size();
+
     if (nd.is_text())
     {
         append_text(nd, cols, fmt, stacks);
@@ -195,6 +199,28 @@ void    DocumentHtml::append_node(
     else
     {
         append_other(nd, cols, fmt, stacks);
+    }
+
+    // if node has an id, add it to m_sections
+    if (nd.attributes.count("id"))
+    {
+        const string&   id      = nd.attributes.at("id");
+
+        if (currLines)
+        {
+            if (m_buffer.at(currLines - 1).size() > currNodes)
+            {
+                m_sections[id] = { currLines - 1 , currNodes };
+            }
+            else if (m_buffer.size() > currLines)
+            {
+                m_sections[id] = { currLines, 0 };
+            }
+        }
+        else if (m_buffer.size() and m_buffer.front().size())
+        {
+            m_sections[id] = { 0, 0 };
+        }
     }
 }// end DocumentHtml::append_node(DomTree::node& nd, const size_t cols, Format fmt, Stacks& stacks)
 
