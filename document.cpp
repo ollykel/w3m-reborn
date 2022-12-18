@@ -68,6 +68,7 @@ void    Document::clear(void)
     m_images.clear();
     m_forms.clear();
     m_form_inputs.clear();
+    m_sections.clear();
 }// end Document::clear(void)
 
 void    Document::set_title(const string& title)
