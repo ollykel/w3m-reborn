@@ -842,7 +842,7 @@ int runtime(const Config& cfg)
                         currPage->uri = uri;
                         currPage->documentPtr = fetcher.fetch_url(uri.str(), headers);
                         *currViewer = Viewer(cfg, currPage->documentPtr.get());
-                        currViewer->refresh();
+                        currViewer->refresh(true);
                     }
                 }
                 break;
@@ -864,7 +864,7 @@ int runtime(const Config& cfg)
                         currPage->uri = uri;
                         currPage->documentPtr = fetcher.fetch_url(uri.str(), headers);
                         *currViewer = Viewer(cfg, currPage->documentPtr.get());
-                        currViewer->refresh();
+                        currViewer->refresh(true);
                     }
                 }
                 break;
