@@ -4,5 +4,4 @@
 3. create mailcap handler
 4. create Page class
 5. render \<pre\>
-6. render forms
 7. render tables
