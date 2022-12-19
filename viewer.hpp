@@ -33,7 +33,6 @@ class   Viewer
         struct  Config
         {
             string                  fetchCommand;
-            string                  initUrl;
             struct
             {
                 Attrib      standard;
