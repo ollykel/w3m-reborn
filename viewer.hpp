@@ -6,16 +6,6 @@
 #include "deps.hpp"
 #include "document.hpp"
 
-// color pair definitions
-#define     COLOR_DEFAULT               -1
-
-#define     COLOR_PAIR_STANDARD         0x01
-#define     COLOR_PAIR_INPUT            0x02
-#define     COLOR_PAIR_IMAGE            0x03
-#define     COLOR_PAIR_LINK             0x04
-#define     COLOR_PAIR_LINK_CURRENT     0x05
-#define     COLOR_PAIR_LINK_VISITED     0x06
-
 // === class Viewer =======================================================
 //
 // ========================================================================
@@ -42,6 +32,17 @@ class   Viewer
                 Attrib      linkVisited;
             }                       attribs;
         };// end struct Config
+
+        // --- public static constants ------------------------------------
+        static const short  COLOR_DEFAULT               = -1;
+
+        // color pairs
+        static const short  COLOR_PAIR_STANDARD         = 0x01;
+        static const short  COLOR_PAIR_INPUT            = 0x02;
+        static const short  COLOR_PAIR_IMAGE            = 0x03;
+        static const short  COLOR_PAIR_LINK             = 0x04;
+        static const short  COLOR_PAIR_LINK_CURRENT     = 0x05;
+        static const short  COLOR_PAIR_LINK_VISITED     = 0x06;
 
         // --- public constructors ----------------------------------------
         Viewer(const Config& cfg = {}, Document *doc = nullptr);

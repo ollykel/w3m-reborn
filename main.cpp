@@ -160,12 +160,12 @@ int main(const int argc, const char **argv, const char **envp)
         {
             // attribs
             {
-                { COLOR_WHITE, COLOR_DEFAULT, A_NORMAL },// standard
-                { COLOR_RED, COLOR_DEFAULT, A_UNDERLINE },// input
-                { COLOR_GREEN, COLOR_DEFAULT, A_BOLD },// image
-                { COLOR_BLUE, COLOR_DEFAULT, A_NORMAL },// link
-                { COLOR_CYAN, COLOR_DEFAULT, A_NORMAL },// linkCurrent
-                { COLOR_MAGENTA, COLOR_DEFAULT, A_NORMAL },// linkVisited
+                { COLOR_WHITE, Viewer::COLOR_DEFAULT, A_NORMAL },// standard
+                { COLOR_RED, Viewer::COLOR_DEFAULT, A_UNDERLINE },// input
+                { COLOR_GREEN, Viewer::COLOR_DEFAULT, A_BOLD },// image
+                { COLOR_BLUE, Viewer::COLOR_DEFAULT, A_NORMAL },// link
+                { COLOR_CYAN, Viewer::COLOR_DEFAULT, A_NORMAL },// linkCurrent
+                { COLOR_MAGENTA, Viewer::COLOR_DEFAULT, A_NORMAL },// linkVisited
             },
         },
         {
@@ -263,32 +263,32 @@ int runtime(const Config& cfg)
 
     // init colors
     init_pair(
-        COLOR_PAIR_STANDARD,
+        Viewer::COLOR_PAIR_STANDARD,
         cfg.viewer.attribs.standard.fg,
         cfg.viewer.attribs.standard.bg
     );
     init_pair(
-        COLOR_PAIR_INPUT,
+        Viewer::COLOR_PAIR_INPUT,
         cfg.viewer.attribs.input.fg,
         cfg.viewer.attribs.input.bg
     );
     init_pair(
-        COLOR_PAIR_IMAGE,
+        Viewer::COLOR_PAIR_IMAGE,
         cfg.viewer.attribs.image.fg,
         cfg.viewer.attribs.image.bg
     );
     init_pair(
-        COLOR_PAIR_LINK,
+        Viewer::COLOR_PAIR_LINK,
         cfg.viewer.attribs.link.fg,
         cfg.viewer.attribs.link.bg
     );
     init_pair(
-        COLOR_PAIR_LINK_CURRENT,
+        Viewer::COLOR_PAIR_LINK_CURRENT,
         cfg.viewer.attribs.linkCurrent.fg,
         cfg.viewer.attribs.linkCurrent.bg
     );
     init_pair(
-        COLOR_PAIR_LINK_VISITED,
+        Viewer::COLOR_PAIR_LINK_VISITED,
         cfg.viewer.attribs.linkVisited.fg,
         cfg.viewer.attribs.linkVisited.bg
     );
