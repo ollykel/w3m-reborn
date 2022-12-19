@@ -32,7 +32,6 @@ class   Viewer
 
         struct  Config
         {
-            string                  fetchCommand;
             struct
             {
                 Attrib      standard;
@@ -42,7 +41,6 @@ class   Viewer
                 Attrib      linkCurrent;
                 Attrib      linkVisited;
             }                       attribs;
-            Document::Config        document;
         };// end struct Config
 
         // --- public constructors ----------------------------------------
