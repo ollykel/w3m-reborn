@@ -198,4 +198,9 @@ std::string     path_base(const std::string& str, const char pathSep)
     }
 }// end path_base
 
+std::wstring    to_wstr(const std::string& str)
+{
+    return std::wstring(str.cbegin(), str.cend());
+}// end t_wstr
+
 };// end namespace utils

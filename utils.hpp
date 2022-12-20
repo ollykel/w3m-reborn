@@ -59,6 +59,8 @@ namespace utils
                             const char pathSep = '/'
                         );
 
+    std::wstring        to_wstr(const std::string& str);
+
     template <typename ITER_T>
     void ignore_whitespace(
         ITER_T& iter,
