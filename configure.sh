@@ -11,7 +11,7 @@ export BIN=w3m
 export TEST_DIR=tests
 export CPP=g++
 export LD="${CPP}"
-export LDFLAGS="-lncurses"
+export LDFLAGS="-lncursesw"
 export PREFIX="/usr/local"
 
 # misc. files
