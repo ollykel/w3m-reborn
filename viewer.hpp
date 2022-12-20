@@ -66,6 +66,8 @@ class   Viewer
         void    curs_right(size_t nCols = 1);
         auto    curr_url(void)
             -> const string&;
+        auto    curr_img(void)
+            -> const string&;
         void    disp_status(const string& str);
         void    clear_status(void);
         auto    prompt_char(const string& str)

@@ -330,6 +330,22 @@ auto    Viewer::curr_url(void)
     return NULL_STR;
 }// end curr_url
 
+auto    Viewer::curr_img(void)
+    -> const string&
+{
+    static const string     NULL_STR    = "";
+
+    size_t      currBufLine     = m_currLine + m_currCursLine;
+    auto&       bufLine         = m_doc->buffer().at(currBufLine);
+
+    if ((m_bufNodeIter != bufLine.end()) and (m_bufNodeIter->image_ref()))
+    {
+        return m_doc->images().at(m_bufNodeIter->image_ref()).get_url();
+    }
+
+    return NULL_STR;
+}// end curr_img
+
 void    Viewer::disp_status(const string& str)
 {
     string  status  = str;
