@@ -175,6 +175,23 @@ auto Tab::next_page(void)
     return curr_page();
 }// end Tab::next_page
 
+auto Tab::back_page(void)
+    -> Page*
+{
+    page_container::iterator    oldIter     = m_pageIter;
+
+    if (m_pages.begin() == oldIter)
+    {
+        return curr_page();
+    }
+
+    --m_pageIter;
+    --m_currPageIdx;
+    
+    m_pages.erase(oldIter);
+    return curr_page();
+}// end Tab::back_page
+
 void Tab::destruct(void)
 {
     m_fetcher = nullptr;

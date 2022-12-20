@@ -85,6 +85,8 @@ class Tab
             -> Page*;
         auto prev_page(void)
             -> Page*;
+        auto back_page(void)
+            -> Page*;
         auto next_page(void)
             -> Page*;
         void destruct(void);
