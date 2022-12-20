@@ -136,7 +136,7 @@ int runtime(const Config& cfg)
     DocumentFetcher     fetcher(cfg.fetchCommand, cfg.document);
     Tab                 currTab(tabCfg, fetcher);
     Tab::Page           *currPage;
-    char                key;
+    int                 key;
 
     // print error message and exit if no initial url
     if (cfg.initUrl.empty())
