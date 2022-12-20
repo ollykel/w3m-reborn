@@ -163,7 +163,7 @@ void Viewer::redraw(void)
                 wattrset(m_pad, A_NORMAL);
                 wcolor_set(m_pad, COLOR_PAIR_STANDARD, NULL);
             }
-            mvwaddnstr(m_pad, i, j, node.text().c_str(), remCols);
+            mvwaddnwstr(m_pad, i, j, (const wchar_t*) node.text().c_str(), remCols);
             j += node.text().size();
             remCols -= node.text().size();
         }// end for node
