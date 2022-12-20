@@ -286,6 +286,12 @@ int runtime(const Config& cfg)
                     currPage->viewer().refresh(true);
                 }
                 break;
+            case 'B':
+                {
+                    currPage = currTab.back_page();
+                    currPage->viewer().refresh(true);
+                }
+                break;
             case 'q':
                 {
                     switch (currPage->viewer().prompt_char(
