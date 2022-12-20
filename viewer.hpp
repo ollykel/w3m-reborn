@@ -47,6 +47,7 @@ class   Viewer
         // --- public constructors ----------------------------------------
         Viewer(const Config& cfg = {}, Document *doc = nullptr);
         Viewer(const Viewer& other);
+        Viewer(Viewer&& other) = default;
         ~Viewer(void);
 
         // --- public mutators --------------------------------------------

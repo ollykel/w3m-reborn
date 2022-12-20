@@ -70,10 +70,13 @@ void    Viewer::copy_from(const Viewer& other)
     m_currLine = other.m_currLine;
     m_currCursLine = other.m_currCursLine;
     m_currCol = other.m_currCol;
-    m_isSinglePage = other.m_isSinglePage;
 
     if (m_doc)
     {
+        m_bufLineIter = m_doc->buffer().begin();
+        m_bufNodeIter = m_bufLineIter->begin();
+        m_isSinglePage = (m_doc->buffer().size() < LINES);
+
         redraw();
     }
 }// end copy_from
