@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cat << _EOF_
-static const std::map<string, unsigned>   entMap  =
+static const std::map<string, wchar_t>   entMap  =
 {
 _EOF_
 
