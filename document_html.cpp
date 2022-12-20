@@ -146,7 +146,8 @@ void        DocumentHtml::redraw(size_t cols)
     {
         if (not line.empty())
         {
-            string&     text    = line.back().m_text;
+            // as a friend class, we can directly mutate m_text
+            wstring&    text    = line.back().m_text;
 
             if (text.empty())
             {
@@ -249,7 +250,7 @@ void    DocumentHtml::append_str(
     size_t          currLen     = m_buffer.empty() ?
                                     0 :
                                     line_length(m_buffer.back());
-    string          currLine    = "";
+    wstring         currLine    = wstring();
     istringstream   inBuf(str);
 
     if (m_buffer.empty())
@@ -259,7 +260,7 @@ void    DocumentHtml::append_str(
 
     if (m_buffer.back().empty())
     {
-        m_buffer.back().emplace_back(string(fmt.indent, ' '), true);
+        m_buffer.back().emplace_back(wstring(fmt.indent, ' '), true);
         currLen = fmt.indent;
     }
 
@@ -271,10 +272,11 @@ void    DocumentHtml::append_str(
 
     while (inBuf)
     {
-        string      token       = "";
+        string      tokenRaw    = "";
+        wstring     token       = wstring();
 
-        inBuf >> token;
-        token = decode_text(token);
+        inBuf >> tokenRaw;
+        token = decode_text(tokenRaw);
 
         while (not token.empty())
         {
@@ -311,7 +313,7 @@ void    DocumentHtml::append_str(
                 if (fmt.indent)
                 {
                     currLen = fmt.indent;
-                    m_buffer.back().emplace_back(string(fmt.indent, ' '), true);
+                    m_buffer.back().emplace_back(wstring(fmt.indent, ' '), true);
                 }
                 else
                 {
@@ -483,11 +485,11 @@ void    DocumentHtml::append_hr(
 )
 {
     static size_t       nCols       = 0;
-    static string       rule        = "";
+    static wstring      rule        = wstring();
 
     if (cols != nCols)
     {
-        rule = string(cols, '-');
+        rule = wstring(cols, '-');
         nCols = cols;
     }
 
@@ -606,7 +608,7 @@ void    DocumentHtml::append_input(
 
     #define     FMT_FIELD_ENCLOSED(FMT, OPEN, CLOSE)  \
     { \
-        const string    fmt     = (FMT); \
+        const wstring   fmt     = (FMT); \
         \
         if (line_length(m_buffer.back()) + fmt.size() + 0x02 > cols) \
         { \
@@ -618,7 +620,11 @@ void    DocumentHtml::append_input(
         m_buffer.back().emplace_back((CLOSE)); \
     }
 
-    #define     FMT_FIELD(FMT)  FMT_FIELD_ENCLOSED(FMT, "[", "]")
+    #define     FMT_FIELD(FMT)  FMT_FIELD_ENCLOSED( \
+        FMT, \
+        utils::to_wstr("["), \
+        utils::to_wstr("]") \
+    )
 
     switch (type)
     {
@@ -649,82 +655,86 @@ void    DocumentHtml::append_input(
                 {
                     form.set_value(name, value);
                 }
-                FMT_FIELD(value + rem);
+                FMT_FIELD(utils::to_wstr(value + rem));
             }
             break;
         // button-based input fields
         case FormInput::Type::button:
         case FormInput::Type::submit:
         case FormInput::Type::reset:
-            FMT_FIELD_INC("[<" + value + ">]");
+            FMT_FIELD_INC(utils::to_wstr("[<" + value + ">]"));
             break;
         case FormInput::Type::checkbox:
             if (value.size())
             {
                 form.set_value(name, value);
             }
-            FMT_FIELD(value.size() ? "X" : " ");
+            FMT_FIELD(utils::to_wstr(value.size() ? "X" : " "));
             break;
         case FormInput::Type::color:
             if (value.size())
             {
                 form.set_value(name, value);
             }
-            FMT_FIELD(value.size() ? value : "#RRGGBB");
+            FMT_FIELD(utils::to_wstr(value.size() ? value : "#RRGGBB"));
             break;
         case FormInput::Type::date:
             if (value.size())
             {
                 form.set_value(name, value);
             }
-            FMT_FIELD(value.size() ? value : "YYYY-MM-DD");
+            FMT_FIELD(utils::to_wstr(value.size() ? value : "YYYY-MM-DD"));
             break;
         case FormInput::Type::datetime_local:
             if (value.size())
             {
                 form.set_value(name, value);
             }
-            FMT_FIELD(value.size() ? value : "YYYY-MM-DD hh:mm:ss");
+            FMT_FIELD(utils::to_wstr(value.size() ? value : "YYYY-MM-DD hh:mm:ss"));
             break;
         // file input fields
         case FormInput::Type::file:
         case FormInput::Type::image:
-            FMT_FIELD(value.size() ? value : "{{FILE}}");
+            FMT_FIELD(utils::to_wstr(value.size() ? value : "{{FILE}}"));
             break;
         case FormInput::Type::month:
             if (value.size())
             {
                 form.set_value(name, value);
             }
-            FMT_FIELD(value.size() ? value : "YYYY-MM");
+            FMT_FIELD(utils::to_wstr(value.size() ? value : "YYYY-MM"));
             break;
         case FormInput::Type::radio:
             if (input.attributes.count("checked") and value.size())
             {
                 form.set_value(name, value);
             }
-            FMT_FIELD_ENCLOSED((value.size() ? "*" : " "), "(", ")");
+            FMT_FIELD_ENCLOSED(
+                utils::to_wstr(value.size() ? "*" : " "),
+                utils::to_wstr("("),
+                utils::to_wstr(")")
+            );
             break;
         case FormInput::Type::tel:
             if (value.size())
             {
                 form.set_value(name, value);
             }
-            FMT_FIELD(value.size() ? value : "(+1) (NNN) NNN-NNNN");
+            FMT_FIELD(utils::to_wstr(value.size() ? value : "(+1) (NNN) NNN-NNNN"));
             break;
         case FormInput::Type::time:
             if (value.size())
             {
                 form.set_value(name, value);
             }
-            FMT_FIELD(value.size() ? value : "hh:mm:ss");
+            FMT_FIELD(utils::to_wstr(value.size() ? value : "hh:mm:ss"));
             break;
         case FormInput::Type::week:
             if (value.size())
             {
                 form.set_value(name, value);
             }
-            FMT_FIELD(value.size() ? value : "YYYY-WW");
+            FMT_FIELD(utils::to_wstr(value.size() ? value : "YYYY-WW"));
             break;
         // unhandled/undefined fields
         default:
@@ -734,12 +744,16 @@ void    DocumentHtml::append_input(
                     std::stringstream   builder;
 
                     builder << "[<" << value << ">]";
-                    m_buffer.back().emplace_back(builder.str());
+                    m_buffer.back().emplace_back(
+                        utils::to_wstr(builder.str())
+                    );
                 }
                 else
                 {
                     // TODO: actually implement
-                    m_buffer.back().emplace_back("[XXX]");
+                    m_buffer.back().emplace_back(
+                        utils::to_wstr("[XXX]")
+                    );
                 }
 
                 m_buffer.back().back().set_input_ref(inputIndex);
@@ -829,11 +843,11 @@ void    DocumentHtml::append_li_ul(
     if (fmt.in_list())
     {
         fmt.set_block_ignore(true);
-        m_buffer.back().emplace_back(string(fmt.indent, ' '), true);
+        m_buffer.back().emplace_back(wstring(fmt.indent, ' '), true);
         if (fmt.listLevel & 1)// odd list levels
-            m_buffer.back().emplace_back("+ ");
+            m_buffer.back().emplace_back(utils::to_wstr("+ "));
         else
-            m_buffer.back().emplace_back("* ");
+            m_buffer.back().emplace_back(utils::to_wstr("* "));
         ++fmt.listLevel;
         if (fmt.indent < cols / 2)
             fmt.indent += 2;
@@ -858,9 +872,9 @@ void    DocumentHtml::append_li_ol(
         std::stringstream       format;
 
         fmt.set_block_ignore(true);
-        m_buffer.back().emplace_back(string(fmt.indent, ' '), true);
+        m_buffer.back().emplace_back(wstring(fmt.indent, ' '), true);
         format << fmt.listIndex << ". ";
-        m_buffer.back().emplace_back(format.str());
+        m_buffer.back().emplace_back(utils::to_wstr(format.str()));
         if (fmt.indent < cols / 2)
             fmt.indent += format.str().length();
     }
@@ -994,12 +1008,12 @@ bool    DocumentHtml::is_node_header(const DomTree::node& nd)
     return true;
 }// end DocumentHtml::is_node_header(const DomTree::node& nd)
 
-unsigned    DocumentHtml::parse_html_entity(const string& id)
+wchar_t     DocumentHtml::parse_html_entity(const string& id)
 {
     // static const std::map<string, unsigned>   entMap
     #include "document_html_entMap.gen.hpp"
 
-    unsigned    out     = '&';
+    wchar_t     out     = '&';
 
     if (entMap.count(id))
     {
@@ -1029,22 +1043,22 @@ unsigned    DocumentHtml::parse_html_entity(const string& id)
     return out;
 }// end DocumentHtml::parse_html_entity(const string& id)
 
-string   DocumentHtml::decode_text(const string& text)
+wstring  DocumentHtml::decode_text(const string& text)
 {
     using namespace std;
 
     istringstream       inBuf(text);
-    string              output      = "";
+    wstring             output      = wstring();
 
     while (inBuf)
     {
-        output += utils::read_token_until(inBuf, "&");
+        output += utils::to_wstr(utils::read_token_until(inBuf, "&"));
         if (inBuf and inBuf.peek() == '&')
         {
             inBuf.ignore(1);
             string      entId       = utils::read_token_until(inBuf, ";");
 
-            output += parse_html_entity(entId);
+            output.push_back(parse_html_entity(entId));
             if (inBuf and inBuf.peek() == ';')
             {
                 inBuf.ignore(1);

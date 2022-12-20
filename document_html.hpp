@@ -178,8 +178,8 @@ class   DocumentHtml : public Document
         // === protected static function(s) ===============================
         static size_t       line_length(BufferLine& line);
         static bool         is_node_header(const DomTree::node& nd);
-        static unsigned     parse_html_entity(const string& id);
-        static string       decode_text(const string& text);
+        static wchar_t      parse_html_entity(const string& id);
+        static wstring      decode_text(const string& text);
 };// end class DocumentHtml : public Document
 
 // === class DocumentHtml::Format =========================================
