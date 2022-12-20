@@ -1,6 +1,8 @@
 #ifndef __TAB_HPP__
 #define __TAB_HPP__
 
+#include <list>
+
 #include "deps.hpp"
 #include "viewer.hpp"
 #include "uri.hpp"
@@ -52,7 +54,7 @@ class Tab
 
                 // --- private constructors -------------------------------
                 Page(
-                    Document& doc,
+                    const s_ptr<Document>& doc,
                     const Uri& uri,
                     const Viewer::Config& cfg
                 );// type
@@ -61,7 +63,7 @@ class Tab
                 void destruct(void);
                 void copy_from(const type& orig);
         };// end struct Page
-        typedef     std::vector<Page>   page_container;
+        typedef     std::list<Page>     page_container;
 
         // --- public constructors ----------------------------------------
         Tab(const Config& cfg, const DocumentFetcher& fetcher); // type
@@ -89,10 +91,11 @@ class Tab
         void copy_from(const type& orig);
     private:
         // --- private member variables -----------------------------------
-        Config                  m_cfg               = {};
-        const DocumentFetcher   *m_fetcher          = nullptr;
-        page_container          m_pages             = {};
-        size_t                  m_currPageIdx       = SIZE_MAX;
+        Config                      m_cfg               = {};
+        const DocumentFetcher       *m_fetcher          = nullptr;
+        page_container              m_pages             = {};
+        page_container::iterator    m_pageIter;
+        size_t                      m_currPageIdx       = SIZE_MAX;
 };// end class Tab
 
 #endif

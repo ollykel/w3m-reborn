@@ -15,7 +15,7 @@
 
 #define     PAGE_MOVE_FROM(ORIG) \
 { \
-    m_documentPtr.reset((ORIG).m_documentPtr.get()); \
+    m_documentPtr = (ORIG).m_documentPtr; \
     m_viewer = (ORIG).m_viewer; \
     m_uri = (ORIG).m_uri; \
 }
@@ -29,6 +29,8 @@ Tab::Tab(const Config& cfg, const DocumentFetcher& fetcher)
 {
     m_cfg = cfg;
     m_fetcher = &fetcher;
+    m_pageIter = m_pages.begin();
+    m_currPageIdx = SIZE_MAX;
 }// end type constructor
 
 Tab::Tab(const Tab& orig)
@@ -51,24 +53,24 @@ auto Tab::pages(void) const
 auto Tab::curr_page(void) const
     -> const Page*
 {
-    if (m_currPageIdx >= m_pages.size())
+    if (m_pages.end() == m_pageIter)
     {
         return nullptr;
     }
 
-    return &m_pages.at(m_currPageIdx);
+    return &(*m_pageIter);
 }// end Tab::curr_page
 
 // --- public mutators --------------------------------------------
 auto Tab::curr_page(void)
     -> Page*
 {
-    if (m_currPageIdx >= m_pages.size())
+    if (m_pages.end() == m_pageIter)
     {
         return nullptr;
     }
 
-    return &m_pages.at(m_currPageIdx);
+    return &(*m_pageIter);
 }// end Tab::curr_page
 
 auto Tab::goto_uri(const Uri& uri)
@@ -106,13 +108,20 @@ auto Tab::goto_uri(const Uri& uri)
             }
             else
             {
-                targetUri = Uri::from_relative({ "https" }, uri);
+                targetUri = uri;
             }
 
             // emplace new page
             doc = m_fetcher->fetch_url(targetUri.str(), headers);
-            m_pages.emplace_back(Page(*doc.get(), targetUri, m_cfg.viewer));
-            m_currPageIdx = m_pages.size() - 1;
+            if (m_pageIter != m_pages.end())
+            {
+                ++m_pageIter;
+            }
+            m_pageIter = m_pages.emplace(
+                m_pageIter,
+                Page(doc, targetUri, m_cfg.viewer)
+            );
+            ++m_currPageIdx;
         }
     }
 
@@ -122,21 +131,33 @@ auto Tab::goto_uri(const Uri& uri)
 auto Tab::goto_pagenum(size_t index)
     -> Page*
 {
-    if (index >= m_pages.size())
+    if ((m_pages.empty()) or (index >= m_pages.size()))
     {
         return curr_page();
     }
 
-    m_currPageIdx = index;
+    while (m_currPageIdx < index)
+    {
+        ++m_currPageIdx;
+        ++m_pageIter;
+    }// end while
+
+    while (m_currPageIdx > index)
+    {
+        --m_currPageIdx;
+        --m_pageIter;
+    }// end while
+
     return curr_page();
 }// end Tab::goto_pagenum
 
 auto Tab::prev_page(void)
     -> Page*
 {
-    if (m_currPageIdx)
+    if (m_currPageIdx and (m_currPageIdx != SIZE_MAX))
     {
         --m_currPageIdx;
+        --m_pageIter;
     }
 
     return curr_page();
@@ -148,6 +169,7 @@ auto Tab::next_page(void)
     if (m_currPageIdx + 1 < m_pages.size())
     {
         ++m_currPageIdx;
+        ++m_pageIter;
     }
 
     return curr_page();
@@ -163,7 +185,20 @@ void Tab::copy_from(const type& orig)
 {
     m_fetcher = orig.m_fetcher;
     m_pages = orig.m_pages;
-    m_currPageIdx = orig.m_currPageIdx;
+    m_pageIter = m_pages.begin();
+    m_currPageIdx = 0;
+
+    if (m_pages.empty())
+    {
+        m_currPageIdx = SIZE_MAX;
+        return;
+    }
+
+    while (m_currPageIdx < orig.m_currPageIdx)
+    {
+        ++m_currPageIdx;
+        ++m_pageIter;
+    }
 }// end Tab::copy_from
 
 // === class Tab::Page Implementation =====================================
@@ -232,10 +267,14 @@ auto Tab::Page::operator=(type&& orig)
 }// end Tab::Page::operator=
 
 // --- private constructors -----------------------------------------------
-Tab::Page::Page(Document& doc, const Uri& uri, const Viewer::Config& cfg)
+Tab::Page::Page(
+    const s_ptr<Document>& doc,
+    const Uri& uri,
+    const Viewer::Config& cfg
+)
 {
     m_uri = uri;
-    m_documentPtr.reset(&doc);
+    m_documentPtr = doc;
     m_viewer = Viewer(cfg, m_documentPtr.get());
 }// end type constructor
 
@@ -248,6 +287,6 @@ void Tab::Page::destruct(void)
 void Tab::Page::copy_from(const type& orig)
 {
     m_uri = orig.m_uri;
-    m_documentPtr.reset(orig.m_documentPtr.get());
+    m_documentPtr = orig.m_documentPtr;
     m_viewer = orig.m_viewer;
 }// end Tab::Page::copy_from
