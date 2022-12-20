@@ -14,6 +14,7 @@
 #include "dom_tree.hpp"
 #include "document_html.hpp"
 #include "document_fetcher.hpp"
+#include "tab.hpp"
 #include "viewer.hpp"
 
 // === TODO: move to header file ==========================================
@@ -131,18 +132,11 @@ int runtime(const Config& cfg)
 {
     using namespace std;
 
-    std::map<string,string>     headers         = {};
-    DocumentFetcher             fetcher         = {
-                                                    cfg.fetchCommand,
-                                                    cfg.document
-                                                };
-    std::list<Page>         pages;
-    Page                    *currPage;
-    Viewer                  *currViewer;
-    s_ptr<Document>         documentPtr;
-
-    DocumentHtml    doc(cfg.document);
-    char            key;
+    Tab::Config         tabCfg{ cfg.viewer };
+    DocumentFetcher     fetcher(cfg.fetchCommand, cfg.document);
+    Tab                 currTab(tabCfg, fetcher);
+    Tab::Page           *currPage;
+    char                key;
 
     // print error message and exit if no initial url
     if (cfg.initUrl.empty())
@@ -189,15 +183,8 @@ int runtime(const Config& cfg)
         cfg.viewer.attribs.linkVisited.bg
     );
 
-    // emplace new page
-    pages.emplace_back();
-    currPage = &pages.back();
-    currViewer = &currPage->viewer;
-
-    // fetch url, init viewer
-    currPage->uri = cfg.initUrl;
-    currPage->documentPtr = fetcher.fetch_url(cfg.initUrl, headers);
-    *currViewer = Viewer(cfg.viewer, currPage->documentPtr.get());
+    currPage = currTab.goto_uri(cfg.initUrl);
+    currPage->viewer().refresh(true);
 
     // wait for keypress
     while (true)
@@ -206,133 +193,104 @@ int runtime(const Config& cfg)
         {
             // move cursor down
             case 'j':
-                currViewer->curs_down();
+                currPage->viewer().curs_down();
                 break;
             // move page up
             case 'J':
-                currViewer->line_down();
+                currPage->viewer().line_down();
                 break;
             // move cursor up
             case 'k':
-                currViewer->curs_up();
+                currPage->viewer().curs_up();
                 break;
             // move page down
             case 'K':
-                currViewer->line_up();
+                currPage->viewer().line_up();
                 break;
             // move cursor left
             case 'h':
-                currViewer->curs_left();
+                currPage->viewer().curs_left();
                 break;
             // move cursor right
             case 'l':
-                currViewer->curs_right();
+                currPage->viewer().curs_right();
                 break;
             // move cursor to first column
             case '0':
-                currViewer->curs_left(SIZE_MAX);
+                currPage->viewer().curs_left(SIZE_MAX);
                 break;
             case '$':
-                currViewer->curs_right(COLS);
+                currPage->viewer().curs_right(COLS);
                 break;
             case 'b':
-                currViewer->line_up(LINES);
+                currPage->viewer().line_up(LINES);
                 break;
             case 'c':
-                currViewer->disp_status(currPage->uri.str());
+                currPage->viewer().disp_status(currPage->uri().str());
                 break;
             case ' ':
-                currViewer->line_down(LINES);
+                currPage->viewer().line_down(LINES);
                 break;
             case CTRL('l'):
-                currViewer->refresh(true);
+                currPage->viewer().refresh(true);
                 break;
             case 'g':
-                currViewer->curs_up(SIZE_MAX);
+                currPage->viewer().curs_up(SIZE_MAX);
                 break;
             case 'G':
-                currViewer->curs_down(doc.buffer().size() - 1);
+                currPage->viewer().curs_down(currPage->document().buffer().size() - 1);
                 break;
             case 'u':
                 {
-                    const string&   str     = currViewer->curr_url();
+                    const string&   str     = currPage->viewer().curr_url();
 
                     if (not str.empty())
                     {
-                        currViewer->disp_status(str);
+                        currPage->viewer().disp_status(str);
                     }
                 }
                 break;
             case 'U':
                 {
-                    const string&   url     = currViewer->prompt_string("Goto URL:");
+                    const string&   url     = currPage->viewer()
+                                            .prompt_string("Goto URL:");
 
                     if (not url.empty())
                     {
-                        Uri             uri         = Uri::from_relative(currPage->uri, url);
-                        std::map<string, string>    headers;
-
-                        // emplace new page
-                        pages.emplace_back();
-                        currPage = &pages.back();
-                        currViewer = &currPage->viewer;
-
-                        // fetch url, init viewer
-                        currPage->uri = uri;
-                        currPage->documentPtr = fetcher.fetch_url(uri.str(), headers);
-                        *currViewer = Viewer(cfg.viewer, currPage->documentPtr.get());
-                        currViewer->refresh(true);
+                        currPage = currTab.goto_uri(url);
+                        currPage->viewer().refresh(true);
                     }
                 }
                 break;
             case KEY_ENTER:
             case '\n':
                 {
-                    std::map<string, string>    headers;
-                    Uri     currUrl     = currViewer->curr_url();
-                    Uri     targetUri;
+                    Uri     currUrl     = currPage->viewer().curr_url();
 
                     if (not currUrl.empty())
                     {
-                        if (currUrl.is_fragment())
-                        {
-                            const string&   section = currUrl.fragment;
-                            auto    idx
-                                = currPage->documentPtr->get_section_index(section);
-
-                            if (idx)
-                            {
-                                currViewer->goto_point(idx.line, 0);
-                            }
-                            else
-                            {
-                                currViewer->disp_status(
-                                    "ERROR: could not find #" +
-                                    currUrl.fragment
-                                );
-                            }
-                        }
-                        else
-                        {
-                            targetUri = Uri::from_relative(currPage->uri, currUrl);
-
-                            // emplace new page
-                            pages.emplace_back();
-                            currPage = &pages.back();
-                            currViewer = &currPage->viewer;
-
-                            // fetch url, init viewer
-                            currPage->uri = targetUri;
-                            currPage->documentPtr = fetcher.fetch_url(targetUri.str(), headers);
-                            *currViewer = Viewer(cfg.viewer, currPage->documentPtr.get());
-                            currViewer->refresh(true);
-                        }
+                        currPage = currTab.goto_uri(currUrl);
+                        currPage->viewer().refresh(true);
                     }
+                }
+                break;
+            case '<':
+                {
+                    currPage = currTab.prev_page();
+                    currPage->viewer().refresh(true);
+                }
+                break;
+            case '>':
+                {
+                    currPage = currTab.next_page();
+                    currPage->viewer().refresh(true);
                 }
                 break;
             case 'q':
                 {
-                    switch (currViewer->prompt_char("Are you sure you want to quit? (y/N):"))
+                    switch (currPage->viewer().prompt_char(
+                        "Are you sure you want to quit? (y/N):"
+                    ))
                     {
                         case 'y':
                         case 'Y':
