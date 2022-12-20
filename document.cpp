@@ -103,7 +103,7 @@ auto    Document::emplace_form_input(
 // ========================================================================
 
 Document::BufferNode::BufferNode(
-    const string& text,
+    const wstring& text,
     const bool isReserved,
     const cont::Ref& link,
     const cont::Ref& image,
@@ -119,7 +119,7 @@ Document::BufferNode::BufferNode(
 
 // --- public accessor(s) -------------------------------------------------
 auto Document::BufferNode::text(void) const
-    -> const string&
+    -> const wstring&
 {
     return m_text;
 }
@@ -155,7 +155,7 @@ auto Document::BufferNode::stylers(void) const
 }// end Document::BufferNode::stylers(void) const
 
 // --- public mutator(s) --------------------------------------------------
-void    Document::BufferNode::set_text(const string& text)
+void    Document::BufferNode::set_text(const wstring& text)
 {
     m_text = text;
 }// end Document::BufferNode::set_text(const string& text)

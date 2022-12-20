@@ -154,7 +154,7 @@ class   Document::BufferNode
 
         // --- public constructor(s) --------------------------------------
         BufferNode(
-            const string& text = "",
+            const wstring& text = wstring(),
             const bool isReserved = false,
             const cont::Ref& link = {},
             const cont::Ref& image = {},
@@ -163,7 +163,7 @@ class   Document::BufferNode
 
         // --- public accessor(s) -----------------------------------------
         auto text(void) const
-            -> const string&;
+            -> const wstring&;
         auto reserved(void) const
             -> bool;
         auto link_ref(void) const
@@ -176,7 +176,7 @@ class   Document::BufferNode
             -> const std::vector<string>&;
 
         // --- public mutator(s) ------------------------------------------
-        void set_text(const string& text);
+        void set_text(const wstring& text);
         void set_reserved(const bool state);
         void set_link_ref(const size_t index);
         void set_image_ref(const size_t index);
@@ -188,7 +188,7 @@ class   Document::BufferNode
         void clear_stylers(void);
     protected:
         // --- protected member variable(s) -------------------------------
-        string                  m_text          = "";
+        wstring                 m_text          = wstring();
         bool                    m_isReserved    = false;
         styler_container        m_stylers       = {};
         cont::Ref               m_linkRef       = {};
