@@ -50,7 +50,7 @@ void        DocumentText::redraw(size_t cols)
     using namespace std;
 
     istringstream       inBuf(m_data);
-    string              currLine        = "";
+    wstring             currLine        = wstring();
 
     m_buffer.clear();
 
@@ -101,7 +101,7 @@ void        DocumentText::redraw(size_t cols)
                         {
                             if (currLine.empty())
                             {
-                                currLine += token.substr(0, nRemain);
+                                currLine += utils::to_wstr(token.substr(0, nRemain));
                                 token.erase(0, nRemain);
                             }
                             m_buffer.emplace_back();
@@ -110,7 +110,7 @@ void        DocumentText::redraw(size_t cols)
                         }
                         else
                         {
-                            currLine += token;
+                            currLine += utils::to_wstr(token);
                             token.clear();
                         }
                     } while (not token.empty());
