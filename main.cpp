@@ -57,7 +57,7 @@ int main(const int argc, const char **argv, const char **envp)
         {
             // attribs
             {
-                { COLOR_WHITE, Viewer::COLOR_DEFAULT, A_NORMAL },// standard
+                { Viewer::COLOR_DEFAULT, Viewer::COLOR_DEFAULT, A_NORMAL },// standard
                 { COLOR_RED, Viewer::COLOR_DEFAULT, A_UNDERLINE },// input
                 { COLOR_GREEN, Viewer::COLOR_DEFAULT, A_BOLD },// image
                 { COLOR_BLUE, Viewer::COLOR_DEFAULT, A_NORMAL },// link
@@ -247,6 +247,34 @@ int runtime(const Config& cfg)
                     if (not str.empty())
                     {
                         currPage->viewer().disp_status(str);
+                    }
+                }
+                break;
+            case 'I':
+                {
+                    const string&   str     = currPage->viewer().curr_img();
+
+                    if (not str.empty())
+                    {
+                        Uri         uri     = Uri::from_relative(currPage->uri(), str);
+
+                        currPage->viewer().disp_status(uri.str());
+                    }
+                }
+                break;
+            case 'i':
+                // TODO: implement with mailcap, mime-type handling
+                {
+                    const string&   str     = currPage->viewer().curr_img();
+
+                    if (not str.empty())
+                    {
+                        Uri         uri     = Uri::from_relative(currPage->uri(), str);
+                        Command     cmd     = Command("mpv --loop=inf \"${W3M_IMAGE}\"")
+                                                .set_env("W3M_IMAGE", uri.str());
+
+                        cmd.spawn().wait();
+                        currPage->viewer().refresh(true);
                     }
                 }
                 break;
