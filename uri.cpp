@@ -27,7 +27,12 @@ Uri::Uri(const string& str)
             goto parse_path;
         }
     }
-    else if (str.front() == '#' or str.front() == '?')
+    else if (
+        (str.front() == '#')
+        or
+        (str.front() == '?')
+        or
+        (str.find(':') == string::npos))
     {
         goto parse_path;
     }
@@ -143,6 +148,11 @@ auto Uri::str(void) const
 
     if (not path.empty())
     {
+        if (path.front() != '/')
+        {
+            out += '/';
+        }
+
         out += path;
     }
     if (not query.empty())
@@ -207,6 +217,14 @@ auto Uri::from_relative(const type& base, const type& rel)
             {
                 out.query = base.query;
             }
+        }
+        else if (out.path.front() != '/')
+        {
+            string  basePath    = (base.path.find('/') != string::npos) ?
+                base.path.substr(0, base.path.rfind('/')) :
+                "";
+
+            out.path = basePath + '/' + out.path;
         }
     }
 
