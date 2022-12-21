@@ -375,7 +375,7 @@ int runtime(const Config& cfg)
                 wattrset(page, A_NORMAL);
                 wcolor_set(page, COLOR_PAIR_STANDARD, NULL);
             }
-            mvwaddnstr(page, i, j, node.text().c_str(), remCols);
+            mvwaddnwstr(page, i, j, node.text().c_str(), remCols);
             j += node.text().size();
             remCols -= node.text().size();
         }// end for node
