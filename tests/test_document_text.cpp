@@ -25,7 +25,9 @@ int main(const int argc, const char **argv)
         {
             for (auto& node : line)
             {
-                cout << '{' << node.text().c_str() << '}';
+                const string    str(node.text().cbegin(), node.text().cend());
+
+                cout << '{' << str.c_str() << '}';
             }// end for node
             cout << endl;
         }// end for iter
@@ -41,7 +43,9 @@ int main(const int argc, const char **argv)
         {
             for (auto& node : line)
             {
-                cout << '{' << node.text().c_str() << '}';
+                const string    str(node.text().cbegin(), node.text().cend());
+
+                cout << '{' << str.c_str() << '}';
             }// end for node
             cout << endl;
         }// end for iter
