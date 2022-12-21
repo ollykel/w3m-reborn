@@ -60,6 +60,7 @@ namespace utils
                         );
 
     std::wstring        to_wstr(const std::string& str);
+    std::string         from_wstr(const std::wstring& wstr);
 
     template <typename ITER_T>
     void ignore_whitespace(
