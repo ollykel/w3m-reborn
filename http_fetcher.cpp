@@ -51,6 +51,7 @@ auto HttpFetcher::fetch_url(
         size_t                      idx         = 0;
         string::const_iterator      iter;
 
+
         // remove terminal carriage return
         if ((not currLine.empty()) and (currLine.back() == '\r'))
         {
@@ -101,10 +102,10 @@ auto HttpFetcher::fetch_url(
             size_t      end;
 
             idx = currLine.find_first_not_of(WS, beg);
-            BREAK_IF_NPOS(beg);
+            BREAK_IF_NPOS(idx);
             beg = idx;
 
-            end = currLine.find(';');
+            end = currLine.find(';', beg);
             BREAK_IF_NPOS(end);
             idx = end + 1;
 
