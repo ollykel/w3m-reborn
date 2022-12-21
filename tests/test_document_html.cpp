@@ -80,14 +80,16 @@ void    print_doc(std::ostream& outs, const DocumentHtmlTester& doc)
     {
         for (auto& node : line)
         {
+            string  str(node.text().cbegin(), node.text().cend());
+
             if (node.link_ref())
             {
-                outs << "[" << node.text() << "](" 
+                outs << "[" << str << "](" 
                     << node.link_ref().index() << ')';
             }
             else
             {
-                outs << node.text();
+                outs << str;
             }
         }// end for node
         outs << endl;
