@@ -79,9 +79,9 @@ auto HttpFetcher::fetch_url(
             size_t  end;
 
             beg = currLine.find_first_not_of(WS);
-            end = currLine.find(':', beg);
-            idx = end + 1;
-            end = currLine.find_last_not_of(WS, end - 1, end - beg);
+            idx = currLine.find(':', beg);
+            BREAK_IF_NPOS(idx);
+            end = currLine.find_last_not_of(WS, idx - 1);
 
             if (string::npos == end)
             {
@@ -92,6 +92,7 @@ auto HttpFetcher::fetch_url(
                 ++end;
             }
 
+            ++idx;
             key = currLine.substr(beg, end - beg);
         }
 
@@ -101,15 +102,23 @@ auto HttpFetcher::fetch_url(
             size_t      beg     = idx;
             size_t      end;
 
+            // find first non-whitespace character
             idx = currLine.find_first_not_of(WS, beg);
             BREAK_IF_NPOS(idx);
             beg = idx;
 
-            end = currLine.find(';', beg);
-            BREAK_IF_NPOS(end);
-            idx = end + 1;
-
-            end = currLine.find_last_not_of(WS, end - 1, end - beg);
+            // find terminating ';'
+            // if none, end set to end of currLine
+            idx = currLine.find(';', beg);
+            if (string::npos == idx)
+            {
+                end = currLine.size();
+            }
+            else
+            {
+                end = currLine.find_last_not_of(WS, idx - 1);
+                ++idx;
+            }
 
             if (string::npos == end)
             {
@@ -120,7 +129,7 @@ auto HttpFetcher::fetch_url(
                 ++end;
             }
 
-            value.push_back(currLine.substr(beg, end + 1));
+            value.push_back(currLine.substr(beg, end - beg));
         }// end while
 
         #undef      WS
