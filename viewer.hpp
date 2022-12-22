@@ -74,7 +74,7 @@ class   Viewer
         void    clear_status(void);
         auto    prompt_char(const string& str)
             -> char;
-        auto    prompt_string(const string& prompt)
+        auto    prompt_string(const string& prompt, const string& init = "")
             -> string;
     private:
         // === private member variables ===================================

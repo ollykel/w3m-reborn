@@ -407,15 +407,21 @@ auto    Viewer::prompt_char(const string& str)
     return out;
 }// end prompt_char
 
-auto    Viewer::prompt_string(const string& prompt)
+auto    Viewer::prompt_string(const string& prompt, const string& init)
     -> string
 {
     WINDOW      *promptWin  = subwin(stdscr, 1, COLS, LINES-1, 0);
     size_t      inputLen    = COLS - prompt.size();
     string      inputPadding(inputLen, ' ');
-    string      out         = "";
+    string      out         = init;
+    int         cursIdx;
+    int         inputIdx;
     int         key;
 
+    cursIdx = prompt.size() + out.size();
+    inputIdx = out.size() >= inputLen ?
+        out.size() - inputLen + 1 :
+        0;
     refresh();
     mvwaddnstr(promptWin, 0, 0, prompt.c_str(), COLS);
     mvwaddnstr(
@@ -425,14 +431,12 @@ auto    Viewer::prompt_string(const string& prompt)
         string(inputLen, ' ').c_str(),
         inputLen
     );
+    mvwaddstr(promptWin, 0, prompt.size(), out.c_str() + inputIdx);
     wrefresh(promptWin);
-    wmove(promptWin, 0, prompt.size());
+    wmove(promptWin, 0, cursIdx);
 
     while ((key = wgetch(promptWin)))
     {
-        int     inputIdx;
-        int     cursIdx;
-
         if (cursIdx > COLS - 1)
         {
             cursIdx = COLS - 1;
@@ -452,6 +456,10 @@ auto    Viewer::prompt_string(const string& prompt)
                 break;
             case CTRL('u'):
                 out.clear();
+                break;
+            case CTRL('g'):
+                out.clear();
+                goto exit_while;
                 break;
             default:
                 out += key;
