@@ -18,26 +18,27 @@ int main(const int argc, const char **argv)
 
     body = fetcher.fetch_url(headers, Uri("file:///dev/stdin"));
 
-    cout << "HTTP Headers:" << endl;
-    cout << "=====" << endl;
+    cout << ">== Start HTTP Headers ==<" << endl;
     for (const auto& kv : headers)
     {
         const auto&     key     = kv.first;
         const auto&     values  = kv.second;
 
-        cout << key << ": ";
+        cout << '\t' << key << "=";
 
         for (const auto& val : values)
         {
-            cout << val << "; ";
+            cout << val << "|";
         }// end for val
 
         cout << endl;
     }// end for kv
 
-    cout << "HTTP Body:" << endl;
-    cout << "=====" << endl;
+    cout << ">== End HTTP Headers ==<" << endl;
+    cout << endl;
+    cout << ">== Start HTTP Body ==<" << endl;
     cout << string(body.cbegin(), body.cend()) << endl;
+    cout << ">== End HTTP Body ==<" << endl;
 
     return EXIT_SUCCESS;
 }// end int main
