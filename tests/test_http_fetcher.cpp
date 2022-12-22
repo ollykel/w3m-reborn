@@ -13,10 +13,19 @@ int main(const int argc, const char **argv)
     using namespace std;
 
     HttpFetcher                 fetcher("cat", "W3M_URL");
+    HttpFetcher::Status         status;
     HttpFetcher::header_type    headers;
     vector<char>                body;
 
-    body = fetcher.fetch_url(headers, Uri("file:///dev/stdin"));
+    body = fetcher.fetch_url(status, headers, Uri("file:///dev/stdin"));
+
+    cout << ">== Start HTTP Status ==<" << endl;
+    cout << "\tVersion: " << status.version << endl;
+    cout << "\tCode: " << status.code << endl;
+    cout << "\tReason: " << status.reason << endl;
+    cout << ">== End HTTP Status ==<" << endl;
+
+    cout << endl;
 
     cout << ">== Start HTTP Headers ==<" << endl;
     for (const auto& kv : headers)
