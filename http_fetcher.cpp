@@ -121,6 +121,12 @@ auto HttpFetcher::fetch_url(
 
             ++idx;
             key = currLine.substr(beg, end - beg);
+
+            // header names are case-insensitive; make lower-case
+            for (char& ch : key)
+            {
+                ch = tolower(ch);
+            }// end for
         }
 
         // parse values
