@@ -10,8 +10,10 @@
 #include "deps.hpp"
 #include "uri.hpp"
 #include "command.hpp"
+#include "http_fetcher.hpp"
 #include "html_parser.hpp"
 #include "dom_tree.hpp"
+#include "document_text.hpp"
 #include "document_html.hpp"
 #include "document_fetcher.hpp"
 #include "tab.hpp"
@@ -36,7 +38,13 @@ struct Page
 };// end struct Page
 
 // === Function Prototypes ================================================
-int runtime(const Config& cfg);
+int     runtime(const Config& cfg);
+void    goto_url(
+    Tab& tab,
+    const HttpFetcher& fetcher,
+    const Config& cfg,
+    const Uri& targetUrl
+);
 
 // === main ===============================================================
 //
@@ -134,6 +142,7 @@ int runtime(const Config& cfg)
     using namespace std;
 
     Tab::Config         tabCfg{ cfg.viewer };
+    HttpFetcher         httpFetcher(cfg.fetchCommand, "W3M_URL");
     DocumentFetcher     fetcher(cfg.fetchCommand, cfg.document);
     Tab                 currTab(tabCfg, fetcher);
     Tab::Page           *currPage;
@@ -264,42 +273,38 @@ int runtime(const Config& cfg)
                 }
                 break;
             case 'i':
-                // TODO: implement with mailcap, mime-type handling
                 {
-                    const string&   str     = currPage->viewer().curr_img();
+                    Uri     targetUrl   = currPage->viewer().curr_img();
 
-                    if (not str.empty())
+                    if (not targetUrl.empty())
                     {
-                        Uri         uri     = Uri::from_relative(currPage->uri(), str);
-                        Command     cmd     = Command("mpv --loop=inf \"${W3M_IMAGE}\"")
-                                                .set_env("W3M_IMAGE", uri.str());
-
-                        cmd.spawn().wait();
-                        currPage->viewer().refresh(true);
+                        goto_url(currTab, httpFetcher, cfg, targetUrl);
+                        currPage = currTab.curr_page();
                     }
                 }
                 break;
             case 'U':
                 {
+                    const string&   currUrl = currPage->viewer().curr_url();
                     const string&   url     = currPage->viewer()
-                                            .prompt_string("Goto URL:");
+                                            .prompt_string("Goto URL:", currUrl);
 
                     if (not url.empty())
                     {
-                        currPage = currTab.goto_uri(url);
-                        currPage->viewer().refresh(true);
+                        goto_url(currTab, httpFetcher, cfg, url);
+                        currPage = currTab.curr_page();
                     }
                 }
                 break;
             case KEY_ENTER:
             case '\n':
                 {
-                    Uri     currUrl     = currPage->viewer().curr_url();
+                    Uri     targetUrl   = currPage->viewer().curr_url();
 
-                    if (not currUrl.empty())
+                    if (not targetUrl.empty())
                     {
-                        currPage = currTab.goto_uri(currUrl);
-                        currPage->viewer().refresh(true);
+                        goto_url(currTab, httpFetcher, cfg, targetUrl);
+                        currPage = currTab.curr_page();
                     }
                 }
                 break;
@@ -340,3 +345,82 @@ int runtime(const Config& cfg)
 
     return EXIT_SUCCESS;
 }// end runtime
+
+void    goto_url(
+    Tab& tab,
+    const HttpFetcher& fetcher,
+    const Config& cfg,
+    const Uri& targetUrl
+)
+{
+    if (targetUrl.is_fragment())
+    {
+        if (not tab.curr_page()->viewer().goto_section(targetUrl.fragment))
+        {
+            tab.curr_page()->viewer().disp_status(
+                "ERROR: could not find #" + targetUrl.fragment
+            );
+        }
+    }
+    else if (not targetUrl.empty())
+    {
+        static const string         defContentType      = "text/plain";
+        HttpFetcher::Status         status              = {};
+        HttpFetcher::header_type    headers             = {};
+        std::vector<char>           data                = {};
+        Uri                         fullUri;
+        const string                *contentType        = nullptr;
+        s_ptr<Document>             doc                 = nullptr;
+
+        fullUri = Uri::from_relative(tab.curr_page()->uri(), targetUrl);
+        data = fetcher.fetch_url(status, headers, fullUri);
+
+        if (
+            headers.count("content-type")
+            and (not headers.at("content-type").empty())
+        )
+        {
+            contentType = &headers.at("content-type").front();
+        }
+
+        // create document, if applicable
+        if (not contentType)
+        {
+            tab.curr_page()->viewer().refresh(true);
+            tab.curr_page()->viewer().disp_status(
+                "ERROR: could not identify content type"
+            );
+        }
+        else if (*contentType == "text/plain")
+        {
+            doc.reset(new DocumentText(
+                cfg.document,
+                string(data.cbegin(), data.cend()),
+                COLS
+            ));
+        }
+        else if (*contentType == "text/html")
+        {
+            doc.reset(new DocumentHtml(
+                cfg.document,
+                string(data.cbegin(), data.cend()),
+                COLS
+            ));
+        }
+
+        if (doc)
+        {
+            tab.push_document(doc, fullUri);
+        }
+        else
+        {
+            // TODO: implement with mailcap, mime-type handling
+            Command                 cmd("mpv --loop=inf \"${W3M_URL}\"");
+
+            cmd.set_env("W3M_URL", fullUri.str());
+            cmd.spawn().wait();
+        }
+        
+        tab.curr_page()->viewer().refresh(true);
+    }
+}// end goto_url
