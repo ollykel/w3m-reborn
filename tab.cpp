@@ -76,9 +76,17 @@ auto Tab::curr_page(void)
 auto Tab::push_document(const s_ptr<Document>& doc, const Uri& uri)
     -> Page*
 {
-    m_pages.push_back(Page(doc, uri, m_cfg.viewer));
+    if (m_pageIter != m_pages.end())
+    {
+        ++m_pageIter;
+    }
+    m_pageIter = m_pages.emplace(
+        m_pageIter,
+        Page(doc, uri, m_cfg.viewer)
+    );
+    ++m_currPageIdx;
 
-    return &m_pages.back();
+    return curr_page();
 }// end Tab::push_document
 
 auto Tab::goto_uri(const Uri& uri)
