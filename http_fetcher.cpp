@@ -18,11 +18,17 @@
 
 HttpFetcher::HttpFetcher(
     const string& shellCommand,
-    const string& urlEnv
+    const string& urlEnv,
+    const env_map& env
 )
 {
     m_cmd = Command(shellCommand).set_stdout_piped(true);
     m_urlEnv = urlEnv;
+
+    for (const auto& kv : env)
+    {
+        m_cmd.set_env(kv.first, kv.second);
+    }// end for
 }// end type constructor
 
 // --- public accessors ---------------------------------------------------
@@ -30,7 +36,8 @@ HttpFetcher::HttpFetcher(
 auto HttpFetcher::fetch_url(
     Status& status,
     header_type& headers,
-    const Uri& url
+    const Uri& url,
+    const env_map& env
 ) const -> std::vector<char>
 {
     using namespace std;
@@ -43,6 +50,10 @@ auto HttpFetcher::fetch_url(
     char                    reason[0x100]   = {};
 
     // set up command
+    for (const auto& kv : env)
+    {
+        cmd.set_env(kv.first, kv.second);
+    }// end for
     cmd.set_env(m_urlEnv, url.str());
 
     auto        sproc       = cmd.spawn();

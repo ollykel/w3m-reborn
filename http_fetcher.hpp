@@ -11,10 +11,11 @@ class HttpFetcher
 {
     public:
         // --- public member types ----------------------------------------
-        typedef     string                  header_key_type;
-        typedef     std::vector<string>     header_value_type;
+        typedef     string                      header_key_type;
+        typedef     std::vector<string>         header_value_type;
         typedef     std::map<header_key_type, header_value_type>
-                                            header_type;
+                                                header_type;
+        typedef     std::map<string,string>     env_map;
         struct      Status
         {
             string      version;
@@ -25,14 +26,16 @@ class HttpFetcher
         // --- public constructors ----------------------------------------
         HttpFetcher(
             const string& shellCommand,
-            const string& urlEnv
+            const string& urlEnv,
+            const env_map& env = {}
         );
 
         // --- public accessors -------------------------------------------
         auto fetch_url(
             Status& status,
             header_type& headers,
-            const Uri& url
+            const Uri& url,
+            const env_map& env = {}
         ) const -> std::vector<char>;
 
     private:
