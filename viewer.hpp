@@ -57,7 +57,8 @@ class   Viewer
         void    copy_from(const Viewer& other);
         void    refresh(bool retouch = false);
         void    redraw(void);
-        void    goto_section(const string& id);
+        auto    goto_section(const string& id)
+            -> bool;
         void    goto_point(size_t line, size_t col);
         void    line_down(size_t nLines = 1);
         void    line_up(size_t nLines = 1);

@@ -176,7 +176,8 @@ void Viewer::redraw(void)
     wnoutrefresh(stdscr);
 }// end void redraw
 
-void    Viewer::goto_section(const string& id)
+auto    Viewer::goto_section(const string& id)
+    -> bool
 {
     Document::buffer_index_type     idx;
 
@@ -184,7 +185,10 @@ void    Viewer::goto_section(const string& id)
     {
         goto_point(idx.line, 0);
         refresh();
+        return true;
     }
+
+    return false;
 }// end Viewer::goto_section
 
 void    Viewer::goto_point(size_t line, size_t col)
