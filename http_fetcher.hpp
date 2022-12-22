@@ -15,6 +15,12 @@ class HttpFetcher
         typedef     std::vector<string>     header_value_type;
         typedef     std::map<header_key_type, header_value_type>
                                             header_type;
+        struct      Status
+        {
+            string      version;
+            int         code;
+            string      reason;
+        };// end struct Protocol
 
         // --- public constructors ----------------------------------------
         HttpFetcher(
@@ -24,6 +30,7 @@ class HttpFetcher
 
         // --- public accessors -------------------------------------------
         auto fetch_url(
+            Status& status,
             header_type& headers,
             const Uri& url
         ) const -> std::vector<char>;

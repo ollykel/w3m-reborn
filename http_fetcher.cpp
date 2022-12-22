@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <cctype>
 #include <map>
 
@@ -27,6 +28,7 @@ HttpFetcher::HttpFetcher(
 // --- public accessors ---------------------------------------------------
 
 auto HttpFetcher::fetch_url(
+    Status& status,
     header_type& headers,
     const Uri& url
 ) const -> std::vector<char>
@@ -37,14 +39,27 @@ auto HttpFetcher::fetch_url(
     Command                 cmd             = m_cmd;
     string                  currLine        = {};
     size_t                  idx             = 0;
+    char                    version[0x100]  = {};
+    char                    reason[0x100]   = {};
 
     // set up command
     cmd.set_env(m_urlEnv, url.str());
 
     auto        sproc       = cmd.spawn();
 
-    // first, read headers
-    while (getline(sproc.stdout(), currLine))
+    // read first line
+    //     if it is a valid HTTP status line, parse it
+    //     otherwise, treat it as first header
+    getline(sproc.stdout(), currLine);
+    if (sscanf(currLine.c_str(), " %s %d %s", version, &status.code, reason) >= 2)
+    {
+        status.version = version;
+        status.reason = reason;
+        currLine.clear();
+    }
+
+    // read headers
+    while ((not currLine.empty()) or getline(sproc.stdout(), currLine))
     {
         header_key_type             key         = {};
         header_value_type           value       = {};
@@ -58,7 +73,7 @@ auto HttpFetcher::fetch_url(
             currLine.pop_back();
         }
 
-        // if line is empty, break
+        // if line is empty, break, start reading body
         if (currLine.empty())
         {
             break;
@@ -66,6 +81,7 @@ auto HttpFetcher::fetch_url(
 
         if (currLine.find(':') == string::npos)
         {
+            currLine.clear();
             continue;
         }
 
@@ -135,6 +151,7 @@ auto HttpFetcher::fetch_url(
         #undef      WS
         #undef      BREAK_IF_NPOS
         headers[key] = value;
+        currLine.clear();
     }// end while
 
     // next, read body
