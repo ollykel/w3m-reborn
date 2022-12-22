@@ -79,6 +79,8 @@ class Tab
         // --- public mutators --------------------------------------------
         auto curr_page(void)
             -> Page*;
+        auto push_document(const s_ptr<Document>& doc, const Uri& uri)
+            -> Page*;
         auto goto_uri(const Uri& uri)
             -> Page*;
         auto goto_pagenum(size_t index)
