@@ -88,15 +88,7 @@ auto Tab::goto_uri(const Uri& uri)
     {
         if (curr_page() and uri.is_fragment())
         {
-            const string&   section = uri.fragment;
-            auto    idx
-                = curr_page()->document().get_section_index(section);
-
-            if (idx)
-            {
-                curr_page()->viewer().goto_point(idx.line, 0);
-            }
-            else
+            if (not curr_page()->viewer().goto_section(uri.fragment))
             {
                 curr_page()->viewer().disp_status(
                     "ERROR: could not find #" +
