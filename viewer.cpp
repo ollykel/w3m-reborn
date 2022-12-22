@@ -176,6 +176,17 @@ void Viewer::redraw(void)
     wnoutrefresh(stdscr);
 }// end void redraw
 
+void    Viewer::goto_section(const string& id)
+{
+    Document::buffer_index_type     idx;
+
+    if ((idx = m_doc->get_section_index(id)))
+    {
+        goto_point(idx.line, 0);
+        refresh();
+    }
+}// end Viewer::goto_section
+
 void    Viewer::goto_point(size_t line, size_t col)
 {
     m_currLine = line;
