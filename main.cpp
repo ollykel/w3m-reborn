@@ -18,6 +18,7 @@
 #include "document_fetcher.hpp"
 #include "tab.hpp"
 #include "viewer.hpp"
+#include "mailcap.hpp"
 
 // === TODO: move to header file ==========================================
 #define     CTRL(KEY)   ((KEY) & 0x1f)
@@ -26,6 +27,7 @@ struct  Config
 {
     string                  fetchCommand;
     string                  initUrl;
+    string                  tempdir;
     Viewer::Config          viewer;
     Document::Config        document;
 };// end struct Config
@@ -45,6 +47,12 @@ void    goto_url(
     const Config& cfg,
     const Uri& targetUrl
 );
+void    handle_data(
+    const Mailcap& mailcap,
+    const Config& cfg,
+    const string& mimeType,
+    const std::vector<char>& data
+);
 
 // === main ===============================================================
 //
@@ -61,6 +69,9 @@ int main(const int argc, const char **argv, const char **envp)
         "curl --include --user-agent \"${W3M_USER_AGENT}\" ${W3M_URL}",
         // initUrl
         "",
+        // tempdir
+        // TODO: actually set from ENV
+        "/tmp",
         // viewer
         {
             // attribs
@@ -424,3 +435,111 @@ void    goto_url(
         tab.curr_page()->viewer().refresh(true);
     }
 }// end goto_url
+
+void    handle_data(
+    const Mailcap& mailcap,
+    const Config& cfg,
+    const string& mimeType,
+    const std::vector<char>& data
+)
+{
+    using namespace std;
+
+    static size_t           counter         = 0;
+    char                    fbase[0x100]    = {};
+    string                  fname           = {};
+    const Mailcap::Entry    *entry          = nullptr;
+    ofstream                tempFile;
+    Command                 cmd;
+
+    if (not (entry = mailcap.get_entry(mimeType)))
+    {
+        return;
+    }
+
+    // TODO: handle path separators, maximum filename length
+    sprintf(fbase, "%s/w3mtmp-%016zu", cfg.tempdir.c_str(), counter);
+    fname = entry->parse_filename(fbase);
+
+    // write data to tempfile
+    tempFile.open(fname.c_str());
+    if (tempFile.fail())
+    {
+        return;
+    }
+    ++counter;
+    tempFile.write(data.data(), data.size());
+    tempFile.close();
+
+    cmd = entry->create_command(fbase, mimeType);
+
+    // TODO; handle needsterminal
+    auto sproc = cmd.spawn();
+
+    if (cmd.stdout_piped())
+    {
+        // TODO: handle copiousoutput by pushing text document
+        #define     BUF_LEN     0x10000
+        char        buffer[0x1000];
+
+        while (sproc.stdout())
+        {
+            sproc.stdout().read(buffer, BUF_LEN);
+        }
+        #undef      BUF_LEN
+    }
+
+    sproc.wait();
+}// end handle_data
+
+void    parse_mailcap_file(Mailcap& mailcap, const string& fname)
+{
+    using namespace std;
+
+    ifstream    inFile;
+    string      line;
+
+    inFile.open(fname);
+    if (inFile.fail())
+    {
+        return;
+    }
+
+    while (getline(inFile, line))
+    {
+        mailcap.parse_entry(line);
+    }// end while
+
+    inFile.close();
+}// end parse_mailcap_file
+
+void parse_mailcap_env(Mailcap& mailcap, const string& env)
+{
+    using namespace std;
+
+    size_t      idx     = 0;
+    size_t      beg     = 0;
+    size_t      end     = 0;
+
+    while (idx < env.length())
+    {
+        string      fname   = "";
+
+        // TODO: handle different env separators
+        idx = env.find(':', beg);
+        if (string::npos == idx)
+        {
+            end = env.length();
+        }
+        else
+        {
+            end = idx;
+            ++idx;
+        }
+
+        fname = env.substr(beg, end);
+        parse_mailcap_file(mailcap, fname);
+
+        beg = idx;
+    }// end while
+}// end parse_mailcap_env
