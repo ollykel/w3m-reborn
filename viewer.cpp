@@ -220,6 +220,16 @@ void    Viewer::goto_point(size_t line, size_t col)
 
 void    Viewer::line_down(size_t nLines)
 {
+    if (not nLines)
+    {
+        return;
+    }
+
+    if (LINES >= m_doc->buffer().size())
+    {
+        return;
+    }
+
     m_currLine += nLines;
 
     if (m_currLine + LINES >= m_doc->buffer().size())
@@ -255,6 +265,11 @@ void    Viewer::curs_down(size_t nLines)
     }
 
     m_currCursLine += nLines;
+
+    if (m_currCursLine >= m_doc->buffer().size())
+    {
+        m_currCursLine = m_doc->buffer().size() - 1;
+    }
 
     if (m_currCursLine >= m_currLine + LINES)
     {
@@ -438,6 +453,7 @@ auto    Viewer::prompt_string(const string& prompt, const string& init)
             case CTRL('u'):
                 out.clear();
                 break;
+            case CTRL('c'):
             case CTRL('g'):
                 out.clear();
                 goto exit_while;
