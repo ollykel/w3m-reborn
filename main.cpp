@@ -504,14 +504,17 @@ void    handle_data(
     fname = entry->parse_filename(fbase);
 
     // write data to tempfile
-    tempFile.open(fname.c_str());
-    if (tempFile.fail())
+    if (not entry->file_piped())
     {
-        return;
+        tempFile.open(fname.c_str());
+        if (tempFile.fail())
+        {
+            return;
+        }
+        ++counter;
+        tempFile.write(data.data(), data.size());
+        tempFile.close();
     }
-    ++counter;
-    tempFile.write(data.data(), data.size());
-    tempFile.close();
 
     cmd = entry->create_command(fbase, mimeType);
 
