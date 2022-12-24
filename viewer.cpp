@@ -83,12 +83,20 @@ void    Viewer::copy_from(const Viewer& other)
 
 void    Viewer::refresh(bool retouch)
 {
-    size_t      currBufLine     = m_currLine + m_currCursLine;
-    auto&       bufLine         = m_doc->buffer().at(currBufLine);
-    size_t      colDiff         = m_currCol;
-    size_t      nCols           = 0;
-    size_t      nodeSize        = 0;
+    size_t                  colDiff         = m_currCol;
+    size_t                  nCols           = 0;
+    size_t                  nodeSize        = 0;
 
+    if (m_currCursLine < m_currLine)
+    {
+        m_currCursLine = m_currLine;
+    }
+    else if (m_currCursLine >= m_currLine + LINES)
+    {
+        m_currCursLine = m_currLine + LINES - 1;
+    }
+
+    auto& bufLine = m_doc->buffer().at(m_currCursLine);
     m_bufNodeIter = bufLine.begin();
 
     while (
@@ -119,7 +127,7 @@ void    Viewer::refresh(bool retouch)
         wrefresh(stdscr);
     }
 
-    wmove(m_pad, currBufLine, m_currCol);
+    wmove(m_pad, m_currCursLine, m_currCol);
     prefresh(m_pad, m_currLine, 0, 0, 0, LINES - 1, COLS - 1);
 }// end refresh
 
@@ -169,7 +177,7 @@ void Viewer::redraw(void)
         }// end for node
     }// end for i
 
-    wmove(m_pad, m_currLine + m_currCursLine, m_currCol);
+    wmove(m_pad, m_currCursLine, m_currCol);
     wcolor_set(m_pad, 0, NULL);
     wattrset(m_pad, A_NORMAL);
     prefresh(m_pad, m_currLine, 0, 0, 0, LINES - 1, COLS - 1);
@@ -214,7 +222,7 @@ void    Viewer::line_down(size_t nLines)
 {
     m_currLine += nLines;
 
-    if (m_currLine >= m_doc->buffer().size() - LINES)
+    if (m_currLine + LINES >= m_doc->buffer().size())
     {
         m_currLine = m_doc->buffer().size() - LINES;
     }
@@ -224,83 +232,58 @@ void    Viewer::line_down(size_t nLines)
 
 void    Viewer::line_up(size_t nLines)
 {
-    if (m_isSinglePage or not m_currLine)
+    if (not nLines)
     {
         return;
     }
 
-    if (m_currLine > nLines)
+    if (nLines > m_currLine)
     {
-        m_currLine -= nLines;
+        nLines = m_currLine;
     }
-    else
-    {
-        m_currLine = 0;
-    }
+
+    m_currLine -= nLines;
 
     refresh();
 }// end line_up
 
 void    Viewer::curs_down(size_t nLines)
 {
-    const size_t    currBufLine     = m_currLine + m_currCursLine;
-    size_t          cursLineDiff    = LINES - m_currCursLine - 1;
-    
-    if (!nLines)
+    if (not nLines)
     {
         return;
     }
 
-    if (nLines > cursLineDiff)
+    m_currCursLine += nLines;
+
+    if (m_currCursLine >= m_currLine + LINES)
     {
-        nLines -= cursLineDiff;
-    }
-    else
-    {
-        cursLineDiff = nLines;
-        nLines = 0;
+        m_currLine = m_currCursLine - LINES + 1;
     }
 
-    m_currCursLine += cursLineDiff;
-
-    // if we are at page bttom, move page down
-    if (nLines)
-    {
-        line_down(nLines);
-    }
-    else
-    {
-        refresh();
-    }
+    refresh();
 }// end curs_down
 
 void    Viewer::curs_up(size_t nLines)
 {
-    const size_t    currBufLine     = m_currLine + m_currCursLine;
-    
-    if (!nLines)
+    if (not nLines)
     {
         return;
     }
 
     if (nLines > m_currCursLine)
     {
-        nLines -= m_currCursLine;
-        m_currCursLine = 0;
-        if (m_currLine)
-        {
-            line_up(nLines);
-        }
-        else
-        {
-            refresh();
-        }
+        nLines = m_currCursLine;
     }
-    else
+
+    m_currCursLine -= nLines;
+
+    if (m_currCursLine < m_currLine)
     {
-        m_currCursLine -= nLines;
-        refresh();
+        m_currLine = m_currCursLine;
     }
+
+    refresh();
 }// end curs_up
 
 void    Viewer::curs_left(size_t nCols)
@@ -334,8 +317,7 @@ auto    Viewer::curr_url(void)
 {
     static const string     NULL_STR    = "";
 
-    size_t      currBufLine     = m_currLine + m_currCursLine;
-    auto&       bufLine         = m_doc->buffer().at(currBufLine);
+    auto&       bufLine         = m_doc->buffer().at(m_currCursLine);
 
     if ((m_bufNodeIter != bufLine.end()) and (m_bufNodeIter->link_ref()))
     {
@@ -350,8 +332,7 @@ auto    Viewer::curr_img(void)
 {
     static const string     NULL_STR    = "";
 
-    size_t      currBufLine     = m_currLine + m_currCursLine;
-    auto&       bufLine         = m_doc->buffer().at(currBufLine);
+    auto&       bufLine         = m_doc->buffer().at(m_currCursLine);
 
     if ((m_bufNodeIter != bufLine.end()) and (m_bufNodeIter->image_ref()))
     {
