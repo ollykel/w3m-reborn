@@ -41,18 +41,27 @@ struct Page
 
 // === Function Prototypes ================================================
 int     runtime(const Config& cfg);
+
+template <class CONT_T>
 void    goto_url(
     Tab& tab,
     const HttpFetcher& fetcher,
+    const CONT_T& mailcaps,
     const Config& cfg,
     const Uri& targetUrl
 );
+
+template <class CONT_T>
 void    handle_data(
-    const Mailcap& mailcap,
+    const CONT_T& mailcaps,
     const Config& cfg,
     const string& mimeType,
     const std::vector<char>& data
 );
+void    parse_mailcap_file(Mailcap& mailcap, const string& fname);
+
+template <class CONT_T>
+void    parse_mailcap_env(CONT_T& mailcaps, const string& env);
 
 // === main ===============================================================
 //
@@ -111,7 +120,7 @@ int main(const int argc, const char **argv, const char **envp)
 
     // initialize screen
     initscr();
-    cbreak();
+    raw();
     noecho();
     setlocale(LC_ALL, "");
 
@@ -152,12 +161,13 @@ int runtime(const Config& cfg)
 {
     using namespace std;
 
-    Tab::Config         tabCfg{ cfg.viewer };
-    HttpFetcher         httpFetcher(cfg.fetchCommand, "W3M_URL");
-    DocumentFetcher     fetcher(cfg.fetchCommand, cfg.document);
-    Tab                 currTab(tabCfg, fetcher);
-    Tab::Page           *currPage;
-    int                 key;
+    Tab::Config                 tabCfg{ cfg.viewer };
+    HttpFetcher                 httpFetcher(cfg.fetchCommand, "W3M_URL");
+    DocumentFetcher             fetcher(cfg.fetchCommand, cfg.document);
+    Tab                         currTab(tabCfg, fetcher);
+    Tab::Page                   *currPage;
+    std::vector<Mailcap>        mailcaps;
+    int                         key;
 
     // print error message and exit if no initial url
     if (cfg.initUrl.empty())
@@ -203,6 +213,9 @@ int runtime(const Config& cfg)
         cfg.viewer.attribs.linkVisited.fg,
         cfg.viewer.attribs.linkVisited.bg
     );
+
+    // build mailcap file
+    parse_mailcap_env(mailcaps, getenv("MAILCAPS"));
 
     currPage = currTab.goto_uri(cfg.initUrl);
     currPage->viewer().refresh(true);
@@ -289,7 +302,7 @@ int runtime(const Config& cfg)
 
                     if (not targetUrl.empty())
                     {
-                        goto_url(currTab, httpFetcher, cfg, targetUrl);
+                        goto_url(currTab, httpFetcher, mailcaps, cfg, targetUrl);
                         currPage = currTab.curr_page();
                     }
                 }
@@ -302,7 +315,7 @@ int runtime(const Config& cfg)
 
                     if (not url.empty())
                     {
-                        goto_url(currTab, httpFetcher, cfg, url);
+                        goto_url(currTab, httpFetcher, mailcaps, cfg, url);
                         currPage = currTab.curr_page();
                     }
                 }
@@ -314,8 +327,29 @@ int runtime(const Config& cfg)
 
                     if (not targetUrl.empty())
                     {
-                        goto_url(currTab, httpFetcher, cfg, targetUrl);
+                        goto_url(currTab, httpFetcher, mailcaps, cfg, targetUrl);
                         currPage = currTab.curr_page();
+                    }
+                }
+                break;
+            case 'M':
+                {
+                    Uri     targetUrl   = currPage->viewer().curr_url();
+
+                    if (not targetUrl.empty())
+                    {
+                        // TODO: true external browser API
+                        Uri         fullUrl = Uri::from_relative(
+                                                currPage->uri(),
+                                                targetUrl
+                                            );
+                        Command     cmd     = Command("mpv \"${W3M_URL}\"")
+                                            .set_env("W3M_URL", fullUrl.str());
+
+                        endwin();
+                        cmd.spawn().wait();
+                        doupdate();
+                        currPage->viewer().refresh(true);
                     }
                 }
                 break;
@@ -357,9 +391,11 @@ int runtime(const Config& cfg)
     return EXIT_SUCCESS;
 }// end runtime
 
+template <class CONT_T>
 void    goto_url(
     Tab& tab,
     const HttpFetcher& fetcher,
+    const CONT_T& mailcaps,
     const Config& cfg,
     const Uri& targetUrl
 )
@@ -401,6 +437,7 @@ void    goto_url(
             tab.curr_page()->viewer().disp_status(
                 "ERROR: could not identify content type"
             );
+            goto finally;
         }
         else if (*contentType == "text/plain")
         {
@@ -425,19 +462,16 @@ void    goto_url(
         }
         else
         {
-            // TODO: implement with mailcap, mime-type handling
-            Command                 cmd("mpv --loop=inf \"${W3M_URL}\"");
-
-            cmd.set_env("W3M_URL", fullUri.str());
-            cmd.spawn().wait();
+            handle_data(mailcaps, cfg, *contentType, data);
         }
-        
+finally:
         tab.curr_page()->viewer().refresh(true);
     }
 }// end goto_url
 
+template <class CONT_T>
 void    handle_data(
-    const Mailcap& mailcap,
+    const CONT_T& mailcaps,
     const Config& cfg,
     const string& mimeType,
     const std::vector<char>& data
@@ -452,7 +486,15 @@ void    handle_data(
     ofstream                tempFile;
     Command                 cmd;
 
-    if (not (entry = mailcap.get_entry(mimeType)))
+    for (const auto& mailcap : mailcaps)
+    {
+        if ((entry = mailcap.get_entry(mimeType)))
+        {
+            break;
+        }
+    }// end for
+    
+    if (not entry)
     {
         return;
     }
@@ -473,23 +515,25 @@ void    handle_data(
 
     cmd = entry->create_command(fbase, mimeType);
 
-    // TODO; handle needsterminal
-    auto sproc = cmd.spawn();
-
-    if (cmd.stdout_piped())
+    if (entry->needs_terminal())
     {
-        // TODO: handle copiousoutput by pushing text document
-        #define     BUF_LEN     0x10000
-        char        buffer[0x1000];
-
-        while (sproc.stdout())
-        {
-            sproc.stdout().read(buffer, BUF_LEN);
-        }
-        #undef      BUF_LEN
+        endwin();
     }
 
-    sproc.wait();
+    auto sproc = cmd.spawn();
+
+    // pipe file contents to process, if necessary
+    if (entry->file_piped())
+    {
+        sproc.stdin().write(data.data(), data.size());
+        sproc.stdin().close();
+    }
+
+    if (entry->needs_terminal())
+    {
+        sproc.wait();
+        doupdate();
+    }
 }// end handle_data
 
 void    parse_mailcap_file(Mailcap& mailcap, const string& fname)
@@ -507,13 +551,25 @@ void    parse_mailcap_file(Mailcap& mailcap, const string& fname)
 
     while (getline(inFile, line))
     {
+        size_t      idx     = line.find('#');
+
+        if (string::npos != idx)
+        {
+            line.erase(idx);
+        }
+        if (line.empty())
+        {
+            continue;
+        }
+
         mailcap.parse_entry(line);
     }// end while
 
     inFile.close();
 }// end parse_mailcap_file
 
-void parse_mailcap_env(Mailcap& mailcap, const string& env)
+template <class CONT_T>
+void    parse_mailcap_env(CONT_T& mailcaps, const string& env)
 {
     using namespace std;
 
@@ -523,6 +579,9 @@ void parse_mailcap_env(Mailcap& mailcap, const string& env)
 
     while (idx < env.length())
     {
+        mailcaps.emplace_back();
+        Mailcap&    mailcap     = mailcaps.back();
+
         string      fname   = "";
 
         // TODO: handle different env separators
