@@ -223,33 +223,77 @@ int runtime(const Config& cfg)
     // wait for keypress
     while (true)
     {
-        switch ((key = wgetch(stdscr)))
+        size_t                      w3mIndex        = 0;
+
+        // read index
+        while ((key = wgetch(stdscr)))
+        {
+            bool        increm      = false;
+
+            switch (key)
+            {
+                case -1:
+                    continue;
+                case '0':
+                    if (w3mIndex)
+                    {
+                        w3mIndex *= 10;
+                        increm = true;
+                    }
+                    break;
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                    w3mIndex *= 10;
+                    w3mIndex += (key - '0');
+                    increm = true;
+            }// end switch
+
+            if (not increm)
+            {
+                break;
+            }
+        }// end while
+
+        if (not w3mIndex)
+        {
+            ++w3mIndex;
+        }
+
+        switch (key)
         {
             // move cursor down
             case 'j':
-                currPage->viewer().curs_down();
+                currPage->viewer().curs_down(w3mIndex);
                 break;
             // move page up
             case 'J':
-                currPage->viewer().line_down();
+                currPage->viewer().line_down(w3mIndex);
                 break;
             // move cursor up
             case 'k':
-                currPage->viewer().curs_up();
+                currPage->viewer().curs_up(w3mIndex);
                 break;
             // move page down
             case 'K':
-                currPage->viewer().line_up();
+                currPage->viewer().line_up(w3mIndex);
                 break;
             // move cursor left
             case 'h':
-                currPage->viewer().curs_left();
+                currPage->viewer().curs_left(w3mIndex);
                 break;
             // move cursor right
             case 'l':
-                currPage->viewer().curs_right();
+                currPage->viewer().curs_right(w3mIndex);
                 break;
             // move cursor to first column
+            case CTRL('a'):
             case '0':
                 currPage->viewer().curs_left(SIZE_MAX);
                 break;
