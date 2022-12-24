@@ -500,7 +500,7 @@ void    handle_data(
     }
 
     // TODO: handle path separators, maximum filename length
-    sprintf(fbase, "%s/w3mtmp-%016zu", cfg.tempdir.c_str(), counter);
+    sprintf(fbase, "%s/w3mtmp-%016zx", cfg.tempdir.c_str(), counter);
     fname = entry->parse_filename(fbase);
 
     // write data to tempfile
