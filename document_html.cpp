@@ -502,6 +502,7 @@ void    DocumentHtml::append_hn(
     stacks.styles.emplace_back(hn.identifier());
 
     begin_block(cols, fmt);
+    m_buffer.emplace_back();
     append_children(hn, cols, fmt, stacks);
     m_buffer.emplace_back();
 
