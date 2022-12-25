@@ -119,8 +119,12 @@ void        DocumentHtml::redraw(size_t cols)
     m_forms.clear();
     m_form_inputs.clear();
 
+    // "NULL" form
     emplace_form("", "");
     stacks.formIndices.push_back(0);
+
+    // default format
+    Format      fmt     = {};
 
     for (auto& nd : *m_dom.root())
     {
@@ -131,13 +135,13 @@ void        DocumentHtml::redraw(size_t cols)
                 // skip <head>
                 if (child.identifier() != "head")
                 {
-                    append_node(child, cols, {}, stacks);
+                    append_node(child, cols, fmt, stacks);
                 }
             }// end for child
         }
         else
         {
-            append_node(nd, cols, {}, stacks);
+            append_node(nd, cols, fmt, stacks);
         }
     }// end for (auto& nd : *m_dom->root())
 
@@ -372,8 +376,38 @@ void    DocumentHtml::append_a(
     }
 
     const size_t        linkIdx     = m_links.size();
+    string              linkUrl     = "";
 
-    m_links.emplace_back(a.attributes.at("href"));
+    {
+        const string&       src         = a.attributes.at("href");
+        size_t              idx         = 0;
+        size_t              beg         = 0;
+
+        do
+        {
+            idx = src.find('&', beg);
+
+            linkUrl += src.substr(beg, idx);
+            if (string::npos == idx)
+            {
+                break;
+            }
+
+            beg = idx + 1;
+            idx = src.find(';', beg);
+            if (string::npos == idx)
+            {
+                linkUrl.push_back('&');
+            }
+            else
+            {
+                linkUrl.push_back(parse_html_entity(src.substr(beg, idx)));
+                beg = idx + 1;
+            }
+        } while (beg < src.size());
+    }
+
+    m_links.emplace_back(linkUrl);
     auto&               currLink    = m_links.back();
 
     for (size_t i = startLineIdx, j = startNodeIdx; i < m_buffer.size(); ++i)
@@ -783,9 +817,9 @@ void    DocumentHtml::append_ul(
     {
         auto& child = *iter;
 
-        m_buffer.emplace_back();
         if (child.identifier() == "li")
         {
+            m_buffer.emplace_back();
             append_li_ul(child, cols, fmt, stacks);
         }
         else
@@ -816,9 +850,9 @@ void    DocumentHtml::append_ol(
     {
         auto& child = *iter;
 
-        m_buffer.emplace_back();
         if (child.identifier() == "li")
         {
+            m_buffer.emplace_back();
             append_li_ol(child, cols, fmt, stacks);
             ++fmt.listIndex;
         }
