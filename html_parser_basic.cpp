@@ -262,6 +262,7 @@ auto     HtmlParserBasic::tag::from_stream(std::istream& ins) -> tag
         ins.ignore(1);
         utils::ignore_whitespace(ins);
         output.identifier = utils::read_token_until(ins, " \t\r\n<>/");
+        utils::to_lower(output.identifier);
         ins.ignore(numeric_limits<streamsize>::max(), '>');
         return output;
     }
@@ -281,6 +282,7 @@ auto     HtmlParserBasic::tag::from_stream(std::istream& ins) -> tag
 
     // Case 3: initial tag
     output.identifier = utils::read_token_until(ins, " \t\r\n<>/");
+    utils::to_lower(output.identifier);
 
     if (output.identifier.empty())
     {
