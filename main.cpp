@@ -786,6 +786,7 @@ void    handle_form_input(
     switch (input.type())
     {
         case Document::FormInput::Type::text:
+        case Document::FormInput::Type::search:
             {
                 set_form_input(input, tab.curr_page()->viewer());
                 tab.curr_page()->document().redraw(COLS);
