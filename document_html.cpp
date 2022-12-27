@@ -1043,12 +1043,12 @@ bool    DocumentHtml::is_node_header(const DomTree::node& nd)
     return true;
 }// end DocumentHtml::is_node_header(const DomTree::node& nd)
 
-wchar_t     DocumentHtml::parse_html_entity(const string& id)
+unsigned    DocumentHtml::parse_html_entity(const string& id)
 {
     // static const std::map<string, unsigned>   entMap
     #include "document_html_entMap.gen.hpp"
 
-    wchar_t     out     = '&';
+    unsigned    out     = '&';
 
     if (entMap.count(id))
     {
