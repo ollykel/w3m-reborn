@@ -216,4 +216,22 @@ void for_each(CONT& cont, OPERATION op)
     std::for_each(cont.begin(), cont.end(), op);
 }// end for_each
 
+template <class STR_T>
+void to_lower(STR_T& str)
+{
+    for (auto& ch : str)
+    {
+        ch = std::tolower(ch);
+    }// end for
+}// end to_lower
+
+template <class STR_T>
+void to_upper(STR_T& str)
+{
+    for (auto& ch : str)
+    {
+        ch = std::toupper(ch);
+    }// end for
+}// end to_lower
+
 };// end namespace utils

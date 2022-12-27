@@ -62,6 +62,8 @@ namespace utils
     std::wstring        to_wstr(const std::string& str);
     std::string         from_wstr(const std::wstring& wstr);
 
+    std::string         percent_encode(const std::string& str);
+
     template <typename ITER_T>
     void ignore_whitespace(
         ITER_T& iter,
@@ -111,6 +113,12 @@ namespace utils
 
     template <class CONT, typename OPERATION>
     void for_each(CONT& cont, OPERATION op);
+
+    template <class STR_T>
+    void to_lower(STR_T& str);
+
+    template <class STR_T>
+    void to_upper(STR_T& str);
 };// end namespace utils
 
 #include "utils.tpp"

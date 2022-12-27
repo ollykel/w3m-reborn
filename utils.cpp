@@ -208,4 +208,26 @@ std::string     from_wstr(const std::wstring& wstr)
     return std::string(wstr.cbegin(), wstr.cend());
 }// end from_wstr
 
+std::string     percent_encode(const std::string& str)
+{
+    std::string     out    = "";
+
+    for (const char& ch : str)
+    {
+        if (std::isalnum(ch))
+        {
+            out.push_back(ch);
+        }
+        else
+        {
+            char    buffer[0x08]    = {};
+
+            std::sprintf(buffer, "%%%02x", ch);
+            out += buffer;
+        }
+    }// end for
+
+    return out;
+}// end percent_encode
+
 };// end namespace utils
