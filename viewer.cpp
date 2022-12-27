@@ -36,6 +36,51 @@ Viewer::~Viewer(void)
     destruct();
 }// end destructor
 
+// --- public accessors ---------------------------------------------------
+auto    Viewer::curr_curs_line(void) const
+    -> size_t
+{
+    return m_currCursLine;
+}// end Viewer::curr_curs_line
+
+auto    Viewer::curr_buf_line(void) const
+    -> size_t
+{
+    return m_currLine;
+}// end Viewer::curr_buf_line
+
+auto    Viewer::buffer_size(void) const
+    -> size_t
+{
+    return m_doc->buffer().size();
+}// end Viewer::buffer_size
+
+auto    Viewer::curr_form_input(void) const
+    -> const Document::FormInput*
+{
+    auto&       bufLine         = m_doc->buffer().at(m_currCursLine);
+
+    if ((m_bufNodeIter != bufLine.end()) and (m_bufNodeIter->input_ref()))
+    {
+        return &m_doc->form_inputs()[m_bufNodeIter->input_ref().index()];
+    }
+
+    return nullptr;
+}// end Viewer::curr_form_input
+
+auto    Viewer::curr_form(void) const
+    -> const Document::Form*
+{
+    const Document::FormInput*  out     = curr_form_input();
+
+    if (out)
+    {
+        return &out->form();
+    }
+
+    return nullptr;
+}// end Viewer::curr_form
+
 // === public mutators ============================================
 auto    Viewer::operator=(const Viewer& other)
     -> Viewer&
@@ -357,6 +402,32 @@ auto    Viewer::curr_img(void)
     return NULL_STR;
 }// end curr_img
 
+auto    Viewer::curr_form_input(void)
+    -> Document::FormInput*
+{
+    auto&       bufLine         = m_doc->buffer().at(m_currCursLine);
+
+    if ((m_bufNodeIter != bufLine.end()) and (m_bufNodeIter->input_ref()))
+    {
+        return &m_doc->form_inputs()[m_bufNodeIter->input_ref().index()];
+    }
+
+    return nullptr;
+}// end Viewer::curr_form_input
+
+auto    Viewer::curr_form(void)
+    -> Document::Form*
+{
+    Document::FormInput*    out     = curr_form_input();
+
+    if (out)
+    {
+        return &out->form();
+    }
+
+    return nullptr;
+}// end Viewer::curr_form
+
 void    Viewer::disp_status(const string& str)
 {
     string  status  = str;
@@ -455,9 +526,7 @@ auto    Viewer::prompt_string(const string& prompt, const string& init)
                 break;
             case CTRL('c'):
             case CTRL('g'):
-                out.clear();
-                goto exit_while;
-                break;
+                return init;
             default:
                 out += key;
                 break;

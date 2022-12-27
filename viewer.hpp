@@ -50,6 +50,18 @@ class   Viewer
         Viewer(Viewer&& other) = default;
         ~Viewer(void);
 
+        // --- public accessors -------------------------------------------
+        auto    curr_curs_line(void) const
+            -> size_t;
+        auto    curr_buf_line(void) const
+            -> size_t;
+        auto    buffer_size(void) const
+            -> size_t;
+        auto    curr_form_input(void) const
+            -> const Document::FormInput*;
+        auto    curr_form(void) const
+            -> const Document::Form*;
+
         // --- public mutators --------------------------------------------
         auto    operator=(const Viewer& other)
             -> Viewer&;
@@ -70,6 +82,10 @@ class   Viewer
             -> const string&;
         auto    curr_img(void)
             -> const string&;
+        auto    curr_form_input(void)
+            -> Document::FormInput*;
+        auto    curr_form(void)
+            -> Document::Form*;
         void    disp_status(const string& str);
         void    clear_status(void);
         auto    prompt_char(const string& str)
