@@ -40,6 +40,8 @@ class Tab
                     -> const Uri&;
 
                 // --- public mutators ------------------------------------
+                auto document(void)
+                    -> Document&;
                 auto viewer(void)
                     -> Viewer&;
                 auto operator=(const type& orig)

@@ -261,6 +261,12 @@ auto Tab::Page::uri(void) const
 }// end Tab::Page::uri
 
 // --- public mutators ----------------------------------------------------
+auto Tab::Page::document(void)
+    -> Document&
+{
+    return *m_documentPtr.get();
+}// end Tab::Page::document
+
 auto Tab::Page::viewer(void)
     -> Viewer&
 {
