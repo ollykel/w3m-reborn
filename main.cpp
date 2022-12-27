@@ -2,6 +2,7 @@
 #include <climits>
 #include <map>
 #include <list>
+#include <unordered_set>
 
 #include <curses.h>
 #include <sys/types.h>
@@ -59,9 +60,28 @@ void    handle_data(
     const std::vector<char>& data
 );
 void    parse_mailcap_file(Mailcap& mailcap, const string& fname);
+void    set_form_input(Document::FormInput& input, Viewer& viewer);
 
 template <class CONT_T>
 void    parse_mailcap_env(CONT_T& mailcaps, const string& env);
+
+template <class CONT_T>
+void    handle_form_input(
+    Tab& tab,
+    const Config& cfg,
+    const CONT_T& mailcaps,
+    const HttpFetcher& fetcher,
+    Document::FormInput& input
+);
+
+template <class CONT_T>
+void    submit_form(
+    Tab& tab,
+    const Config& cfg,
+    const CONT_T& mailcaps,
+    const HttpFetcher& fetcher,
+    const Document::Form& form
+);
 
 // === main ===============================================================
 //
@@ -269,26 +289,32 @@ int runtime(const Config& cfg)
         switch (key)
         {
             // move cursor down
+            case KEY_DOWN:
             case 'j':
                 currPage->viewer().curs_down(w3mIndex);
                 break;
             // move page up
+            case KEY_SF:
             case 'J':
                 currPage->viewer().line_down(w3mIndex);
                 break;
             // move cursor up
+            case KEY_UP:
             case 'k':
                 currPage->viewer().curs_up(w3mIndex);
                 break;
             // move page down
+            case KEY_SR:
             case 'K':
                 currPage->viewer().line_up(w3mIndex);
                 break;
             // move cursor left
+            case KEY_LEFT:
             case 'h':
                 currPage->viewer().curs_left(w3mIndex);
                 break;
             // move cursor right
+            case KEY_RIGHT:
             case 'l':
                 currPage->viewer().curs_right(w3mIndex);
                 break;
@@ -309,6 +335,7 @@ int runtime(const Config& cfg)
             case ' ':
                 currPage->viewer().line_down(LINES);
                 break;
+            case KEY_CLEAR:
             case CTRL('l'):
                 currPage->viewer().refresh(true);
                 break;
@@ -367,18 +394,50 @@ int runtime(const Config& cfg)
             case KEY_ENTER:
             case '\n':
                 {
-                    Uri     targetUrl   = currPage->viewer().curr_url();
+                    Document::FormInput     *input;
+                    Uri                     targetUrl;
 
-                    if (not targetUrl.empty())
+                    if ((input = currPage->viewer().curr_form_input()))
                     {
-                        goto_url(currTab, httpFetcher, mailcaps, cfg, targetUrl);
+                        handle_form_input(currTab, cfg, mailcaps, httpFetcher, *input);
                         currPage = currTab.curr_page();
+                    }
+                    else
+                    {
+                        targetUrl = currPage->viewer().curr_url();
+
+                        if (not targetUrl.empty())
+                        {
+                            goto_url(currTab, httpFetcher, mailcaps, cfg, targetUrl);
+                            currPage = currTab.curr_page();
+                        }
                     }
                 }
                 break;
             case 'M':
                 {
                     Uri     targetUrl   = currPage->viewer().curr_url();
+
+                    if (not targetUrl.empty())
+                    {
+                        // TODO: true external browser API
+                        Uri         fullUrl = Uri::from_relative(
+                                                currPage->uri(),
+                                                targetUrl
+                                            );
+                        Command     cmd     = Command("mpv \"${W3M_URL}\"")
+                                            .set_env("W3M_URL", fullUrl.str());
+
+                        endwin();
+                        cmd.spawn().wait();
+                        doupdate();
+                        currPage->viewer().refresh(true);
+                    }
+                }
+                break;
+            case 'm':
+                {
+                    Uri     targetUrl   = currPage->uri();
 
                     if (not targetUrl.empty())
                     {
@@ -415,6 +474,32 @@ int runtime(const Config& cfg)
                     currPage->viewer().refresh(true);
                 }
                 break;
+            // submit form
+            case 'p':
+                {
+                    Document::FormInput     *input;
+
+                    if ((input = currPage->viewer().curr_form_input()))
+                    {
+                        const Document::Form&   form    = input->form();
+                        submit_form(currTab, cfg, mailcaps, httpFetcher, form);
+                        currPage = currTab.curr_page();
+                    }
+                }
+                break;
+            // show current line number
+            case CTRL('g'):
+                {
+                    stringstream    fmt;
+
+                    fmt << "line ";
+                    fmt << currPage->viewer().curr_curs_line();
+                    fmt << " / ";
+                    fmt << currPage->viewer().buffer_size();
+
+                    currPage->viewer().disp_status(fmt.str());
+                }
+                break;
             case 'q':
                 {
                     switch (currPage->viewer().prompt_char(
@@ -444,6 +529,8 @@ void    goto_url(
     const Uri& targetUrl
 )
 {
+    using namespace std;
+
     if (targetUrl.is_fragment())
     {
         if (not tab.curr_page()->viewer().goto_section(targetUrl.fragment))
@@ -459,12 +546,39 @@ void    goto_url(
         HttpFetcher::Status         status              = {};
         HttpFetcher::header_type    headers             = {};
         std::vector<char>           data                = {};
+        Uri                         target              = targetUrl;
+        Uri                         prevUri             = tab.curr_page()->uri();
         Uri                         fullUri;
         const string                *contentType        = nullptr;
         s_ptr<Document>             doc                 = nullptr;
+        unordered_set<string>       visitedUris         = {};
 
-        fullUri = Uri::from_relative(tab.curr_page()->uri(), targetUrl);
-        data = fetcher.fetch_url(status, headers, fullUri);
+        do
+        {
+            status = {};
+            headers.clear();
+
+            fullUri = Uri::from_relative(prevUri, target);
+
+            if (visitedUris.count(fullUri.str()))
+            {
+                break;
+            }
+            visitedUris.insert(fullUri.str());
+            data = fetcher.fetch_url(status, headers, fullUri);
+
+            prevUri = fullUri;
+            if (headers.count("location")
+                and (not headers.at("location").empty())
+            )
+            {
+                target = headers.at("location").at(0);
+            }
+        } while (
+            (status.code >= 300)
+            and (status.code < 400)
+            and headers.count("location")
+        );// end do while
 
         if (
             headers.count("content-type")
@@ -649,3 +763,75 @@ void    parse_mailcap_env(CONT_T& mailcaps, const string& env)
         beg = idx;
     }// end while
 }// end parse_mailcap_env
+
+void    set_form_input(Document::FormInput& input, Viewer& viewer)
+{
+    const string&   name        = input.name();
+    const string&   initVal     = input.value();
+    string          val         = viewer.prompt_string(name + ":", initVal);
+
+    // TODO: differentiate between quitting, empty value
+    input.set_value(val);
+}// end set_form_input
+
+template <class CONT_T>
+void    handle_form_input(
+    Tab& tab,
+    const Config& cfg,
+    const CONT_T& mailcaps,
+    const HttpFetcher& fetcher,
+    Document::FormInput& input
+)
+{
+    switch (input.type())
+    {
+        case Document::FormInput::Type::text:
+            {
+                set_form_input(input, tab.curr_page()->viewer());
+                tab.curr_page()->document().redraw(COLS);
+                tab.curr_page()->viewer().redraw();
+                tab.curr_page()->viewer().refresh();
+            }
+            break;
+        case Document::FormInput::Type::button:
+        case Document::FormInput::Type::submit:
+            {
+                const Document::Form&   form    = input.form();
+                submit_form(tab, cfg, mailcaps, fetcher, form);
+            }
+            break;
+        default:
+            break;
+    }// end switch
+}// end handle_form_input
+
+template <class CONT_T>
+void    submit_form(
+    Tab& tab,
+    const Config& cfg,
+    const CONT_T& mailcaps,
+    const HttpFetcher& fetcher,
+    const Document::Form& form
+)
+{
+    std::vector<string>     values  = {};
+    Uri                     url;
+
+    url = Uri::from_relative(
+        tab.curr_page()->uri(),
+        form.action()
+    );
+
+    for (const auto& kv : form.values())
+    {
+        string  val =
+            utils::percent_encode(kv.first) +
+            "=" +
+            utils::percent_encode(kv.second);
+
+        values.push_back(val);
+    }// end for kv
+
+    url.query = utils::join_str(values, "&");
+    goto_url(tab, fetcher, mailcaps, cfg, url);
+}// end submit_form
