@@ -76,6 +76,18 @@ void    Document::set_title(const string& title)
     m_title = title;
 }// end Document::set_title
 
+auto Document::forms(void)
+    -> form_container::iterator
+{
+    return m_forms.begin();
+}// end Document::forms
+
+auto Document::form_inputs(void)
+    -> form_input_container::iterator
+{
+    return m_form_inputs.begin();
+}// end Document::form_inputs
+
 auto    Document::emplace_form(string action, string method)
     -> Form&
 {
@@ -423,12 +435,23 @@ void    Document::FormInput::set_name(const string& name)
 void    Document::FormInput::set_value(const string& value)
 {
     m_value = value;
+    form().set_value(name(), value);
 
     if (m_domNode)
     {
         m_domNode->attributes["value"] = value;
     }
 }// end Document::FormInput::set_value
+
+void    Document::FormInput::push_buffer_node(Document::BufferNode* bufNode)
+{
+    m_bufNodes.push_back(bufNode);
+}// end Document::FormInput::insert_buffer_node
+
+void    Document::FormInput::clear_buffer_nodes(void)
+{
+    m_bufNodes.clear();
+}// end Document::FormInput::clear_buffer_nodes
 
 // === Document::BufferIndex Implementation ===============================
 //

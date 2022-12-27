@@ -60,12 +60,16 @@ class   Document
                 void    set_type(Type t);
                 void    set_name(const string& name);
                 void    set_value(const string& value);
+                void    push_buffer_node(Document::BufferNode* bufNode);
+                void    clear_buffer_nodes(void);
             private:
                 // --- private member variable(s) -------------------------
                 Document                *m_parent       = nullptr;
                 size_t                  m_formIndex     = 0;
                 Type                    m_type          = Type::text;
                 DomTree::node           *m_domNode      = nullptr;
+                std::vector<Document::BufferNode*>
+                                        m_bufNodes      = {};
                 string                  m_name          = "";
                 string                  m_value         = "";
         };// end class Document::FormInput
@@ -115,6 +119,10 @@ class   Document
             // do nothing
         }
         void set_title(const string& title);
+        auto forms(void)
+            -> form_container::iterator;
+        auto form_inputs(void)
+            -> form_input_container::iterator;
     protected:
         // --- protected member types -------------------------------------
         typedef     std::map<string,buffer_index_type>      section_map;
