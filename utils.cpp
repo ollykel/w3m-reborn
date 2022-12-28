@@ -5,6 +5,8 @@
 #include <string>
 #include <cctype>
 #include <set>
+#include <locale>
+#include <codecvt>
 
 #include "utils.hpp"
 
@@ -200,11 +202,17 @@ std::string     path_base(const std::string& str, const char pathSep)
 
 std::wstring    to_wstr(const std::string& str)
 {
-    return std::wstring(str.cbegin(), str.cend());
+    using namespace std;
+
+    wstring_convert<codecvt_utf8<wchar_t>,wchar_t>
+        cvt;
+
+    return cvt.from_bytes(str);
 }// end to_wstr
 
 std::string     from_wstr(const std::wstring& wstr)
 {
+    // TODO: implement using codecvt
     return std::string(wstr.cbegin(), wstr.cend());
 }// end from_wstr
 
