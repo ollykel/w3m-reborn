@@ -380,11 +380,9 @@ int runtime(const Config& cfg)
                 break;
             case 'U':
                 {
-                    const string&   currUrl = currPage->viewer().curr_url();
-                    const string&   url     = currPage->viewer()
-                                            .prompt_string("Goto URL:", currUrl);
+                    string      url = currPage->viewer().curr_url();
 
-                    if (not url.empty())
+                    if (currPage->viewer().prompt_string(url, "Goto URL:"))
                     {
                         goto_url(currTab, httpFetcher, mailcaps, cfg, url);
                         currPage = currTab.curr_page();
@@ -767,11 +765,13 @@ void    parse_mailcap_env(CONT_T& mailcaps, const string& env)
 void    set_form_input(Document::FormInput& input, Viewer& viewer)
 {
     const string&   name        = input.name();
-    const string&   initVal     = input.value();
-    string          val         = viewer.prompt_string(name + ":", initVal);
+    string          value       = input.value();
 
-    // TODO: differentiate between quitting, empty value
-    input.set_value(val);
+    if (viewer.prompt_string(value, name + ":"))
+    {
+        // TODO: differentiate between quitting, empty value
+        input.set_value(value);
+    }
 }// end set_form_input
 
 template <class CONT_T>

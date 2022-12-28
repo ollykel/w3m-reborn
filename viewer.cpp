@@ -474,20 +474,23 @@ auto    Viewer::prompt_char(const string& str)
     return out;
 }// end prompt_char
 
-auto    Viewer::prompt_string(const string& prompt, const string& init)
-    -> string
+auto    Viewer::prompt_string(
+    string& dest,
+    const string& prompt
+) -> bool
 {
-    WINDOW      *promptWin  = subwin(stdscr, 1, COLS, LINES-1, 0);
-    size_t      inputLen    = COLS - prompt.size();
-    string      inputPadding(inputLen, ' ');
-    string      out         = init;
-    int         cursIdx;
-    int         inputIdx;
-    int         key;
+    WINDOW          *promptWin  = subwin(stdscr, 1, COLS, LINES-1, 0);
+    const string    init    = dest;
+    size_t          inputLen    = COLS - prompt.size();
+    string          inputPadding(inputLen, ' ');
+    bool            ret     = true;
+    int             cursIdx;
+    int             inputIdx;
+    int             key;
 
-    cursIdx = prompt.size() + out.size();
-    inputIdx = out.size() >= inputLen ?
-        out.size() - inputLen + 1 :
+    cursIdx = prompt.size() + dest.size();
+    inputIdx = dest.size() >= inputLen ?
+        dest.size() - inputLen + 1 :
         0;
     refresh();
     mvwaddnstr(promptWin, 0, 0, prompt.c_str(), COLS);
@@ -498,7 +501,7 @@ auto    Viewer::prompt_string(const string& prompt, const string& init)
         string(inputLen, ' ').c_str(),
         inputLen
     );
-    mvwaddstr(promptWin, 0, prompt.size(), out.c_str() + inputIdx);
+    mvwaddstr(promptWin, 0, prompt.size(), dest.c_str() + inputIdx);
     wrefresh(promptWin);
     wmove(promptWin, 0, cursIdx);
 
@@ -513,30 +516,32 @@ auto    Viewer::prompt_string(const string& prompt, const string& init)
         {
             case KEY_ENTER:
             case '\n':
-                goto exit_while;
+                goto finally;
             case KEY_BACKSPACE:
             case CTRL('h'):
-                if (not out.empty())
+                if (not dest.empty())
                 {
-                    out.pop_back();
+                    dest.pop_back();
                 }
                 break;
             case CTRL('u'):
-                out.clear();
+                dest.clear();
                 break;
             case CTRL('c'):
             case CTRL('g'):
-                return init;
+                dest = init;
+                ret = false;
+                goto finally;
             default:
-                out += key;
+                dest.push_back(key);
                 break;
         }// end switch
 
-        inputIdx = out.size() >= inputLen ?
-            out.size() - inputLen + 1 :
+        inputIdx = dest.size() >= inputLen ?
+            dest.size() - inputLen + 1 :
             0;
 
-        cursIdx = prompt.size() + out.size();
+        cursIdx = prompt.size() + dest.size();
 
         if (cursIdx > COLS - 1)
         {
@@ -544,14 +549,15 @@ auto    Viewer::prompt_string(const string& prompt, const string& init)
         }
 
         mvwaddstr(promptWin, 0, prompt.size(), inputPadding.c_str());
-        mvwaddstr(promptWin, 0, prompt.size(), out.c_str() + inputIdx);
+        mvwaddstr(promptWin, 0, prompt.size(), dest.c_str() + inputIdx);
         wrefresh(promptWin);
         wmove(promptWin, 0, cursIdx);
     }// end while
-exit_while:
+
+finally:
     delwin(promptWin);
     refresh();
     wnoutrefresh(stdscr);
 
-    return out;
+    return ret;
 }// end prompt_string
