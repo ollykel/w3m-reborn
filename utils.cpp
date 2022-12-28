@@ -207,7 +207,15 @@ std::wstring    to_wstr(const std::string& str)
     static wstring_convert<codecvt_utf8<wchar_t>,wchar_t>
         cvt;
 
-    return cvt.from_bytes(str);
+    // TODO: more graceful exception handling
+    try
+    {
+        return cvt.from_bytes(str);
+    }
+    catch (const std::exception& _)
+    {
+        return wstring(str.cbegin(), str.cend());
+    }
 }// end to_wstr
 
 std::string     from_wstr(const std::wstring& wstr)
@@ -217,7 +225,15 @@ std::string     from_wstr(const std::wstring& wstr)
     static wstring_convert<codecvt_utf8<wchar_t>,wchar_t>
         cvt;
 
-    return cvt.to_bytes(wstr);
+    // TODO: more graceful exception handling
+    try
+    {
+        return cvt.to_bytes(wstr);
+    }
+    catch (const std::exception _)
+    {
+        return string(wstr.cbegin(), wstr.cend());
+    }
 }// end from_wstr
 
 std::string     percent_encode(const std::string& str)
