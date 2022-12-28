@@ -1,6 +1,7 @@
 #include <cstddef>
 #include <climits>
 #include <curses.h>
+#include <list>
 
 #include "deps.hpp"
 #include "viewer.hpp"
@@ -479,18 +480,22 @@ auto    Viewer::prompt_string(
     const string& prompt
 ) -> bool
 {
+    using namespace std;
+
     WINDOW          *promptWin  = subwin(stdscr, 1, COLS, LINES-1, 0);
-    const string    init    = dest;
     size_t          inputLen    = COLS - prompt.size();
     string          inputPadding(inputLen, ' ');
-    bool            ret     = true;
     int             cursIdx;
     int             inputIdx;
     int             key;
+    size_t          idx;
+    string          out     = dest;
+    bool            ret     = true;
 
-    cursIdx = prompt.size() + dest.size();
-    inputIdx = dest.size() >= inputLen ?
-        dest.size() - inputLen + 1 :
+    idx = out.size();
+    cursIdx = prompt.size() + idx;
+    inputIdx = out.size() >= inputLen ?
+        out.size() - inputLen + 1 :
         0;
     refresh();
     mvwaddnstr(promptWin, 0, 0, prompt.c_str(), COLS);
@@ -501,7 +506,7 @@ auto    Viewer::prompt_string(
         string(inputLen, ' ').c_str(),
         inputLen
     );
-    mvwaddstr(promptWin, 0, prompt.size(), dest.c_str() + inputIdx);
+    mvwaddstr(promptWin, 0, prompt.size(), out.c_str() + inputIdx);
     wrefresh(promptWin);
     wmove(promptWin, 0, cursIdx);
 
@@ -516,32 +521,116 @@ auto    Viewer::prompt_string(
         {
             case KEY_ENTER:
             case '\n':
-                goto finally;
+                goto end_while;
+            case CTRL('a'):
+                idx = 0;
+                break;
+            case CTRL('d'):
+                if (idx < out.size())
+                {
+                    out.erase(idx, 1);
+                }
+                break;
+            case CTRL('e'):
+                idx = out.size();
+                break;
+            case CTRL('f'):
+                if (idx < out.size())
+                {
+                    ++idx;
+                }
+                break;
             case KEY_BACKSPACE:
             case CTRL('h'):
-                if (not dest.empty())
+                if (not out.empty())
                 {
-                    dest.pop_back();
+                    --idx;
+                    out.erase(idx, 1);
+                }
+                break;
+            case CTRL('t'):
+                {
+                    size_t  pos;
+                    
+                    if (not idx)
+                    {
+                        break;
+                    }
+
+                    pos = out.find_last_not_of(" \t", idx - 1);
+                    if ((0 == pos) or (string::npos == pos))
+                    {
+                        pos = 0;
+                    }
+                    else
+                    {
+                        pos = out.find_last_of(" \t", pos);
+                        if (string::npos == pos)
+                        {
+                            pos = 0;
+                        }
+                        else
+                        {
+                            ++pos;
+                        }
+                    }
+
+                    idx = pos;
                 }
                 break;
             case CTRL('u'):
-                dest.clear();
+                if (idx)
+                {
+                    out.erase(0, idx);
+                    idx = 0;
+                }
+                break;
+            case CTRL('w'):
+                {
+                    size_t  pos;
+                    
+                    if (not idx)
+                    {
+                        break;
+                    }
+
+                    pos = out.find_last_not_of(" \t", idx - 1);
+                    if ((0 == pos) or (string::npos == pos))
+                    {
+                        pos = 0;
+                    }
+                    else
+                    {
+                        pos = out.find_last_of(" \t", pos);
+                        if (string::npos == pos)
+                        {
+                            pos = 0;
+                        }
+                        else
+                        {
+                            ++pos;
+                        }
+                    }
+
+                    out.erase(pos, idx - pos);
+                    idx = pos;
+                }
                 break;
             case CTRL('c'):
             case CTRL('g'):
-                dest = init;
                 ret = false;
                 goto finally;
             default:
-                dest.push_back(key);
+                out.insert(idx, 1, key);
+                ++idx;
                 break;
         }// end switch
 
-        inputIdx = dest.size() >= inputLen ?
-            dest.size() - inputLen + 1 :
+        inputIdx = out.size() >= inputLen ?
+            out.size() - inputLen + 1 :
             0;
 
-        cursIdx = prompt.size() + dest.size();
+        cursIdx = prompt.size() + idx;
 
         if (cursIdx > COLS - 1)
         {
@@ -549,15 +638,16 @@ auto    Viewer::prompt_string(
         }
 
         mvwaddstr(promptWin, 0, prompt.size(), inputPadding.c_str());
-        mvwaddstr(promptWin, 0, prompt.size(), dest.c_str() + inputIdx);
+        mvwaddstr(promptWin, 0, prompt.size(), out.c_str() + inputIdx);
         wrefresh(promptWin);
         wmove(promptWin, 0, cursIdx);
     }// end while
 
+end_while:
+    dest = out;
 finally:
     delwin(promptWin);
     refresh(true);
     wnoutrefresh(stdscr);
-
     return ret;
 }// end prompt_string
