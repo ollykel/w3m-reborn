@@ -7,20 +7,31 @@
 #include <map>
 
 #include "deps.hpp"
+#include "uri.hpp"
 #include "command.hpp"
-#include "page.hpp"
+#include "http_fetcher.hpp"
+#include "html_parser.hpp"
+#include "dom_tree.hpp"
+#include "document.hpp"
+#include "tab.hpp"
+#include "viewer.hpp"
 #include "mailcap.hpp"
 
 class App
 {
     public:
-        // --- public member classes --------------------------------------
-        class   Tab;
-
         // --- public member types ----------------------------------------
+        struct  Config
+        {
+            string                  fetchCommand;
+            Uri                     initUrl;
+            string                  tempdir;
+            Viewer::Config          viewer;
+            Document::Config        document;
+        };// end struct Config
         typedef std::list<Tab>                  tabs_container;
         typedef tabs_container::iterator        tabs_iterator;
-        typedef std::map<string,Command>        uri_map;
+        typedef std::map<string,Command>        uri_method_map;
 
         // --- public constructors ----------------------------------------
         App(void);
@@ -52,12 +63,13 @@ class App
         // --- protected member variables ---------------------------------
         tabs_container          m_tabs                      = {};
         tabs_iterator           m_currTab                   = {};
-        uri_map                 m_uriHandlers               = {};
+        uri_method_map          m_uriHandlers               = {};
         Mailcap                 *m_mailcap                  = nullptr;
         keymap                  m_keymap                    = {};
         base_commands_map       m_baseCommandDispatcher     = {};
         commands_map            m_commands                  = {};
         WINDOW                  *m_screen                   = nullptr;
+        bool                    m_shouldTerminate           = false;
 
         // --- protected mutators -----------------------------------------
         // ------ command functions ---------------------------------------
@@ -84,43 +96,6 @@ class App
         void command(const command_args_container& args);
         void source_commands(const command_args_container& args);
 };// end class App
-
-class App::Tab
-{
-    public:
-        // --- public constructors ----------------------------------------
-        Tab(void);
-
-        // --- public accessors -------------------------------------------
-        auto empty(void) const
-            -> bool;
-        auto size(void) const
-            -> size_t;
-        auto at_front(void) const
-            -> bool;
-        auto at_back(void) const
-            -> bool;
-        auto current_page(void) const
-            -> const Page&;
-
-        // --- public mutators --------------------------------------------
-        auto current_page(void)
-            -> Page&;
-        auto forward_pages(size_t increm = 1)
-            -> Page&;
-        auto back_pages(size_t increm = 1)
-            -> Page&;
-        auto insert_page(const Page& page)
-            -> Page&;
-    protected:
-        // --- protected member types -------------------------------------
-        typedef std::list<Page>                  pages_container;
-        typedef pages_container::iterator        pages_iter;
-
-        // --- protected member variables ---------------------------------
-        pages_container     m_pages         = {};
-        pages_iter          m_currPage      = {};
-};// end class App::Tab
 
 struct App::KeymapEntry
 {

@@ -96,6 +96,8 @@ void App::quit(const command_args_container& args)
 
     endwin();
     // TODO: teardown, call closing scripts
+    
+    m_shouldTerminate = true;
 }// end quit
 
 void App::suspend(const command_args_container& args)
@@ -214,100 +216,3 @@ void App::source_commands(const command_args_container& args)
     // TODO: implement
 }// end source_commands
 
-// === class App::Tab Implementation ======================================
-//
-// ========================================================================
-
-// --- public constructors ------------------------------------------------
-App::Tab::Tab(void)
-{
-    m_currPage = m_pages.begin();
-}// end App::Tab::Tab
-
-// --- public accessors ---------------------------------------------------
-auto App::Tab::empty(void) const
-    -> bool
-{
-    return m_pages.empty();
-}// end 
-
-auto App::Tab::size(void) const
-    -> size_t
-{
-    return m_pages.size();
-}// end App::Tab::size
-
-auto App::Tab::at_front(void) const
-    -> bool
-{
-    return m_currPage == m_pages.begin();
-}// end App::Tab::at_front
-
-auto App::Tab::at_back(void) const
-    -> bool
-{
-    return m_currPage == m_pages.end();
-}// end App::Tab::at_back
-
-auto App::Tab::current_page(void) const
-    -> const Page&
-{
-    return *m_currPage;
-}// end App::Tab::current_page
-
-// --- public mutators ----------------------------------------------------
-auto App::Tab::current_page(void)
-    -> Page&
-{
-    return *m_currPage;
-}// end App::Tab::current_page
-
-auto App::Tab::forward_pages(size_t increm)
-    -> Page&
-{
-    while (increm and m_currPage != m_pages.end())
-    {
-        ++m_currPage;
-        --increm;
-    }// end while
-    if (not empty() and m_currPage == m_pages.end())
-    {
-        --m_currPage;
-    }
-    return *m_currPage;
-}// end App::Tab::forward_pages
-
-auto App::Tab::back_pages(size_t increm)
-    -> Page&
-{
-    if (not empty())
-    {
-        while (increm)
-        {
-            --m_currPage;
-            --increm;
-            if (m_currPage == m_pages.begin())
-            {
-                break;
-            }
-        }// end while
-    }
-
-    return *m_currPage;
-}// end App::Tab::back_pages
-
-auto App::Tab::insert_page(const Page& page)
-    -> Page&
-{
-    if (empty())
-    {
-        m_pages.emplace_back(page);
-        m_currPage = m_pages.begin();
-    }
-    else
-    {
-        m_currPage = m_pages.insert(m_currPage, page);
-    }
-
-    return *m_currPage;
-}// end App::Tab::insert_page
