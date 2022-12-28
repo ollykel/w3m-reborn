@@ -33,13 +33,6 @@ struct  Config
     Document::Config        document;
 };// end struct Config
 
-struct Page
-{
-    s_ptr<Document>     documentPtr;
-    Viewer              viewer;
-    Uri                 uri;
-};// end struct Page
-
 // === Function Prototypes ================================================
 int     runtime(const Config& cfg);
 
