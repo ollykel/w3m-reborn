@@ -212,8 +212,12 @@ std::wstring    to_wstr(const std::string& str)
 
 std::string     from_wstr(const std::wstring& wstr)
 {
-    // TODO: implement using codecvt
-    return std::string(wstr.cbegin(), wstr.cend());
+    using namespace std;
+
+    wstring_convert<codecvt_utf8<wchar_t>,wchar_t>
+        cvt;
+
+    return cvt.to_bytes(wstr);
 }// end from_wstr
 
 std::string     percent_encode(const std::string& str)
