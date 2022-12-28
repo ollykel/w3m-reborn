@@ -468,7 +468,7 @@ auto    Viewer::prompt_char(const string& str)
 
     out = wgetch(promptWin);
     delwin(promptWin);
-    refresh();
+    refresh(true);
     wnoutrefresh(stdscr);
 
     return out;
@@ -556,7 +556,7 @@ auto    Viewer::prompt_string(
 
 finally:
     delwin(promptWin);
-    refresh();
+    refresh(true);
     wnoutrefresh(stdscr);
 
     return ret;
