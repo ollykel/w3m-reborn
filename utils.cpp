@@ -204,7 +204,7 @@ std::wstring    to_wstr(const std::string& str)
 {
     using namespace std;
 
-    wstring_convert<codecvt_utf8<wchar_t>,wchar_t>
+    static wstring_convert<codecvt_utf8<wchar_t>,wchar_t>
         cvt;
 
     return cvt.from_bytes(str);
@@ -214,7 +214,7 @@ std::string     from_wstr(const std::wstring& wstr)
 {
     using namespace std;
 
-    wstring_convert<codecvt_utf8<wchar_t>,wchar_t>
+    static wstring_convert<codecvt_utf8<wchar_t>,wchar_t>
         cvt;
 
     return cvt.to_bytes(wstr);
