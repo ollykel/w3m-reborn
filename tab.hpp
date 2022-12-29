@@ -68,9 +68,9 @@ class Tab
         typedef     std::list<Page>     page_container;
 
         // --- public constructors ----------------------------------------
-        Tab(const Config& cfg, const DocumentFetcher& fetcher); // type
-        Tab(const type& orig);                                  // copy
-        Tab(type&& orig);                                       // move
+        Tab(const Config& cfg);     // type
+        Tab(const type& orig);      // copy
+        Tab(type&& orig);           // move
 
         // --- public accessors -------------------------------------------
         auto pages(void) const
@@ -82,8 +82,6 @@ class Tab
         auto curr_page(void)
             -> Page*;
         auto push_document(const s_ptr<Document>& doc, const Uri& uri)
-            -> Page*;
-        auto goto_uri(const Uri& uri)
             -> Page*;
         auto goto_pagenum(size_t index)
             -> Page*;
@@ -98,7 +96,6 @@ class Tab
     private:
         // --- private member variables -----------------------------------
         Config                      m_cfg               = {};
-        const DocumentFetcher       *m_fetcher          = nullptr;
         page_container              m_pages             = {};
         page_container::iterator    m_pageIter;
         size_t                      m_currPageIdx       = SIZE_MAX;

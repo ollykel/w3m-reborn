@@ -8,7 +8,6 @@
 
 #define     TAB_MOVE_FROM(ORIG) \
 { \
-    m_fetcher = (ORIG).m_fetcher; \
     m_pages = (ORIG).m_pages; \
     m_currPageIdx = (ORIG).m_currPageIdx; \
 }
@@ -25,10 +24,9 @@
 // ========================================================================
 
 // --- public constructors ----------------------------------------
-Tab::Tab(const Config& cfg, const DocumentFetcher& fetcher)
+Tab::Tab(const Config& cfg)
 {
     m_cfg = cfg;
-    m_fetcher = &fetcher;
     m_pageIter = m_pages.begin();
     m_currPageIdx = SIZE_MAX;
 }// end type constructor
@@ -76,65 +74,29 @@ auto Tab::curr_page(void)
 auto Tab::push_document(const s_ptr<Document>& doc, const Uri& uri)
     -> Page*
 {
-    if (m_pageIter != m_pages.end())
+    if (m_pages.empty())
     {
-        ++m_pageIter;
+        m_pages.emplace_back(
+            Page(doc, uri, m_cfg.viewer)
+        );
+        m_pageIter = m_pages.begin();
+        m_currPageIdx = 0;
     }
-    m_pageIter = m_pages.emplace(
-        m_pageIter,
-        Page(doc, uri, m_cfg.viewer)
-    );
-    ++m_currPageIdx;
+    else
+    {
+        if (m_pageIter != m_pages.end())
+        {
+            ++m_pageIter;
+        }
+        m_pageIter = m_pages.emplace(
+            m_pageIter,
+            Page(doc, uri, m_cfg.viewer)
+        );
+        ++m_currPageIdx;
+    }
 
     return curr_page();
 }// end Tab::push_document
-
-auto Tab::goto_uri(const Uri& uri)
-    -> Page*
-{
-    if (not uri.empty())
-    {
-        if (curr_page() and uri.is_fragment())
-        {
-            if (not curr_page()->viewer().goto_section(uri.fragment))
-            {
-                curr_page()->viewer().disp_status(
-                    "ERROR: could not find #" +
-                    uri.fragment
-                );
-            }
-        }
-        else
-        {
-            std::map<string, string>    headers;
-            Uri                         targetUri;
-            s_ptr<Document>             doc;
-
-            if (curr_page())
-            {
-                targetUri = Uri::from_relative(curr_page()->uri(), uri);
-            }
-            else
-            {
-                targetUri = uri;
-            }
-
-            // emplace new page
-            doc = m_fetcher->fetch_url(targetUri.str(), headers);
-            if (m_pageIter != m_pages.end())
-            {
-                ++m_pageIter;
-            }
-            m_pageIter = m_pages.emplace(
-                m_pageIter,
-                Page(doc, targetUri, m_cfg.viewer)
-            );
-            ++m_currPageIdx;
-        }
-    }
-
-    return curr_page();
-}// end Tab::goto_uri
 
 auto Tab::goto_pagenum(size_t index)
     -> Page*
@@ -202,13 +164,11 @@ auto Tab::back_page(void)
 
 void Tab::destruct(void)
 {
-    m_fetcher = nullptr;
     m_pages.clear();
 }// end Tab::destruct
 
 void Tab::copy_from(const type& orig)
 {
-    m_fetcher = orig.m_fetcher;
     m_pages = orig.m_pages;
     m_pageIter = m_pages.begin();
     m_currPageIdx = 0;

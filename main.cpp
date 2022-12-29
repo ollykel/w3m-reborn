@@ -176,8 +176,7 @@ int runtime(const Config& cfg)
 
     Tab::Config                 tabCfg{ cfg.viewer };
     HttpFetcher                 httpFetcher(cfg.fetchCommand, "W3M_URL");
-    DocumentFetcher             fetcher(cfg.fetchCommand, cfg.document);
-    Tab                         currTab(tabCfg, fetcher);
+    Tab                         currTab(tabCfg);
     Tab::Page                   *currPage;
     std::vector<Mailcap>        mailcaps;
     int                         key;
@@ -230,8 +229,8 @@ int runtime(const Config& cfg)
     // build mailcap file
     parse_mailcap_env(mailcaps, getenv("MAILCAPS"));
 
-    currPage = currTab.goto_uri(cfg.initUrl);
-    currPage->viewer().refresh(true);
+    goto_url(currTab, httpFetcher, mailcaps, cfg, cfg.initUrl);
+    currPage = currTab.curr_page();
 
     // wait for keypress
     while (true)
@@ -538,11 +537,16 @@ void    goto_url(
         HttpFetcher::header_type    headers             = {};
         std::vector<char>           data                = {};
         Uri                         target              = targetUrl;
-        Uri                         prevUri             = tab.curr_page()->uri();
+        Uri                         prevUri             = {};
         Uri                         fullUri;
         const string                *contentType        = nullptr;
         s_ptr<Document>             doc                 = nullptr;
         unordered_set<string>       visitedUris         = {};
+
+        if (tab.curr_page())
+        {
+            prevUri = tab.curr_page()->uri();
+        }
 
         do
         {
