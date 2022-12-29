@@ -21,9 +21,10 @@ class App
 {
     public:
         // --- public member types ----------------------------------------
+        typedef std::map<string,string>         uri_command_map;
         struct  Config
         {
-            string                  fetchCommand;
+            uri_command_map         uriHandlers;
             Uri                     initUrl;
             string                  tempdir;
             Viewer::Config          viewer;
@@ -31,7 +32,6 @@ class App
         };// end struct Config
         typedef std::list<Tab>                  tabs_container;
         typedef tabs_container::iterator        tabs_iterator;
-        typedef std::map<string,Command>        uri_method_map;
 
         // --- public constructors ----------------------------------------
         App(void);
@@ -49,21 +49,28 @@ class App
 
         // --- public mutators --------------------------------------------
         void set_mailcap(Mailcap *mailcap);
+        auto run(const Config& config)
+            -> int;
     protected:
         // --- protected member classes -----------------------------------
         struct  KeymapEntry;
 
         // --- protected member types -------------------------------------
-        typedef std::map<int, KeymapEntry>      keymap;
-        typedef std::vector<string>             command_args_container;
+        typedef std::map<int, KeymapEntry>              keymap;
+        typedef std::vector<string>                     command_args_container;
         typedef void (App::*command_func)(const command_args_container&);
-        typedef std::map<string,command_func>   base_commands_map;
-        typedef std::map<string,string>         commands_map;
+        typedef std::map<string,command_func>           base_commands_map;
+        typedef std::map<string,string>                 commands_map;
+        typedef std::list<HttpFetcher>                  uri_handler_container;
+        typedef uri_handler_container::iterator         uri_handler_pointer;
+        typedef std::map<string,uri_handler_pointer>    uri_handler_map;
 
         // --- protected member variables ---------------------------------
+        Config                  m_config                    = {};
         tabs_container          m_tabs                      = {};
         tabs_iterator           m_currTab                   = {};
-        uri_method_map          m_uriHandlers               = {};
+        uri_handler_container   m_uriHandlers               = {};
+        uri_handler_map         m_uriHandlerMap             = {};
         Mailcap                 *m_mailcap                  = nullptr;
         keymap                  m_keymap                    = {};
         base_commands_map       m_baseCommandDispatcher     = {};
@@ -72,6 +79,48 @@ class App
         bool                    m_shouldTerminate           = false;
 
         // --- protected mutators -----------------------------------------
+        auto get_uri_handler(const string& scheme) const
+            -> HttpFetcher*;
+
+        template <class CONT_T>
+        void    goto_url(
+            Tab& tab,
+            const HttpFetcher& fetcher,
+            const CONT_T& mailcaps,
+            const Config& cfg,
+            const Uri& targetUrl
+        );
+
+        template <class CONT_T>
+        void    handle_data(
+            const CONT_T& mailcaps,
+            const Config& cfg,
+            const string& mimeType,
+            const std::vector<char>& data
+        );
+        void    parse_mailcap_file(Mailcap& mailcap, const string& fname);
+        void    set_form_input(Document::FormInput& input, Viewer& viewer);
+
+        template <class CONT_T>
+        void    parse_mailcap_env(CONT_T& mailcaps, const string& env);
+
+        template <class CONT_T>
+        void    handle_form_input(
+            Tab& tab,
+            const Config& cfg,
+            const CONT_T& mailcaps,
+            const HttpFetcher& fetcher,
+            Document::FormInput& input
+        );
+
+        template <class CONT_T>
+        void    submit_form(
+            Tab& tab,
+            const Config& cfg,
+            const CONT_T& mailcaps,
+            const Document::Form& form
+        );
+
         // ------ command functions ---------------------------------------
         void quit(const command_args_container& args);
         void suspend(const command_args_container& args);

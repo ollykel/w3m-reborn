@@ -3,6 +3,12 @@
 
 #include "deps.hpp"
 #include "app.hpp"
+#include "uri.hpp"
+#include "document.hpp"
+#include "document_text.hpp"
+#include "document_html.hpp"
+#include "http_fetcher.hpp"
+#include "tab.hpp"
 
 // === class App Implementation ===========================================
 //
@@ -78,7 +84,724 @@ void App::set_mailcap(Mailcap *mailcap)
     m_mailcap = mailcap;
 }// end App::set_mailcap
 
+auto App::run(const Config& config)
+    -> int
+{
+    using namespace std;
+
+    // === TODO: move to header file ======================================
+    #define     CTRL(KEY)   ((KEY) & 0x1f)
+
+    Tab::Config                 tabCfg{ config.viewer };
+    Tab                         currTab(tabCfg);
+    Tab::Page                   *currPage;
+    std::vector<Mailcap>        mailcaps;
+    int                         key;
+
+    m_config = config;
+
+    // print error message and exit if no initial url
+    if (m_config.initUrl.empty())
+    {
+        curs_set(0);
+        waddnstr(stdscr, "ERROR: no url given", COLS);
+        wrefresh(stdscr);
+
+        sleep(3);
+        curs_set(1);
+
+        return EXIT_FAILURE;
+    }
+
+    // init uri handlers
+    for (const auto& kv : m_config.uriHandlers)
+    {
+        const auto&     scheme          = kv.first;
+        const auto&     shellCommand    = kv.second;
+
+        m_uriHandlers.emplace_front(shellCommand, "W3M_URL");
+        m_uriHandlerMap.emplace(scheme, m_uriHandlers.begin());
+    }// end for
+
+    // init colors
+    init_pair(
+        Viewer::COLOR_PAIR_STANDARD,
+        m_config.viewer.attribs.standard.fg,
+        m_config.viewer.attribs.standard.bg
+    );
+    init_pair(
+        Viewer::COLOR_PAIR_INPUT,
+        m_config.viewer.attribs.input.fg,
+        m_config.viewer.attribs.input.bg
+    );
+    init_pair(
+        Viewer::COLOR_PAIR_IMAGE,
+        m_config.viewer.attribs.image.fg,
+        m_config.viewer.attribs.image.bg
+    );
+    init_pair(
+        Viewer::COLOR_PAIR_LINK,
+        m_config.viewer.attribs.link.fg,
+        m_config.viewer.attribs.link.bg
+    );
+    init_pair(
+        Viewer::COLOR_PAIR_LINK_CURRENT,
+        m_config.viewer.attribs.linkCurrent.fg,
+        m_config.viewer.attribs.linkCurrent.bg
+    );
+    init_pair(
+        Viewer::COLOR_PAIR_LINK_VISITED,
+        m_config.viewer.attribs.linkVisited.fg,
+        m_config.viewer.attribs.linkVisited.bg
+    );
+
+    // build mailcap file
+    parse_mailcap_env(mailcaps, getenv("MAILCAPS"));
+
+    // goto init url
+    {
+        HttpFetcher&    fetcher     = *m_uriHandlerMap.at(m_config.initUrl.scheme);
+
+        goto_url(currTab, fetcher, mailcaps, m_config, m_config.initUrl);
+        currPage = currTab.curr_page();
+    }
+
+    // wait for keypress
+    while (true)
+    {
+        size_t                      w3mIndex        = 0;
+
+        // read index
+        while ((key = wgetch(stdscr)))
+        {
+            bool        increm      = false;
+
+            switch (key)
+            {
+                case -1:
+                    continue;
+                case '0':
+                    if (w3mIndex)
+                    {
+                        w3mIndex *= 10;
+                        increm = true;
+                    }
+                    break;
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                    w3mIndex *= 10;
+                    w3mIndex += (key - '0');
+                    increm = true;
+            }// end switch
+
+            if (not increm)
+            {
+                break;
+            }
+        }// end while
+
+        if (not w3mIndex)
+        {
+            ++w3mIndex;
+        }
+
+        switch (key)
+        {
+            // move cursor down
+            case KEY_DOWN:
+            case 'j':
+                currPage->viewer().curs_down(w3mIndex);
+                break;
+            // move page up
+            case KEY_SF:
+            case 'J':
+                currPage->viewer().line_down(w3mIndex);
+                break;
+            // move cursor up
+            case KEY_UP:
+            case 'k':
+                currPage->viewer().curs_up(w3mIndex);
+                break;
+            // move page down
+            case KEY_SR:
+            case 'K':
+                currPage->viewer().line_up(w3mIndex);
+                break;
+            // move cursor left
+            case KEY_LEFT:
+            case 'h':
+                currPage->viewer().curs_left(w3mIndex);
+                break;
+            // move cursor right
+            case KEY_RIGHT:
+            case 'l':
+                currPage->viewer().curs_right(w3mIndex);
+                break;
+            // move cursor to first column
+            case CTRL('a'):
+            case '0':
+                currPage->viewer().curs_left(SIZE_MAX);
+                break;
+            case '$':
+                currPage->viewer().curs_right(COLS);
+                break;
+            case 'b':
+                currPage->viewer().line_up(LINES);
+                break;
+            case 'c':
+                currPage->viewer().disp_status(currPage->uri().str());
+                break;
+            case ' ':
+                currPage->viewer().line_down(LINES);
+                break;
+            case KEY_CLEAR:
+            case CTRL('l'):
+                currPage->viewer().refresh(true);
+                break;
+            case 'g':
+                currPage->viewer().curs_up(SIZE_MAX);
+                break;
+            case 'G':
+                currPage->viewer().curs_down(currPage->document().buffer().size() - 1);
+                break;
+            case 'u':
+                {
+                    const string&   str     = currPage->viewer().curr_url();
+
+                    if (not str.empty())
+                    {
+                        currPage->viewer().disp_status(str);
+                    }
+                }
+                break;
+            case 'I':
+                {
+                    const string&   str     = currPage->viewer().curr_img();
+
+                    if (not str.empty())
+                    {
+                        Uri         uri     = Uri::from_relative(currPage->uri(), str);
+
+                        currPage->viewer().disp_status(uri.str());
+                    }
+                }
+                break;
+            case 'i':
+                {
+                    Uri     targetUrl   = currPage->viewer().curr_img();
+
+                    if (not targetUrl.empty())
+                    {
+                        HttpFetcher     *fetcher;
+
+                        if ((fetcher = get_uri_handler(targetUrl.scheme)))
+                        {
+                            goto_url(currTab, *fetcher, mailcaps, m_config, targetUrl);
+                            currPage = currTab.curr_page();
+                        }
+                    }
+                }
+                break;
+            case 'U':
+                {
+                    string      url = currPage->viewer().curr_url();
+
+                    if (currPage->viewer().prompt_string(url, "Goto URL:"))
+                    {
+                        Uri             uri;
+                        HttpFetcher     *fetcher;
+
+                        uri = url;
+
+                        if ((fetcher = get_uri_handler(uri.scheme)))
+                        {
+                            goto_url(currTab, *fetcher, mailcaps, m_config, uri);
+                            currPage = currTab.curr_page();
+                        }
+                    }
+                }
+                break;
+            case KEY_ENTER:
+            case '\n':
+                {
+                    Document::FormInput     *input;
+                    Uri                     targetUrl;
+                    HttpFetcher             *fetcher;
+
+                    if (not (fetcher = get_uri_handler(targetUrl.scheme)))
+                    {
+                        break;
+                    }
+
+                    if ((input = currPage->viewer().curr_form_input()))
+                    {
+                        handle_form_input(currTab, m_config, mailcaps, *fetcher, *input);
+                        currPage = currTab.curr_page();
+                    }
+                    else
+                    {
+                        targetUrl = currPage->viewer().curr_url();
+
+                        if (not targetUrl.empty())
+                        {
+                            goto_url(currTab, *fetcher, mailcaps, m_config, targetUrl);
+                            currPage = currTab.curr_page();
+                        }
+                    }
+                }
+                break;
+            case 'M':
+                {
+                    Uri     targetUrl   = currPage->viewer().curr_url();
+
+                    if (not targetUrl.empty())
+                    {
+                        // TODO: true external browser API
+                        Uri         fullUrl = Uri::from_relative(
+                                                currPage->uri(),
+                                                targetUrl
+                                            );
+                        Command     cmd     = Command("mpv \"${W3M_URL}\"")
+                                            .set_env("W3M_URL", fullUrl.str());
+
+                        endwin();
+                        cmd.spawn().wait();
+                        doupdate();
+                        currPage->viewer().refresh(true);
+                    }
+                }
+                break;
+            case 'm':
+                {
+                    Uri     targetUrl   = currPage->uri();
+
+                    if (not targetUrl.empty())
+                    {
+                        // TODO: true external browser API
+                        Uri         fullUrl = Uri::from_relative(
+                                                currPage->uri(),
+                                                targetUrl
+                                            );
+                        Command     cmd     = Command("mpv \"${W3M_URL}\"")
+                                            .set_env("W3M_URL", fullUrl.str());
+
+                        endwin();
+                        cmd.spawn().wait();
+                        doupdate();
+                        currPage->viewer().refresh(true);
+                    }
+                }
+                break;
+            case '<':
+                {
+                    currPage = currTab.prev_page();
+                    currPage->viewer().refresh(true);
+                }
+                break;
+            case '>':
+                {
+                    currPage = currTab.next_page();
+                    currPage->viewer().refresh(true);
+                }
+                break;
+            case 'B':
+                {
+                    currPage = currTab.back_page();
+                    currPage->viewer().refresh(true);
+                }
+                break;
+            // submit form
+            case 'p':
+                {
+                    Document::FormInput     *input;
+
+                    if ((input = currPage->viewer().curr_form_input()))
+                    {
+                        const Document::Form&   form    = input->form();
+
+                        submit_form(currTab, m_config, mailcaps, form);
+                        currPage = currTab.curr_page();
+                    }
+                }
+                break;
+            // show current line number
+            case CTRL('g'):
+                {
+                    stringstream    fmt;
+
+                    fmt << "line ";
+                    fmt << currPage->viewer().curr_curs_line();
+                    fmt << " / ";
+                    fmt << currPage->viewer().buffer_size();
+
+                    currPage->viewer().disp_status(fmt.str());
+                }
+                break;
+            case 'q':
+                {
+                    switch (currPage->viewer().prompt_char(
+                        "Are you sure you want to quit? (y/N):"
+                    ))
+                    {
+                        case 'y':
+                        case 'Y':
+                            return EXIT_SUCCESS;
+                    }// end switch
+                }
+                break;
+            case 'Q':
+                return EXIT_SUCCESS;
+        }// end switch
+    }// end while
+
+    return EXIT_SUCCESS;
+
+    // === TODO: move to header file ======================================
+    #undef  CTRL
+}// end App::run
+
 // --- protected mutators -------------------------------------------------
+auto App::get_uri_handler(const string& scheme) const
+    -> HttpFetcher*
+{
+    if (not m_uriHandlerMap.count(scheme))
+    {
+        return nullptr;
+    }
+
+    return &(*m_uriHandlerMap.at(scheme));
+}// end App::get_uri_handler
+
+template <class CONT_T>
+void    App::goto_url(
+    Tab& tab,
+    const HttpFetcher& fetcher,
+    const CONT_T& mailcaps,
+    const Config& cfg,
+    const Uri& targetUrl
+)
+{
+    using namespace std;
+
+    if (targetUrl.is_fragment())
+    {
+        if (not tab.curr_page()->viewer().goto_section(targetUrl.fragment))
+        {
+            tab.curr_page()->viewer().disp_status(
+                "ERROR: could not find #" + targetUrl.fragment
+            );
+        }
+    }
+    else if (not targetUrl.empty())
+    {
+        static const string         defContentType      = "text/plain";
+        HttpFetcher::Status         status              = {};
+        HttpFetcher::header_type    headers             = {};
+        std::vector<char>           data                = {};
+        Uri                         target              = targetUrl;
+        Uri                         prevUri             = tab.curr_page()->uri();
+        Uri                         fullUri;
+        const string                *contentType        = nullptr;
+        s_ptr<Document>             doc                 = nullptr;
+        unordered_set<string>       visitedUris         = {};
+
+        do
+        {
+            status = {};
+            headers.clear();
+
+            fullUri = Uri::from_relative(prevUri, target);
+
+            if (visitedUris.count(fullUri.str()))
+            {
+                break;
+            }
+            visitedUris.insert(fullUri.str());
+            data = fetcher.fetch_url(status, headers, fullUri);
+
+            prevUri = fullUri;
+            if (headers.count("location")
+                and (not headers.at("location").empty())
+            )
+            {
+                target = headers.at("location").at(0);
+            }
+        } while (
+            (status.code >= 300)
+            and (status.code < 400)
+            and headers.count("location")
+        );// end do while
+
+        if (
+            headers.count("content-type")
+            and (not headers.at("content-type").empty())
+        )
+        {
+            contentType = &headers.at("content-type").front();
+        }
+
+        // create document, if applicable
+        if (not contentType)
+        {
+            tab.curr_page()->viewer().refresh(true);
+            tab.curr_page()->viewer().disp_status(
+                "ERROR: could not identify content type"
+            );
+            goto finally;
+        }
+        else if (*contentType == "text/plain")
+        {
+            doc.reset(new DocumentText(
+                cfg.document,
+                string(data.cbegin(), data.cend()),
+                COLS
+            ));
+        }
+        else if (*contentType == "text/html")
+        {
+            doc.reset(new DocumentHtml(
+                cfg.document,
+                string(data.cbegin(), data.cend()),
+                COLS
+            ));
+        }
+
+        if (doc)
+        {
+            tab.push_document(doc, fullUri);
+        }
+        else
+        {
+            handle_data(mailcaps, cfg, *contentType, data);
+        }
+finally:
+        tab.curr_page()->viewer().refresh(true);
+    }
+}// end goto_url
+
+template <class CONT_T>
+void    App::handle_data(
+    const CONT_T& mailcaps,
+    const Config& cfg,
+    const string& mimeType,
+    const std::vector<char>& data
+)
+{
+    using namespace std;
+
+    static size_t           counter         = 0;
+    char                    fbase[0x100]    = {};
+    string                  fname           = {};
+    const Mailcap::Entry    *entry          = nullptr;
+    ofstream                tempFile;
+    Command                 cmd;
+
+    for (const auto& mailcap : mailcaps)
+    {
+        if ((entry = mailcap.get_entry(mimeType)))
+        {
+            break;
+        }
+    }// end for
+    
+    if (not entry)
+    {
+        return;
+    }
+
+    // TODO: handle path separators, maximum filename length
+    sprintf(fbase, "%s/w3mtmp-%016zx", cfg.tempdir.c_str(), counter);
+    fname = entry->parse_filename(fbase);
+
+    // write data to tempfile
+    if (not entry->file_piped())
+    {
+        tempFile.open(fname.c_str());
+        if (tempFile.fail())
+        {
+            return;
+        }
+        ++counter;
+        tempFile.write(data.data(), data.size());
+        tempFile.close();
+    }
+
+    cmd = entry->create_command(fbase, mimeType);
+
+    if (entry->needs_terminal())
+    {
+        endwin();
+    }
+
+    auto sproc = cmd.spawn();
+
+    // pipe file contents to process, if necessary
+    if (entry->file_piped())
+    {
+        sproc.stdin().write(data.data(), data.size());
+        sproc.stdin().close();
+    }
+
+    if (entry->needs_terminal())
+    {
+        sproc.wait();
+        doupdate();
+    }
+}// end handle_data
+
+void    App::parse_mailcap_file(Mailcap& mailcap, const string& fname)
+{
+    using namespace std;
+
+    ifstream    inFile;
+    string      line;
+
+    inFile.open(fname);
+    if (inFile.fail())
+    {
+        return;
+    }
+
+    while (getline(inFile, line))
+    {
+        size_t      idx     = line.find('#');
+
+        if (string::npos != idx)
+        {
+            line.erase(idx);
+        }
+        if (line.empty())
+        {
+            continue;
+        }
+
+        mailcap.parse_entry(line);
+    }// end while
+
+    inFile.close();
+}// end parse_mailcap_file
+
+template <class CONT_T>
+void    App::parse_mailcap_env(CONT_T& mailcaps, const string& env)
+{
+    using namespace std;
+
+    size_t      idx     = 0;
+    size_t      beg     = 0;
+    size_t      end     = 0;
+
+    while (idx < env.length())
+    {
+        mailcaps.emplace_back();
+        Mailcap&    mailcap     = mailcaps.back();
+
+        string      fname   = "";
+
+        // TODO: handle different env separators
+        idx = env.find(':', beg);
+        if (string::npos == idx)
+        {
+            end = env.length();
+        }
+        else
+        {
+            end = idx;
+            ++idx;
+        }
+
+        fname = env.substr(beg, end);
+        parse_mailcap_file(mailcap, fname);
+
+        beg = idx;
+    }// end while
+}// end parse_mailcap_env
+
+void    App::set_form_input(Document::FormInput& input, Viewer& viewer)
+{
+    const string&   name        = input.name();
+    string          value       = input.value();
+
+    if (viewer.prompt_string(value, name + ":"))
+    {
+        // TODO: differentiate between quitting, empty value
+        input.set_value(value);
+    }
+}// end set_form_input
+
+template <class CONT_T>
+void    App::handle_form_input(
+    Tab& tab,
+    const Config& cfg,
+    const CONT_T& mailcaps,
+    const HttpFetcher& fetcher,
+    Document::FormInput& input
+)
+{
+    switch (input.type())
+    {
+        case Document::FormInput::Type::text:
+        case Document::FormInput::Type::search:
+            {
+                set_form_input(input, tab.curr_page()->viewer());
+                tab.curr_page()->document().redraw(COLS);
+                tab.curr_page()->viewer().redraw();
+                tab.curr_page()->viewer().refresh();
+            }
+            break;
+        case Document::FormInput::Type::button:
+        case Document::FormInput::Type::submit:
+            {
+                const Document::Form&   form    = input.form();
+                submit_form(tab, cfg, mailcaps, form);
+            }
+            break;
+        default:
+            break;
+    }// end switch
+}// end handle_form_input
+
+template <class CONT_T>
+void    App::submit_form(
+    Tab& tab,
+    const Config& cfg,
+    const CONT_T& mailcaps,
+    const Document::Form& form
+)
+{
+    std::vector<string>     values  = {};
+    Uri                     url;
+    HttpFetcher             *fetcher;
+
+    url = Uri::from_relative(
+        tab.curr_page()->uri(),
+        form.action()
+    );
+
+    if (not (fetcher = get_uri_handler(url.scheme)))
+    {
+        return;
+    }
+
+    for (const auto& kv : form.values())
+    {
+        string  val =
+            utils::percent_encode(kv.first) +
+            "=" +
+            utils::percent_encode(kv.second);
+
+        values.push_back(val);
+    }// end for kv
+
+    url.query = utils::join_str(values, "&");
+    goto_url(tab, *fetcher, mailcaps, cfg, url);
+}// end submit_form
 
 // ------ command functions -----------------------------------------------
 void App::quit(const command_args_container& args)
