@@ -160,9 +160,7 @@ auto App::run(const Config& config)
 
     // goto init url
     {
-        HttpFetcher&    fetcher     = *m_uriHandlerMap.at(m_config.initUrl.scheme);
-
-        goto_url(currTab, fetcher, mailcaps, m_config, m_config.initUrl);
+        goto_url(currTab, mailcaps, m_config, m_config.initUrl);
         currPage = currTab.curr_page();
     }
 
@@ -299,13 +297,8 @@ auto App::run(const Config& config)
 
                     if (not targetUrl.empty())
                     {
-                        HttpFetcher     *fetcher;
-
-                        if ((fetcher = get_uri_handler(targetUrl.scheme)))
-                        {
-                            goto_url(currTab, *fetcher, mailcaps, m_config, targetUrl);
-                            currPage = currTab.curr_page();
-                        }
+                        goto_url(currTab, mailcaps, m_config, targetUrl);
+                        currPage = currTab.curr_page();
                     }
                 }
                 break;
@@ -315,16 +308,10 @@ auto App::run(const Config& config)
 
                     if (currPage->viewer().prompt_string(url, "Goto URL:"))
                     {
-                        Uri             uri;
-                        HttpFetcher     *fetcher;
+                        Uri             uri     = url;
 
-                        uri = url;
-
-                        if ((fetcher = get_uri_handler(uri.scheme)))
-                        {
-                            goto_url(currTab, *fetcher, mailcaps, m_config, uri);
-                            currPage = currTab.curr_page();
-                        }
+                        goto_url(currTab, mailcaps, m_config, uri);
+                        currPage = currTab.curr_page();
                     }
                 }
                 break;
@@ -333,16 +320,10 @@ auto App::run(const Config& config)
                 {
                     Document::FormInput     *input;
                     Uri                     targetUrl;
-                    HttpFetcher             *fetcher;
-
-                    if (not (fetcher = get_uri_handler(targetUrl.scheme)))
-                    {
-                        break;
-                    }
 
                     if ((input = currPage->viewer().curr_form_input()))
                     {
-                        handle_form_input(currTab, m_config, mailcaps, *fetcher, *input);
+                        handle_form_input(currTab, m_config, mailcaps, *input);
                         currPage = currTab.curr_page();
                     }
                     else
@@ -351,7 +332,7 @@ auto App::run(const Config& config)
 
                         if (not targetUrl.empty())
                         {
-                            goto_url(currTab, *fetcher, mailcaps, m_config, targetUrl);
+                            goto_url(currTab, mailcaps, m_config, targetUrl);
                             currPage = currTab.curr_page();
                         }
                     }
@@ -482,7 +463,6 @@ auto App::get_uri_handler(const string& scheme) const
 template <class CONT_T>
 void    App::goto_url(
     Tab& tab,
-    const HttpFetcher& fetcher,
     const CONT_T& mailcaps,
     const Config& cfg,
     const Uri& targetUrl
@@ -506,14 +486,21 @@ void    App::goto_url(
         HttpFetcher::header_type    headers             = {};
         std::vector<char>           data                = {};
         Uri                         target              = targetUrl;
-        Uri                         prevUri             = tab.curr_page()->uri();
+        Uri                         prevUri             = {};
         Uri                         fullUri;
         const string                *contentType        = nullptr;
         s_ptr<Document>             doc                 = nullptr;
         unordered_set<string>       visitedUris         = {};
 
+        if (tab.curr_page())
+        {
+            prevUri = tab.curr_page()->uri();
+        }
+
         do
         {
+            HttpFetcher     *fetcher        = nullptr;
+
             status = {};
             headers.clear();
 
@@ -523,8 +510,14 @@ void    App::goto_url(
             {
                 break;
             }
+
+            if (not (fetcher = get_uri_handler(fullUri.scheme)))
+            {
+                break;
+            }
+
             visitedUris.insert(fullUri.str());
-            data = fetcher.fetch_url(status, headers, fullUri);
+            data = fetcher->fetch_url(status, headers, fullUri);
 
             prevUri = fullUri;
             if (headers.count("location")
@@ -740,7 +733,6 @@ void    App::handle_form_input(
     Tab& tab,
     const Config& cfg,
     const CONT_T& mailcaps,
-    const HttpFetcher& fetcher,
     Document::FormInput& input
 )
 {
@@ -800,7 +792,7 @@ void    App::submit_form(
     }// end for kv
 
     url.query = utils::join_str(values, "&");
-    goto_url(tab, *fetcher, mailcaps, cfg, url);
+    goto_url(tab, mailcaps, cfg, url);
 }// end submit_form
 
 // ------ command functions -----------------------------------------------

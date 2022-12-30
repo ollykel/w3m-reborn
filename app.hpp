@@ -85,7 +85,6 @@ class App
         template <class CONT_T>
         void    goto_url(
             Tab& tab,
-            const HttpFetcher& fetcher,
             const CONT_T& mailcaps,
             const Config& cfg,
             const Uri& targetUrl
@@ -109,7 +108,6 @@ class App
             Tab& tab,
             const Config& cfg,
             const CONT_T& mailcaps,
-            const HttpFetcher& fetcher,
             Document::FormInput& input
         );
 
