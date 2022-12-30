@@ -18,8 +18,9 @@ struct  Uri
     string      fragment;
 
     // --- public constructor(s) ------------------------------------------
-    Uri(void);// default
-    Uri(const string& str);// type
+    Uri(void);                  // default
+    Uri(const string& str);     // type
+    Uri(const char *str);       // type
 
     // --- public accessor(s) ---------------------------------------------
     auto    str(void) const

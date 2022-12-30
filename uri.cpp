@@ -122,6 +122,12 @@ parse_path:
     }
 }// end Uri::Uri(const string& str)
 
+Uri::Uri(const char *str)
+    : Uri(string(str))
+{
+    // do nothing
+}// end Uri::Uri(const char *str)
+
 // === public accessor(s) =================================================
 auto Uri::str(void) const
     -> string
