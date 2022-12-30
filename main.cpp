@@ -10,6 +10,7 @@
 
 #include "deps.hpp"
 #include "uri.hpp"
+#include "app.hpp"
 #include "command.hpp"
 #include "http_fetcher.hpp"
 #include "html_parser.hpp"
@@ -34,7 +35,7 @@ struct  Config
 };// end struct Config
 
 // === Function Prototypes ================================================
-int     runtime(const Config& cfg);
+int     runtime(const App::Config& cfg);
 
 template <class CONT_T>
 void    goto_url(
@@ -83,12 +84,17 @@ int main(const int argc, const char **argv, const char **envp)
 {
     using namespace std;
 
-    int         ret         = EXIT_FAILURE;
-    int         wstatus;
-    pid_t       child;
-    Config      config      = {
-        // fetchCommand
-        "curl --include --user-agent \"${W3M_USER_AGENT}\" ${W3M_URL}",
+    int             ret         = EXIT_FAILURE;
+    int             wstatus;
+    pid_t           child;
+    App::Config     config      = {
+        // uriHandlers
+        {
+            // TODO: write scripts for each handler
+            {"file", "echo -n \"content-type: \"; mimetype --brief \"${W3M_URL}\"; curl --include --user-agent \"${W3M_USER_AGENT}\" \"${W3M_URL}\""},
+            {"http", "curl --include --user-agent \"${W3M_USER_AGENT}\" \"${W3M_URL}\""},
+            {"https", "curl --include --user-agent \"${W3M_USER_AGENT}\" \"${W3M_URL}\""},
+        },
         // initUrl
         "",
         // tempdir
@@ -170,344 +176,13 @@ finally:
 
 // === Function Definitions ===============================================
 
-int runtime(const Config& cfg)
+int runtime(const App::Config& cfg)
 {
     using namespace std;
 
-    Tab::Config                 tabCfg{ cfg.viewer };
-    HttpFetcher                 httpFetcher(cfg.fetchCommand, "W3M_URL");
-    Tab                         currTab(tabCfg);
-    Tab::Page                   *currPage;
-    std::vector<Mailcap>        mailcaps;
-    int                         key;
+    App     app;
 
-    // print error message and exit if no initial url
-    if (cfg.initUrl.empty())
-    {
-        curs_set(0);
-        waddnstr(stdscr, "ERROR: no url given", COLS);
-        wrefresh(stdscr);
-
-        sleep(3);
-        curs_set(1);
-
-        return EXIT_FAILURE;
-    }
-
-    // init colors
-    init_pair(
-        Viewer::COLOR_PAIR_STANDARD,
-        cfg.viewer.attribs.standard.fg,
-        cfg.viewer.attribs.standard.bg
-    );
-    init_pair(
-        Viewer::COLOR_PAIR_INPUT,
-        cfg.viewer.attribs.input.fg,
-        cfg.viewer.attribs.input.bg
-    );
-    init_pair(
-        Viewer::COLOR_PAIR_IMAGE,
-        cfg.viewer.attribs.image.fg,
-        cfg.viewer.attribs.image.bg
-    );
-    init_pair(
-        Viewer::COLOR_PAIR_LINK,
-        cfg.viewer.attribs.link.fg,
-        cfg.viewer.attribs.link.bg
-    );
-    init_pair(
-        Viewer::COLOR_PAIR_LINK_CURRENT,
-        cfg.viewer.attribs.linkCurrent.fg,
-        cfg.viewer.attribs.linkCurrent.bg
-    );
-    init_pair(
-        Viewer::COLOR_PAIR_LINK_VISITED,
-        cfg.viewer.attribs.linkVisited.fg,
-        cfg.viewer.attribs.linkVisited.bg
-    );
-
-    // build mailcap file
-    parse_mailcap_env(mailcaps, getenv("MAILCAPS"));
-
-    goto_url(currTab, httpFetcher, mailcaps, cfg, cfg.initUrl);
-    currPage = currTab.curr_page();
-
-    // wait for keypress
-    while (true)
-    {
-        size_t                      w3mIndex        = 0;
-
-        // read index
-        while ((key = wgetch(stdscr)))
-        {
-            bool        increm      = false;
-
-            switch (key)
-            {
-                case -1:
-                    continue;
-                case '0':
-                    if (w3mIndex)
-                    {
-                        w3mIndex *= 10;
-                        increm = true;
-                    }
-                    break;
-                case '1':
-                case '2':
-                case '3':
-                case '4':
-                case '5':
-                case '6':
-                case '7':
-                case '8':
-                case '9':
-                    w3mIndex *= 10;
-                    w3mIndex += (key - '0');
-                    increm = true;
-            }// end switch
-
-            if (not increm)
-            {
-                break;
-            }
-        }// end while
-
-        if (not w3mIndex)
-        {
-            ++w3mIndex;
-        }
-
-        switch (key)
-        {
-            // move cursor down
-            case KEY_DOWN:
-            case 'j':
-                currPage->viewer().curs_down(w3mIndex);
-                break;
-            // move page up
-            case KEY_SF:
-            case 'J':
-                currPage->viewer().line_down(w3mIndex);
-                break;
-            // move cursor up
-            case KEY_UP:
-            case 'k':
-                currPage->viewer().curs_up(w3mIndex);
-                break;
-            // move page down
-            case KEY_SR:
-            case 'K':
-                currPage->viewer().line_up(w3mIndex);
-                break;
-            // move cursor left
-            case KEY_LEFT:
-            case 'h':
-                currPage->viewer().curs_left(w3mIndex);
-                break;
-            // move cursor right
-            case KEY_RIGHT:
-            case 'l':
-                currPage->viewer().curs_right(w3mIndex);
-                break;
-            // move cursor to first column
-            case CTRL('a'):
-            case '0':
-                currPage->viewer().curs_left(SIZE_MAX);
-                break;
-            case '$':
-                currPage->viewer().curs_right(COLS);
-                break;
-            case 'b':
-                currPage->viewer().line_up(LINES);
-                break;
-            case 'c':
-                currPage->viewer().disp_status(currPage->uri().str());
-                break;
-            case ' ':
-                currPage->viewer().line_down(LINES);
-                break;
-            case KEY_CLEAR:
-            case CTRL('l'):
-                currPage->viewer().refresh(true);
-                break;
-            case 'g':
-                currPage->viewer().curs_up(SIZE_MAX);
-                break;
-            case 'G':
-                currPage->viewer().curs_down(currPage->document().buffer().size() - 1);
-                break;
-            case 'u':
-                {
-                    const string&   str     = currPage->viewer().curr_url();
-
-                    if (not str.empty())
-                    {
-                        currPage->viewer().disp_status(str);
-                    }
-                }
-                break;
-            case 'I':
-                {
-                    const string&   str     = currPage->viewer().curr_img();
-
-                    if (not str.empty())
-                    {
-                        Uri         uri     = Uri::from_relative(currPage->uri(), str);
-
-                        currPage->viewer().disp_status(uri.str());
-                    }
-                }
-                break;
-            case 'i':
-                {
-                    Uri     targetUrl   = currPage->viewer().curr_img();
-
-                    if (not targetUrl.empty())
-                    {
-                        goto_url(currTab, httpFetcher, mailcaps, cfg, targetUrl);
-                        currPage = currTab.curr_page();
-                    }
-                }
-                break;
-            case 'U':
-                {
-                    string      url = currPage->viewer().curr_url();
-
-                    if (currPage->viewer().prompt_string(url, "Goto URL:"))
-                    {
-                        goto_url(currTab, httpFetcher, mailcaps, cfg, url);
-                        currPage = currTab.curr_page();
-                    }
-                }
-                break;
-            case KEY_ENTER:
-            case '\n':
-                {
-                    Document::FormInput     *input;
-                    Uri                     targetUrl;
-
-                    if ((input = currPage->viewer().curr_form_input()))
-                    {
-                        handle_form_input(currTab, cfg, mailcaps, httpFetcher, *input);
-                        currPage = currTab.curr_page();
-                    }
-                    else
-                    {
-                        targetUrl = currPage->viewer().curr_url();
-
-                        if (not targetUrl.empty())
-                        {
-                            goto_url(currTab, httpFetcher, mailcaps, cfg, targetUrl);
-                            currPage = currTab.curr_page();
-                        }
-                    }
-                }
-                break;
-            case 'M':
-                {
-                    Uri     targetUrl   = currPage->viewer().curr_url();
-
-                    if (not targetUrl.empty())
-                    {
-                        // TODO: true external browser API
-                        Uri         fullUrl = Uri::from_relative(
-                                                currPage->uri(),
-                                                targetUrl
-                                            );
-                        Command     cmd     = Command("mpv \"${W3M_URL}\"")
-                                            .set_env("W3M_URL", fullUrl.str());
-
-                        endwin();
-                        cmd.spawn().wait();
-                        doupdate();
-                        currPage->viewer().refresh(true);
-                    }
-                }
-                break;
-            case 'm':
-                {
-                    Uri     targetUrl   = currPage->uri();
-
-                    if (not targetUrl.empty())
-                    {
-                        // TODO: true external browser API
-                        Uri         fullUrl = Uri::from_relative(
-                                                currPage->uri(),
-                                                targetUrl
-                                            );
-                        Command     cmd     = Command("mpv \"${W3M_URL}\"")
-                                            .set_env("W3M_URL", fullUrl.str());
-
-                        endwin();
-                        cmd.spawn().wait();
-                        doupdate();
-                        currPage->viewer().refresh(true);
-                    }
-                }
-                break;
-            case '<':
-                {
-                    currPage = currTab.prev_page();
-                    currPage->viewer().refresh(true);
-                }
-                break;
-            case '>':
-                {
-                    currPage = currTab.next_page();
-                    currPage->viewer().refresh(true);
-                }
-                break;
-            case 'B':
-                {
-                    currPage = currTab.back_page();
-                    currPage->viewer().refresh(true);
-                }
-                break;
-            // submit form
-            case 'p':
-                {
-                    Document::FormInput     *input;
-
-                    if ((input = currPage->viewer().curr_form_input()))
-                    {
-                        const Document::Form&   form    = input->form();
-                        submit_form(currTab, cfg, mailcaps, httpFetcher, form);
-                        currPage = currTab.curr_page();
-                    }
-                }
-                break;
-            // show current line number
-            case CTRL('g'):
-                {
-                    stringstream    fmt;
-
-                    fmt << "line ";
-                    fmt << currPage->viewer().curr_curs_line();
-                    fmt << " / ";
-                    fmt << currPage->viewer().buffer_size();
-
-                    currPage->viewer().disp_status(fmt.str());
-                }
-                break;
-            case 'q':
-                {
-                    switch (currPage->viewer().prompt_char(
-                        "Are you sure you want to quit? (y/N):"
-                    ))
-                    {
-                        case 'y':
-                        case 'Y':
-                            return EXIT_SUCCESS;
-                    }// end switch
-                }
-                break;
-            case 'Q':
-                return EXIT_SUCCESS;
-        }// end switch
-    }// end while
-
-    return EXIT_SUCCESS;
+    return app.run(cfg);
 }// end runtime
 
 template <class CONT_T>
