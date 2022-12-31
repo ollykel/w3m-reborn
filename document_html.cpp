@@ -16,6 +16,7 @@ DocumentHtml::DocumentHtml(const Document::Config& cfg)
 {
     // initialize dispatcher
     m_dispatcher["a"] = &DocumentHtml::append_a;
+    m_dispatcher["audio"] = &DocumentHtml::append_audio;
     m_dispatcher["br"] = &DocumentHtml::append_br;
     m_dispatcher["div"] = &DocumentHtml::append_div;
     m_dispatcher["form"] = &DocumentHtml::append_form;
@@ -428,6 +429,119 @@ void    DocumentHtml::append_a(
         j = 0;
     }// end for i
 }// end DocumentHtml::append_a(DomTree::node& a)
+
+// === DocumentHtml::append_audio =========================================
+//
+// Append an audio element. Realized as a link to the url identified in the
+// enclosed source element.
+//
+// ========================================================================
+void    DocumentHtml::append_audio(
+    DomTree::node& audio,
+    const size_t cols,
+    Format fmt,
+    Stacks& stacks
+)
+{
+    const string    *src    = nullptr;
+
+    if (audio.attributes.count("src"))
+    {
+        src = &audio.attributes.at("src");
+    }
+    else
+    {
+        for (const auto& nd : audio)
+        {
+            if (
+                (nd.identifier() == "source")
+                and (nd.attributes.count("src"))
+            )
+            {
+                src = &nd.attributes.at("src");
+                break;
+            }
+        }// end for nd
+    }
+
+    if (src)
+    {
+        string      fName       = "";
+        size_t      rowIdx      = 0;
+        size_t      nodeIdx     = 0;
+        size_t      linkIdx     = m_links.size();
+        string      linkUrl     = "";
+
+        if (m_buffer.empty())
+        {
+            m_buffer.emplace_back();
+        }
+
+        rowIdx = m_buffer.size() - 1;
+        nodeIdx = m_buffer.back().size();
+
+        // get filename
+        fName.push_back('[');
+        fName += "audio:";
+        if (src->rfind('/') != string::npos)
+        {
+            fName += src->substr(src->rfind('/') + 1);
+        }
+        fName.push_back(']');
+
+        // push filename onto buffer
+        append_str(fName, cols, fmt, stacks);
+
+        {
+            size_t              idx         = 0;
+            size_t              beg         = 0;
+
+            do
+            {
+                idx = src->find('&', beg);
+
+                linkUrl += src->substr(beg, idx);
+                if (string::npos == idx)
+                {
+                    break;
+                }
+
+                beg = idx + 1;
+                idx = src->find(';', beg);
+                if (string::npos == idx)
+                {
+                    linkUrl.push_back('&');
+                }
+                else
+                {
+                    linkUrl.push_back(parse_html_entity(src->substr(beg, idx)));
+                    beg = idx + 1;
+                }
+            } while (beg < src->size());
+        }
+
+        m_links.emplace_back(linkUrl);
+        auto&               currLink    = m_links.back();
+
+        for (size_t i = rowIdx, j = nodeIdx; i < m_buffer.size(); ++i)
+        {
+            auto&   currLine    = m_buffer.at(i);
+
+            for (; j < currLine.size(); ++j)
+            {
+                auto&   currNode    = currLine.at(j);
+
+                if (not currNode.reserved() and not currNode.link_ref())
+                {
+                    currNode.set_link_ref(linkIdx);
+                    currLink.append_referer(i, j);
+                }
+            }// end for j
+
+            j = 0;
+        }// end for i
+    }
+}// end DocumentHtml::append_audio
 
 // === DocumentHtml::append_br(DomTree::node& br, const size_t cols, Format fmt, Stacks& stacks)
 //

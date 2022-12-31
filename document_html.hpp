@@ -83,6 +83,12 @@ class   DocumentHtml : public Document
             Format fmt,
             Stacks& stacks
         );
+        void    append_audio(
+            DomTree::node& audio,
+            const size_t cols,
+            Format fmt,
+            Stacks& stacks
+        );
         void    append_br(
             DomTree::node& br,
             const size_t cols,
