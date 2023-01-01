@@ -416,6 +416,12 @@ auto    Document::FormInput::value(void) const
     return m_value;
 }// end Document::FormInput::value
 
+auto    Document::FormInput::is_active(void) const
+    -> bool
+{
+    return m_isActive;
+}// end Document::FormInput::is_active
+
 // --- public mutator(s) --------------------------------------------------
 void    Document::FormInput::set_type(Type t)
 {
@@ -442,6 +448,33 @@ void    Document::FormInput::set_value(const string& value)
         m_domNode->attributes["value"] = value;
     }
 }// end Document::FormInput::set_value
+
+void    Document::FormInput::set_is_active(bool state)
+{
+    m_isActive = state;
+
+    if (m_domNode)
+    {
+        switch (m_type)
+        {
+            case Document::FormInput::Type::checkbox:
+                {
+                    if (m_isActive)
+                    {
+                        m_domNode->attributes["checked"] = "1";
+                    }
+                    else
+                    {
+                        m_domNode->attributes.erase("checked");
+                    }
+                }
+                break;
+            default:
+                // do nothing
+                break;
+        }// end switch
+    }
+}// end Document::FormInput::set_is_active
 
 void    Document::FormInput::push_buffer_node(Document::BufferNode* bufNode)
 {

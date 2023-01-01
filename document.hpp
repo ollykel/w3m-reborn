@@ -55,11 +55,14 @@ class   Document
                     -> const string&;
                 auto    value(void) const
                     -> const string&;
+                auto    is_active(void) const
+                    -> bool;
                 
                 // --- public mutator(s) ----------------------------------
                 void    set_type(Type t);
                 void    set_name(const string& name);
                 void    set_value(const string& value);
+                void    set_is_active(bool state);
                 void    push_buffer_node(Document::BufferNode* bufNode);
                 void    clear_buffer_nodes(void);
             private:
@@ -72,6 +75,7 @@ class   Document
                                         m_bufNodes      = {};
                 string                  m_name          = "";
                 string                  m_value         = "";
+                bool                    m_isActive      = false;
         };// end class Document::FormInput
         struct      BufferIndex;
         struct      buffer_index_type
