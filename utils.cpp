@@ -258,4 +258,47 @@ std::string     percent_encode(const std::string& str)
     return out;
 }// end percent_encode
 
+std::string     percent_decode(const std::string& str)
+{
+    std::string     out     = "";
+
+    for (size_t i = 0; i < str.size(); ++i)
+    {
+        const auto&     ch      = str.at(i);
+
+        if (ch == '%')
+        {
+            if (i == str.size() - 1)
+            {
+                // do nothing
+            }
+            else if (str.at(i + 1) == '%')
+            {
+                out.push_back('%');
+            }
+            else
+            {
+                const std::string   hex     = str.substr(i + 1, i + 3);
+                int                 value;
+
+                if (std::sscanf(hex.c_str(), "%x", &value) == 1)
+                {
+                    if (hex.size() < 2)
+                    {
+                        value /= 0x10;
+                    }
+
+                    out.push_back(value);
+                }
+            }
+        }
+        else
+        {
+            out.push_back(ch);
+        }
+    }// end for i
+
+    return out;
+}// end percent_decode
+
 };// end namespace utils

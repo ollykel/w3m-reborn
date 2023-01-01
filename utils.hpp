@@ -63,6 +63,7 @@ namespace utils
     std::string         from_wstr(const std::wstring& wstr);
 
     std::string         percent_encode(const std::string& str);
+    std::string         percent_decode(const std::string& str);
 
     template <typename ITER_T>
     void ignore_whitespace(
