@@ -275,11 +275,14 @@ std::string     percent_decode(const std::string& str)
             else if (str.at(i + 1) == '%')
             {
                 out.push_back('%');
+                ++i;
             }
             else
             {
                 const std::string   hex     = str.substr(i + 1, i + 3);
                 int                 value;
+
+                i += hex.size();
 
                 if (std::sscanf(hex.c_str(), "%x", &value) == 1)
                 {
