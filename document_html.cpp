@@ -737,7 +737,7 @@ void    DocumentHtml::append_input(
     const size_t        formIdx     = stacks.formIndices.back();
     Document::Form&     form        = m_forms.at(formIdx);
     auto                type        = Document::FormInput::type(typeName);
-    FormInput&          bufInput    = emplace_form_input(
+    FormInput&          formInput   = emplace_form_input(
                                         formIdx,
                                         type,
                                         &input,
@@ -816,11 +816,30 @@ void    DocumentHtml::append_input(
             FMT_FIELD_INC(utils::to_wstr("[<" + value + ">]"));
             break;
         case FormInput::Type::checkbox:
-            if (value.size())
             {
-                form.set_value(name, value);
+                static const string     NULL_STR        = "";
+
+                bool            isChecked   = false;
+                const string&   val         = input.attributes.count("value") ?
+                    input.attributes.at("value") :
+                    NULL_STR;
+
+                if (input.attributes.count("checked") and value.size())
+                {
+                    form.set_value(name, value);
+                    isChecked = true;
+                }
+
+                formInput.set_is_active(isChecked);
+
+                FMT_FIELD_ENCLOSED(
+                    utils::to_wstr(isChecked ? "X" : " "),
+                    utils::to_wstr("["),
+                    utils::to_wstr("]")
+                );
+                append_str(val, cols, fmt, stacks);
+                append_str(" ", cols, fmt, stacks);
             }
-            FMT_FIELD(utils::to_wstr(value.size() ? "X" : " "));
             break;
         case FormInput::Type::color:
             if (value.size())
@@ -856,15 +875,30 @@ void    DocumentHtml::append_input(
             FMT_FIELD(utils::to_wstr(value.size() ? value : "YYYY-MM"));
             break;
         case FormInput::Type::radio:
-            if (input.attributes.count("checked") and value.size())
             {
-                form.set_value(name, value);
+                static const string     NULL_STR        = "";
+
+                bool            isChecked   = false;
+                const string&   val         = input.attributes.count("value") ?
+                    input.attributes.at("value") :
+                    NULL_STR;
+
+                if (input.attributes.count("checked") and value.size())
+                {
+                    form.set_value(name, value);
+                    isChecked = true;
+                }
+
+                formInput.set_is_active(isChecked);
+
+                FMT_FIELD_ENCLOSED(
+                    utils::to_wstr(isChecked ? "*" : " "),
+                    utils::to_wstr("("),
+                    utils::to_wstr(")")
+                );
+                append_str(val, cols, fmt, stacks);
+                append_str(" ", cols, fmt, stacks);
             }
-            FMT_FIELD_ENCLOSED(
-                utils::to_wstr(value.size() ? "*" : " "),
-                utils::to_wstr("("),
-                utils::to_wstr(")")
-            );
             break;
         case FormInput::Type::tel:
             if (value.size())
