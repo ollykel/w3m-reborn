@@ -754,6 +754,14 @@ void    App::handle_form_input(
                 submit_form(tab, cfg, mailcaps, form);
             }
             break;
+        case Document::FormInput::Type::checkbox:
+            {
+                input.set_is_active(not input.is_active());
+                tab.curr_page()->document().redraw(COLS);
+                tab.curr_page()->viewer().redraw();
+                tab.curr_page()->viewer().refresh();
+            }
+            break;
         default:
             break;
     }// end switch
