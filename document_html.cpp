@@ -485,7 +485,9 @@ void    DocumentHtml::append_audio(
         fName += "audio:";
         if (src->rfind('/') != string::npos)
         {
-            fName += src->substr(src->rfind('/') + 1);
+            fName += utils::percent_decode(
+                src->substr(src->rfind('/') + 1)
+            );
         }
         fName.push_back(']');
 
