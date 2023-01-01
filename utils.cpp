@@ -262,13 +262,13 @@ std::string     percent_decode(const std::string& str)
 {
     std::string     out     = "";
 
-    for (size_t i = 0; i < str.size(); ++i)
+    for (size_t i = 0; i < str.length(); ++i)
     {
         const auto&     ch      = str.at(i);
 
         if (ch == '%')
         {
-            if (i == str.size() - 1)
+            if (i == str.length() - 1)
             {
                 // do nothing
             }
@@ -279,14 +279,14 @@ std::string     percent_decode(const std::string& str)
             }
             else
             {
-                const std::string   hex     = str.substr(i + 1, i + 3);
+                const std::string   hex     = str.substr(i + 1, 2);
                 int                 value;
 
-                i += hex.size();
+                i += hex.length();
 
                 if (std::sscanf(hex.c_str(), "%x", &value) == 1)
                 {
-                    if (hex.size() < 2)
+                    if (hex.length() < 2)
                     {
                         value /= 0x10;
                     }
