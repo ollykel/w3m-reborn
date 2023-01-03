@@ -750,11 +750,23 @@ void    App::handle_form_input(
         case Document::FormInput::Type::button:
         case Document::FormInput::Type::submit:
             {
-                const Document::Form&   form    = input.form();
+                Document::Form&     form    = input.form();
+
+                if (input.type() == Document::FormInput::Type::submit)
+                {
+                    form.insert_input(input);
+                }
+
                 submit_form(tab, cfg, mailcaps, form);
+
+                if (input.type() == Document::FormInput::Type::submit)
+                {
+                    form.remove_input(input);
+                }
             }
             break;
         case Document::FormInput::Type::checkbox:
+        case Document::FormInput::Type::radio:
             {
                 input.set_is_active(not input.is_active());
                 tab.curr_page()->document().redraw(COLS);
@@ -775,7 +787,7 @@ void    App::submit_form(
     const Document::Form& form
 )
 {
-    std::vector<string>     values  = {};
+    std::vector<string>     values          = {};
     Uri                     url;
     HttpFetcher             *fetcher;
 
@@ -791,10 +803,11 @@ void    App::submit_form(
 
     for (const auto& kv : form.values())
     {
-        string  val =
-            utils::percent_encode(kv.first) +
-            "=" +
-            utils::percent_encode(kv.second);
+        string      val     = "";
+
+        val += utils::percent_encode(kv.first);
+        val.push_back('=');
+        val += utils::percent_encode(kv.second);
 
         values.push_back(val);
     }// end for kv
