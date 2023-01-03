@@ -237,8 +237,12 @@ class       Document::Form
 {
     public:
         // --- public member type(s) --------------------------------------
-        typedef     std::vector<FormInput*>         input_ptr_container;
-        typedef     std::vector<const FormInput*>   input_const_ptr_container;
+        typedef     std::unordered_set<Document::FormInput*>
+                                                    input_ptr_container;
+        typedef     std::unordered_set<const Document::FormInput*>
+                                                    input_const_ptr_container;
+        typedef     std::map<string,input_ptr_container>
+                                                    input_ptr_container_map;
         typedef     std::unordered_set<size_t>      input_index_container;
 
         // --- public constructor(s) --------------------------------------
@@ -256,11 +260,11 @@ class       Document::Form
         auto    method(void) const
             -> const string&;
         auto    inputs(void) const
-            -> input_const_ptr_container;
+            -> const input_ptr_container_map&;
         auto    value(const string& key) const
-            -> const string&;
+            -> string;
         auto    values(void) const
-            -> const std::map<string,string>&;
+            -> std::map<string,string>;
 
         // --- public mutator(s) ------------------------------------------
         void    insert_input_index(size_t index);
@@ -268,7 +272,15 @@ class       Document::Form
         void    clear_input_indices(void);
         void    set_action(const string& action);
         void    set_method(const string& method);
-        void    set_value(const string& key, const string& val);
+        void    insert_input(Document::FormInput& input);
+        void    insert_input(const string& key, Document::FormInput& input);
+        void    erase_inputs(const string& key);
+        void    remove_input(Document::FormInput& input);
+        void    remove_input(
+                    const string& key,
+                    Document::FormInput& input
+                );
+        void    clear_inputs(void);
         void    erase_value(const string& key);
 
     private:
@@ -276,8 +288,8 @@ class       Document::Form
         Document                    *m_parent           = nullptr;
         string                      m_action            = "";
         string                      m_method            = "";
+        input_ptr_container_map     m_inputs            = {};
         input_index_container       m_input_indices     = {};
-        std::map<string,string>     m_values            = {};
 };// end class Document::Form
 
 struct      Document::BufferIndex

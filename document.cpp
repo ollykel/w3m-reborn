@@ -1,6 +1,7 @@
 #include <climits>
 
 #include "deps.hpp"
+#include "utils.hpp"
 #include "document.hpp"
 
 // === class Document implementation ======================================
@@ -292,35 +293,41 @@ auto    Document::Form::method(void) const
 }// end Document::Form::method
 
 auto    Document::Form::inputs(void) const
-    -> input_const_ptr_container
+    -> const input_ptr_container_map&
 {
-    input_const_ptr_container   out;
-
-    for (const auto& index : m_input_indices)
-    {
-        out.push_back(&parent()->form_inputs().at(index));
-    }// end for
-
-    return out;
+    return m_inputs;
 }// end Document::Form::inputs
 
 auto    Document::Form::value(const string& key) const
-    -> const string&
+    -> string
 {
-    static const string     NULL_STR        = "";
-
-    if (not m_values.count(key))
+    if (not m_inputs.count(key))
     {
-        return NULL_STR;
+        return "";
     }
 
-    return m_values.at(key);
+    return utils::join_str(m_inputs.at(key), ",",
+        [](const Document::FormInput *input)
+        {
+            return input->value();
+        }
+    );
 }// end Document::Form::value
 
 auto    Document::Form::values(void) const
-    -> const std::map<string,string>&
+    -> std::map<string,string>
 {
-    return m_values;
+    std::map<string,string>     out     = {};
+
+    for (const auto& kv : m_inputs)
+    {
+        const string&   key     = kv.first;
+        string          val     = value(key);
+
+        out[key] = val;
+    }// end for
+
+    return out;
 }// end Document::Form::values
 
 // --- public mutator(s) --------------------------------------------------
@@ -349,14 +356,63 @@ void    Document::Form::set_method(const string& method)
     m_method = method;
 }// end Document::Form::set_method
 
-void    Document::Form::set_value(const string& key, const string& val)
+void    Document::Form::insert_input(Document::FormInput& input)
 {
-    m_values[key] = val;
-}// end Document::Form::set_value
+    m_inputs[input.name()].insert(&input);
+}// end Document::Form::insert_input
+
+void    Document::Form::insert_input(
+    const string& key,
+    Document::FormInput& input
+)
+{
+    m_inputs[key].insert(&input);
+}// end Document::Form::insert_input
+
+void    Document::Form::erase_inputs(const string& key)
+{
+    m_inputs.erase(key);
+}// end Document::Form::erase_inputs
+
+void    Document::Form::remove_input(Document::FormInput& input)
+{
+    const string&   key     = input.name();
+
+    if (m_inputs.count(key))
+    {
+        m_inputs.at(key).erase(&input);
+
+        if (m_inputs.at(key).empty())
+        {
+            m_inputs.erase(key);
+        }
+    }
+}// end Document::Form::remove_input
+
+void    Document::Form::remove_input(
+    const string& key,
+    Document::FormInput& input
+)
+{
+    if (m_inputs.count(key))
+    {
+        m_inputs.at(key).erase(&input);
+
+        if (m_inputs.at(key).empty())
+        {
+            m_inputs.erase(key);
+        }
+    }
+}// end Document::Form::remove_input
+
+void    Document::Form::clear_inputs(void)
+{
+    m_inputs.clear();
+}// end Document::Form::clear_inputs
 
 void    Document::Form::erase_value(const string& key)
 {
-    m_values.erase(key);
+    erase_inputs(key);
 }// end Document::Form::erase_value
 
 // === Document::FormInput Implementation =================================
@@ -441,7 +497,7 @@ void    Document::FormInput::set_name(const string& name)
 void    Document::FormInput::set_value(const string& value)
 {
     m_value = value;
-    form().set_value(name(), value);
+    form().insert_input(name(), *this);
 
     if (m_domNode)
     {
@@ -461,16 +517,50 @@ void    Document::FormInput::set_is_active(bool state)
                 {
                     if (m_isActive)
                     {
+                        form().insert_input(name(), *this);
                         m_domNode->attributes["checked"] = "1";
                     }
                     else
                     {
+                        form().remove_input(name(), *this);
+                        m_domNode->attributes.erase("checked");
+                    }
+                }
+                break;
+            case Document::FormInput::Type::radio:
+                {
+                    if (m_isActive)
+                    {
+                        if (form().inputs().count(name()))
+                        {
+                            auto    otherInputs     = form().inputs().at(name());
+
+                            for (auto *input : otherInputs)
+                            {
+                                input->set_is_active(false);
+                            }// end for
+                        }
+                        form().insert_input(name(), *this);
+                        m_domNode->attributes["checked"] = "1";
+                    }
+                    else
+                    {
+                        form().remove_input(name(), *this);
                         m_domNode->attributes.erase("checked");
                     }
                 }
                 break;
             default:
-                // do nothing
+                {
+                    if (m_isActive)
+                    {
+                        form().insert_input(name(), *this);
+                    }
+                    else
+                    {
+                        form().remove_input(name(), *this);
+                    }
+                }
                 break;
         }// end switch
     }
