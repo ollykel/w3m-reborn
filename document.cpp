@@ -410,11 +410,6 @@ void    Document::Form::clear_inputs(void)
     m_inputs.clear();
 }// end Document::Form::clear_inputs
 
-void    Document::Form::erase_value(const string& key)
-{
-    erase_inputs(key);
-}// end Document::Form::erase_value
-
 // === Document::FormInput Implementation =================================
 //
 // ========================================================================

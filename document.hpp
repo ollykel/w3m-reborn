@@ -281,7 +281,6 @@ class       Document::Form
                     Document::FormInput& input
                 );
         void    clear_inputs(void);
-        void    erase_value(const string& key);
 
     private:
         // --- private member variable(s) ---------------------------------
