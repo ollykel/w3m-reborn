@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <functional>
 
 namespace utils
 {
@@ -95,9 +96,18 @@ namespace utils
     auto copy_token_dquoted(ITER_T& iter, const ITER_T& end)
         -> std::string;
 
-    template <typename ITERABLE_T>
-    auto join_str(const ITERABLE_T& cont, const std::string& joiner = "")
-        -> std::string;
+    template <
+        typename ITERABLE_T,
+        typename MAPPER_T = std::function<
+            const std::string(const std::string&)
+        >
+    >
+    auto join_str(
+        const ITERABLE_T& cont,
+        const std::string& joiner = "",
+        const MAPPER_T mapper = [](const std::string& str)
+            { return str; }
+    ) -> std::string;
 
     template <typename CONTAINER_T>
     auto splitn(

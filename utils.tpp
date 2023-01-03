@@ -128,9 +128,12 @@ auto copy_token_dquoted(ITER_T& iter, const ITER_T& end)
     return output;
 }// end copy_token_dquoted
 
-template <typename ITERABLE_T>
-auto join_str(const ITERABLE_T& cont, const std::string& joiner)
-    -> std::string
+template <typename ITERABLE_T, typename MAPPER_T>
+auto join_str(
+    const ITERABLE_T& cont,
+    const std::string& joiner,
+    const MAPPER_T mapper
+) -> std::string
 {
     std::string     output      = "";
     auto            iter        = cont.cbegin();
@@ -141,13 +144,13 @@ auto join_str(const ITERABLE_T& cont, const std::string& joiner)
         goto finally;
     }
 
-    output += *iter;
+    output += mapper(*iter);
     ++iter;
 
     for (; iter != end; ++iter)
     {
         output += joiner;
-        output += *iter;
+        output += mapper(*iter);
     }// end for iter
 finally:
     return output;
