@@ -777,13 +777,12 @@ void    DocumentHtml::append_input(
         utils::to_wstr("]") \
     )
 
+    form.insert_input(name, formInput);
+
     switch (type)
     {
         case FormInput::Type::hidden:
-            if (value.size())
-            {
-                form.set_value(name, value);
-            }
+            // do nothing
             break;
         // text-based input fields
         // input handlers should take care to validate input based on type
@@ -802,10 +801,6 @@ void    DocumentHtml::append_input(
                     string(remLen, ' ') :
                     "";
 
-                if (value.size())
-                {
-                    form.set_value(name, value);
-                }
                 FMT_FIELD(utils::to_wstr(value + rem));
             }
             break;
@@ -813,6 +808,7 @@ void    DocumentHtml::append_input(
         case FormInput::Type::button:
         case FormInput::Type::submit:
         case FormInput::Type::reset:
+            form.erase_inputs(name);
             FMT_FIELD_INC(utils::to_wstr("[<" + value + ">]"));
             break;
         case FormInput::Type::checkbox:
@@ -826,7 +822,6 @@ void    DocumentHtml::append_input(
 
                 if (input.attributes.count("checked") and value.size())
                 {
-                    form.set_value(name, value);
                     isChecked = true;
                 }
 
@@ -842,24 +837,12 @@ void    DocumentHtml::append_input(
             }
             break;
         case FormInput::Type::color:
-            if (value.size())
-            {
-                form.set_value(name, value);
-            }
             FMT_FIELD(utils::to_wstr(value.size() ? value : "#RRGGBB"));
             break;
         case FormInput::Type::date:
-            if (value.size())
-            {
-                form.set_value(name, value);
-            }
             FMT_FIELD(utils::to_wstr(value.size() ? value : "YYYY-MM-DD"));
             break;
         case FormInput::Type::datetime_local:
-            if (value.size())
-            {
-                form.set_value(name, value);
-            }
             FMT_FIELD(utils::to_wstr(value.size() ? value : "YYYY-MM-DD hh:mm:ss"));
             break;
         // file input fields
@@ -868,10 +851,6 @@ void    DocumentHtml::append_input(
             FMT_FIELD(utils::to_wstr(value.size() ? value : "{{FILE}}"));
             break;
         case FormInput::Type::month:
-            if (value.size())
-            {
-                form.set_value(name, value);
-            }
             FMT_FIELD(utils::to_wstr(value.size() ? value : "YYYY-MM"));
             break;
         case FormInput::Type::radio:
@@ -885,7 +864,9 @@ void    DocumentHtml::append_input(
 
                 if (input.attributes.count("checked") and value.size())
                 {
-                    form.set_value(name, value);
+                    // make this the only input with this name
+                    form.erase_inputs(name);
+                    form.insert_input(name, formInput);
                     isChecked = true;
                 }
 
@@ -901,24 +882,12 @@ void    DocumentHtml::append_input(
             }
             break;
         case FormInput::Type::tel:
-            if (value.size())
-            {
-                form.set_value(name, value);
-            }
             FMT_FIELD(utils::to_wstr(value.size() ? value : "(+1) (NNN) NNN-NNNN"));
             break;
         case FormInput::Type::time:
-            if (value.size())
-            {
-                form.set_value(name, value);
-            }
             FMT_FIELD(utils::to_wstr(value.size() ? value : "hh:mm:ss"));
             break;
         case FormInput::Type::week:
-            if (value.size())
-            {
-                form.set_value(name, value);
-            }
             FMT_FIELD(utils::to_wstr(value.size() ? value : "YYYY-WW"));
             break;
         // unhandled/undefined fields
