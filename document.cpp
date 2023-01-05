@@ -1,4 +1,5 @@
 #include <climits>
+#include <unistd.h>
 
 #include "deps.hpp"
 #include "utils.hpp"
@@ -105,8 +106,17 @@ auto    Document::emplace_form_input(
     string              value
 ) -> FormInput&
 {
-    m_form_inputs.emplace_back(*this, formIndex, type, domNode, name, value);
-    m_forms[formIndex].insert_input_index(m_form_inputs.size() - 1);
+    const size_t    index       = m_form_inputs.size();
+
+    m_form_inputs.emplace_back(FormInput(
+        *this,
+        index,
+        formIndex,
+        type,
+        domNode,
+        name,
+        value
+    ));
 
     return m_form_inputs.back();
 }// end Document::emplace_form_input
@@ -292,24 +302,26 @@ auto    Document::Form::method(void) const
     return m_method;
 }// end Document::Form::method
 
-auto    Document::Form::inputs(void) const
-    -> const input_ptr_container_map&
+auto    Document::Form::active_inputs(void) const
+    -> const input_idx_container_map&
 {
-    return m_inputs;
-}// end Document::Form::inputs
+    return m_activeInputs;
+}// end Document::Form::active_inputs
 
 auto    Document::Form::value(const string& key) const
     -> string
 {
-    if (not m_inputs.count(key))
+    const auto&     formInputs  = m_parent->form_inputs();
+
+    if (not m_activeInputs.count(key))
     {
         return "";
     }
 
-    return utils::join_str(m_inputs.at(key), ",",
-        [](const Document::FormInput *input)
+    return utils::join_str(m_activeInputs.at(key), ",",
+        [&formInputs](size_t idx)
         {
-            return input->value();
+            return formInputs[idx].value();
         }
     );
 }// end Document::Form::value
@@ -319,7 +331,7 @@ auto    Document::Form::values(void) const
 {
     std::map<string,string>     out     = {};
 
-    for (const auto& kv : m_inputs)
+    for (const auto& kv : m_activeInputs)
     {
         const string&   key     = kv.first;
         string          val     = value(key);
@@ -331,21 +343,6 @@ auto    Document::Form::values(void) const
 }// end Document::Form::values
 
 // --- public mutator(s) --------------------------------------------------
-void    Document::Form::insert_input_index(size_t index)
-{
-    m_input_indices.insert(index);
-}// end Document::Form::insert_input_index
-
-void    Document::Form::erase_input_index(size_t index)
-{
-    m_input_indices.erase(index);
-}// end Document::Form::erase_input_index
-
-void    Document::Form::clear_input_indices(void)
-{
-    m_input_indices.clear();
-}// end Document::Form::clear_input_indices
-
 void    Document::Form::set_action(const string& action)
 {
     m_action = action;
@@ -356,81 +353,43 @@ void    Document::Form::set_method(const string& method)
     m_method = method;
 }// end Document::Form::set_method
 
-void    Document::Form::insert_input(Document::FormInput& input)
+// --- private mutators ---------------------------------------------------
+void    Document::Form::insert_input(size_t index)
 {
-    m_inputs[input.name()].insert(&input);
-}// end Document::Form::insert_input
+    const auto&     formInput   = m_parent->form_inputs()[index];
 
-void    Document::Form::insert_input(
-    const string& key,
-    Document::FormInput& input
-)
-{
-    m_inputs[key].insert(&input);
+    m_activeInputs[formInput.name()].insert(index);
 }// end Document::Form::insert_input
 
 void    Document::Form::erase_inputs(const string& key)
 {
-    m_inputs.erase(key);
+    m_activeInputs.erase(key);
 }// end Document::Form::erase_inputs
 
-void    Document::Form::remove_input(Document::FormInput& input)
+void    Document::Form::remove_input(size_t index)
 {
-    const string&   key     = input.name();
+    const auto&     formInput   = m_parent->form_inputs()[index];
+    const string&   key         = formInput.name();
 
-    if (m_inputs.count(key))
+    if (m_activeInputs.count(key))
     {
-        m_inputs.at(key).erase(&input);
+        m_activeInputs.at(key).erase(index);
 
-        if (m_inputs.at(key).empty())
+        if (m_activeInputs.at(key).empty())
         {
-            m_inputs.erase(key);
+            m_activeInputs.erase(key);
         }
     }
 }// end Document::Form::remove_input
 
-void    Document::Form::remove_input(
-    const string& key,
-    Document::FormInput& input
-)
+void    Document::Form::clear_active_inputs(void)
 {
-    if (m_inputs.count(key))
-    {
-        m_inputs.at(key).erase(&input);
-
-        if (m_inputs.at(key).empty())
-        {
-            m_inputs.erase(key);
-        }
-    }
-}// end Document::Form::remove_input
-
-void    Document::Form::clear_inputs(void)
-{
-    m_inputs.clear();
-}// end Document::Form::clear_inputs
+    m_activeInputs.clear();
+}// end Document::Form::clear_active_inputs
 
 // === Document::FormInput Implementation =================================
 //
 // ========================================================================
-
-// --- public constructor(s) ----------------------------------------------
-Document::FormInput::FormInput(
-    Document&      parent,
-    size_t         formIndex,
-    Type           type,
-    DomTree::node  *domNode,
-    string         name,
-    string         value
-)
-{
-    m_parent = &parent;
-    m_formIndex = formIndex;
-    m_domNode = domNode;
-    m_type = type;
-    m_name = name;
-    m_value = value;
-}
 
 // --- public static method(s) ----------------------------
 auto Document::FormInput::type(const string& str)
@@ -492,7 +451,6 @@ void    Document::FormInput::set_name(const string& name)
 void    Document::FormInput::set_value(const string& value)
 {
     m_value = value;
-    form().insert_input(name(), *this);
 
     if (m_domNode)
     {
@@ -504,6 +462,15 @@ void    Document::FormInput::set_is_active(bool state)
 {
     m_isActive = state;
 
+    if (m_isActive)
+    {
+        form().insert_input(m_index);
+    }
+    else
+    {
+        form().remove_input(m_index);
+    }
+
     if (m_domNode)
     {
         switch (m_type)
@@ -512,12 +479,12 @@ void    Document::FormInput::set_is_active(bool state)
                 {
                     if (m_isActive)
                     {
-                        form().insert_input(name(), *this);
+                        form().insert_input(m_index);
                         m_domNode->attributes["checked"] = "1";
                     }
                     else
                     {
-                        form().remove_input(name(), *this);
+                        form().remove_input(m_index);
                         m_domNode->attributes.erase("checked");
                     }
                 }
@@ -526,21 +493,23 @@ void    Document::FormInput::set_is_active(bool state)
                 {
                     if (m_isActive)
                     {
-                        if (form().inputs().count(name()))
+                        if (form().active_inputs().count(name()))
                         {
-                            auto    otherInputs     = form().inputs().at(name());
+                            auto    otherInputIndices   = form()
+                                .active_inputs().at(name());
 
-                            for (auto *input : otherInputs)
+                            for (size_t idx : otherInputIndices)
                             {
-                                input->set_is_active(false);
+                                auto&   formInput   = m_parent->form_inputs()[idx];
+
+                                formInput.set_is_active(false);
                             }// end for
                         }
-                        form().insert_input(name(), *this);
                         m_domNode->attributes["checked"] = "1";
                     }
                     else
                     {
-                        form().remove_input(name(), *this);
+                        form().remove_input(m_index);
                         m_domNode->attributes.erase("checked");
                     }
                 }
@@ -549,11 +518,11 @@ void    Document::FormInput::set_is_active(bool state)
                 {
                     if (m_isActive)
                     {
-                        form().insert_input(name(), *this);
+                        form().insert_input(m_index);
                     }
                     else
                     {
-                        form().remove_input(name(), *this);
+                        form().remove_input(m_index);
                     }
                 }
                 break;
@@ -570,6 +539,26 @@ void    Document::FormInput::clear_buffer_nodes(void)
 {
     m_bufNodes.clear();
 }// end Document::FormInput::clear_buffer_nodes
+
+// --- private constructors -----------------------------------------------
+Document::FormInput::FormInput(
+    Document&               parent,
+    size_t                  index,
+    size_t                  formIndex,
+    Type                    type,
+    DomTree::node           *domNode,
+    string                  name,
+    string                  value
+)
+{
+    m_parent = &parent;
+    m_index = index;
+    m_formIndex = formIndex;
+    m_domNode = domNode;
+    m_type = type;
+    m_name = name;
+    m_value = value;
+}// end Document::FormInput
 
 // === Document::BufferIndex Implementation ===============================
 //

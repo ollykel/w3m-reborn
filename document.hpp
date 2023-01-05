@@ -26,21 +26,13 @@ class   Document
         class       Form;
         class       FormInput
         {
+            friend class Document;
+
             public:
                 // --- public member type(s) ------------------------------
 
                 // enum class Type
                 #include "document_FormInput_Type_enum.gen.hpp"
-
-                // --- public constructor(s) ------------------------------
-                FormInput(
-                    Document&               parent,
-                    size_t                  formIndex,
-                    Type                    type        = Type::text,
-                    DomTree::node           *domNode    = nullptr,
-                    string                  name        = "",
-                    string                  value       = ""
-                );
 
                 // --- public static method(s) ----------------------------
                 static auto type(const string& str)
@@ -68,6 +60,7 @@ class   Document
             private:
                 // --- private member variable(s) -------------------------
                 Document                *m_parent       = nullptr;
+                size_t                  m_index         = SIZE_MAX;
                 size_t                  m_formIndex     = 0;
                 Type                    m_type          = Type::text;
                 DomTree::node           *m_domNode      = nullptr;
@@ -76,6 +69,17 @@ class   Document
                 string                  m_name          = "";
                 string                  m_value         = "";
                 bool                    m_isActive      = false;
+
+                // --- private constructors -------------------------------
+                FormInput(
+                    Document&               parent,
+                    size_t                  index,
+                    size_t                  formIndex,
+                    Type                    type        = Type::text,
+                    DomTree::node           *domNode    = nullptr,
+                    string                  name        = "",
+                    string                  value       = ""
+                );
         };// end class Document::FormInput
         struct      BufferIndex;
         struct      buffer_index_type
@@ -235,14 +239,13 @@ class   Document::Reference
 
 class       Document::Form
 {
+    friend class FormInput;
+
     public:
         // --- public member type(s) --------------------------------------
-        typedef     std::unordered_set<Document::FormInput*>
-                                                    input_ptr_container;
-        typedef     std::unordered_set<const Document::FormInput*>
-                                                    input_const_ptr_container;
-        typedef     std::map<string,input_ptr_container>
-                                                    input_ptr_container_map;
+        typedef     std::unordered_set<size_t>      input_idx_container;
+        typedef     std::map<string,input_idx_container>
+                                                    input_idx_container_map;
         typedef     std::unordered_set<size_t>      input_index_container;
 
         // --- public constructor(s) --------------------------------------
@@ -259,36 +262,30 @@ class       Document::Form
             -> const string&;
         auto    method(void) const
             -> const string&;
-        auto    inputs(void) const
-            -> const input_ptr_container_map&;
+        auto    active_inputs(void) const
+            -> const input_idx_container_map&;
         auto    value(const string& key) const
             -> string;
         auto    values(void) const
             -> std::map<string,string>;
 
         // --- public mutator(s) ------------------------------------------
-        void    insert_input_index(size_t index);
-        void    erase_input_index(size_t index);
-        void    clear_input_indices(void);
         void    set_action(const string& action);
         void    set_method(const string& method);
-        void    insert_input(Document::FormInput& input);
-        void    insert_input(const string& key, Document::FormInput& input);
-        void    erase_inputs(const string& key);
-        void    remove_input(Document::FormInput& input);
-        void    remove_input(
-                    const string& key,
-                    Document::FormInput& input
-                );
-        void    clear_inputs(void);
 
     private:
         // --- private member variable(s) ---------------------------------
         Document                    *m_parent           = nullptr;
         string                      m_action            = "";
         string                      m_method            = "";
-        input_ptr_container_map     m_inputs            = {};
+        input_idx_container_map     m_activeInputs      = {};
         input_index_container       m_input_indices     = {};
+
+        // --- private mutators -------------------------------------------
+        void    insert_input(size_t index);
+        void    erase_inputs(const string& key);
+        void    remove_input(size_t index);
+        void    clear_active_inputs(void);
 };// end class Document::Form
 
 struct      Document::BufferIndex
