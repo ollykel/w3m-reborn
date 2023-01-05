@@ -22,7 +22,9 @@ HttpFetcher::HttpFetcher(
     const env_map& env
 )
 {
-    m_cmd = Command(shellCommand).set_stdout_piped(true);
+    m_cmd = Command(shellCommand)
+        .set_stdout_piped(true)
+        .set_stdin_piped(true);
     m_urlEnv = urlEnv;
 
     for (const auto& kv : env)
@@ -37,8 +39,9 @@ auto HttpFetcher::fetch_url(
     Status& status,
     header_type& headers,
     const Uri& url,
+    const data_container& input,
     const env_map& env
-) const -> std::vector<char>
+) const -> data_container
 {
     using namespace std;
 
@@ -57,6 +60,15 @@ auto HttpFetcher::fetch_url(
     cmd.set_env(m_urlEnv, url.str());
 
     auto        sproc       = cmd.spawn();
+
+    // write request body, if applicable
+    if (not input.empty())
+    {
+        sproc.stdin().write(input.data(), input.size());
+    }
+
+    // close stdin
+    sproc.stdin().close();
 
     // read first line
     //     if it is a valid HTTP status line, parse it

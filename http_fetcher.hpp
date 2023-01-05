@@ -15,6 +15,7 @@ class HttpFetcher
         typedef     std::vector<string>         header_value_type;
         typedef     std::map<header_key_type, header_value_type>
                                                 header_type;
+        typedef     std::vector<char>           data_container;
         typedef     std::map<string,string>     env_map;
         struct      Status
         {
@@ -35,8 +36,9 @@ class HttpFetcher
             Status& status,
             header_type& headers,
             const Uri& url,
+            const data_container& input = {},
             const env_map& env = {}
-        ) const -> std::vector<char>;
+        ) const -> data_container;
 
     private:
         // --- private member variables -----------------------------------
