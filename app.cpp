@@ -465,7 +465,9 @@ void    App::goto_url(
     Tab& tab,
     const CONT_T& mailcaps,
     const Config& cfg,
-    const Uri& targetUrl
+    const Uri& targetUrl,
+    const string& requestMethod,
+    const HttpFetcher::data_container& input
 )
 {
     using namespace std;
@@ -481,16 +483,24 @@ void    App::goto_url(
     }
     else if (not targetUrl.empty())
     {
-        static const string         defContentType      = "text/plain";
-        HttpFetcher::Status         status              = {};
-        HttpFetcher::header_type    headers             = {};
-        std::vector<char>           data                = {};
-        Uri                         target              = targetUrl;
-        Uri                         prevUri             = {};
-        Uri                         fullUri;
-        const string                *contentType        = nullptr;
-        s_ptr<Document>             doc                 = nullptr;
-        unordered_set<string>       visitedUris         = {};
+        static const string                         defContentType
+            = "text/plain";
+        static const HttpFetcher::data_container    nullData
+            = {};
+
+        HttpFetcher::Status                 status              = {};
+        HttpFetcher::header_type            headers             = {};
+        std::vector<char>                   data                = {};
+        std::map<string,string>             fetchEnv            = {};
+        Uri                                 target              = targetUrl;
+        const HttpFetcher::data_container   *inData             = &input;
+        Uri                                 prevUri             = {};
+        Uri                                 fullUri;
+        const string                        *contentType        = nullptr;
+        s_ptr<Document>                     doc                 = nullptr;
+        unordered_set<string>               visitedUris         = {};
+
+        fetchEnv["W3M_REQUEST_METHOD"] = requestMethod;
 
         if (tab.curr_page())
         {
@@ -517,9 +527,14 @@ void    App::goto_url(
             }
 
             visitedUris.insert(fullUri.str());
-            data = fetcher->fetch_url(status, headers, fullUri);
+            data = fetcher->fetch_url(
+                status, headers, fullUri, *inData, fetchEnv
+            );
 
+            fetchEnv["W3M_REQUEST_METHOD"] = "GET";
+            inData = &nullData;
             prevUri = fullUri;
+
             if (headers.count("location")
                 and (not headers.at("location").empty())
             )
@@ -752,16 +767,22 @@ void    App::handle_form_input(
             {
                 Document::Form&     form    = input.form();
 
-                if (input.type() == Document::FormInput::Type::submit)
+                if (
+                    (input.type() == Document::FormInput::Type::submit)
+                    and (not input.name().empty())
+                )
                 {
-                    form.insert_input(input);
+                    input.set_is_active(true);
                 }
 
                 submit_form(tab, cfg, mailcaps, form);
 
-                if (input.type() == Document::FormInput::Type::submit)
+                if (
+                    (input.type() == Document::FormInput::Type::submit)
+                    and (not input.name().empty())
+                )
                 {
-                    form.remove_input(input);
+                    input.set_is_active(false);
                 }
             }
             break;
@@ -790,11 +811,14 @@ void    App::submit_form(
     std::vector<string>     values          = {};
     Uri                     url;
     HttpFetcher             *fetcher;
+    string                  method          = form.method();
 
     url = Uri::from_relative(
         tab.curr_page()->uri(),
         form.action()
     );
+
+    utils::to_upper(method);
 
     if (not (fetcher = get_uri_handler(url.scheme)))
     {
@@ -812,8 +836,28 @@ void    App::submit_form(
         values.push_back(val);
     }// end for kv
 
-    url.query = utils::join_str(values, "&");
-    goto_url(tab, mailcaps, cfg, url);
+    // Case 1: empty method
+    // Case 2: GET method
+    if (
+        method.empty()
+        or ("GET" == method)
+    )
+    {
+        url.query = utils::join_str(values, "&");
+        goto_url(tab, mailcaps, cfg, url);
+    }
+    // Case 3: other methods (i.e. POST, PUT, DELETE, etc.)
+    else
+    {
+        // TODO: create 'slice' interface, or make
+        // HttpFetcher::fetch_url templated
+        const string                        dataStr
+            = utils::join_str(values, "&");
+        const HttpFetcher::data_container   data
+            = { dataStr.cbegin(), dataStr.cend() };
+
+        goto_url(tab, mailcaps, cfg, url, method, data);
+    }
 }// end submit_form
 
 // ------ command functions -----------------------------------------------
