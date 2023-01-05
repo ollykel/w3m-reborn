@@ -286,11 +286,6 @@ std::string     percent_decode(const std::string& str)
 
                 if (std::sscanf(hex.c_str(), "%x", &value) == 1)
                 {
-                    if (hex.length() < 2)
-                    {
-                        value /= 0x10;
-                    }
-
                     out.push_back(value);
                 }
             }
