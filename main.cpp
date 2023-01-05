@@ -87,13 +87,31 @@ int main(const int argc, const char **argv, const char **envp)
     int             ret         = EXIT_FAILURE;
     int             wstatus;
     pid_t           child;
+    #define     CURL_COMMAND    \
+    "curl " \
+        "--include " \
+        "--request \"${W3M_REQUEST_METHOD}\" " \
+        "--data @- " \
+        "--user-agent \"${W3M_USER_AGENT}\" " \
+        "\"${W3M_URL}\""
     App::Config     config      = {
         // uriHandlers
         {
             // TODO: write scripts for each handler
-            {"file", "echo -n \"content-type: \"; mimetype --brief \"${W3M_URL}\"; curl --include --user-agent \"${W3M_USER_AGENT}\" \"${W3M_URL}\""},
-            {"http", "curl --include --user-agent \"${W3M_USER_AGENT}\" \"${W3M_URL}\""},
-            {"https", "curl --include --user-agent \"${W3M_USER_AGENT}\" \"${W3M_URL}\""},
+            {
+                "file",
+                "echo "
+                    "-n \"content-type: \"; mimetype --brief \"${W3M_URL}\"; "
+                    CURL_COMMAND
+            },
+            {
+                "http",
+                CURL_COMMAND
+            },
+            {
+                "https",
+                CURL_COMMAND
+            },
         },
         // initUrl
         "",
@@ -121,6 +139,8 @@ int main(const int argc, const char **argv, const char **envp)
             },
         },
     };
+
+    #undef  CURL_COMMAND
 
     // get url
     if (argc > 1)
