@@ -746,6 +746,8 @@ void    DocumentHtml::append_input(
                                     );
     const size_t        inputIndex  = m_form_inputs.size() - 0x01;
 
+    formInput.set_is_active(true);
+
     #define     FMT_FIELD_INC(FMT)  \
     { \
         if (line_length(m_buffer.back()) + (FMT).size() > cols) \
@@ -777,8 +779,6 @@ void    DocumentHtml::append_input(
         utils::to_wstr("]") \
     )
 
-    form.insert_input(name, formInput);
-
     switch (type)
     {
         case FormInput::Type::hidden:
@@ -805,11 +805,16 @@ void    DocumentHtml::append_input(
             }
             break;
         // button-based input fields
-        case FormInput::Type::button:
         case FormInput::Type::submit:
+            formInput.set_is_active(false);
+            // then, handle like a button
+        case FormInput::Type::button:
         case FormInput::Type::reset:
-            form.erase_inputs(name);
-            FMT_FIELD_INC(utils::to_wstr("[<" + value + ">]"));
+            FMT_FIELD_INC(
+                utils::to_wstr("[<")
+                + decode_text(value)
+                + utils::to_wstr(">]")
+            );
             break;
         case FormInput::Type::checkbox:
             {
@@ -820,11 +825,7 @@ void    DocumentHtml::append_input(
                     input.attributes.at("value") :
                     NULL_STR;
 
-                if (input.attributes.count("checked") and value.size())
-                {
-                    isChecked = true;
-                }
-
+                isChecked = (input.attributes.count("checked") and value.size());
                 formInput.set_is_active(isChecked);
 
                 FMT_FIELD_ENCLOSED(
@@ -862,14 +863,7 @@ void    DocumentHtml::append_input(
                     input.attributes.at("value") :
                     NULL_STR;
 
-                if (input.attributes.count("checked") and value.size())
-                {
-                    // make this the only input with this name
-                    form.erase_inputs(name);
-                    form.insert_input(name, formInput);
-                    isChecked = true;
-                }
-
+                isChecked = (input.attributes.count("checked") and value.size());
                 formInput.set_is_active(isChecked);
 
                 FMT_FIELD_ENCLOSED(
