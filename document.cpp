@@ -57,17 +57,13 @@ auto Document::buffer_iter(BufPos pos)
 {
     if (m_buffer.empty())
     {
-        return {};
+        return { m_buffer, 0, 0, 0 };
     }
 
     switch (pos)
     {
         case BufPos::begin:
-            return buffer_node_iterator(
-                m_buffer,
-                m_buffer.begin(), m_buffer.front().begin(),
-                0, 0, 0
-            );
+            return { m_buffer, 0, 0, 0 };
         case BufPos::end:
             {
                 auto    nodeIter    = m_buffer.back().begin();
@@ -81,7 +77,6 @@ auto Document::buffer_iter(BufPos pos)
 
                 return {
                     m_buffer,
-                    m_buffer.begin() + m_buffer.size() - 1, nodeIter,
                     m_buffer.size() - 1, m_buffer.back().size() - 1,
                     columns
                 };
@@ -100,11 +95,7 @@ auto Document::buffer_iter(size_t lineIdx, size_t nodeIdx)
     }
     if (lineIdx >= m_buffer.size())
     {
-        return {
-            m_buffer,
-            m_buffer.end(), {},
-            lineIdx, SIZE_MAX, 0
-        };
+        return { m_buffer, m_buffer.size(), 0, 0 };
     }
     if (nodeIdx >= m_buffer.at(lineIdx).size())
     {
@@ -116,9 +107,7 @@ auto Document::buffer_iter(size_t lineIdx, size_t nodeIdx)
         }// end for
 
         return {
-            m_buffer,
-            m_buffer.begin() + lineIdx, m_buffer.at(lineIdx).end(),
-            lineIdx, m_buffer.at(lineIdx).size(), columns
+            m_buffer, lineIdx, m_buffer.at(lineIdx).size(), columns
         };
     }
 
@@ -132,11 +121,7 @@ auto Document::buffer_iter(size_t lineIdx, size_t nodeIdx)
             ++nodeIter;
         }// end for
 
-        return {
-            m_buffer,
-            m_buffer.begin() + lineIdx, nodeIter,
-            lineIdx, nodeIdx, columns
-        };
+        return { m_buffer, lineIdx, nodeIdx, columns };
     }
 }// end Document::buffer_iter
 
@@ -682,14 +667,14 @@ Document::buffer_node_iterator::buffer_node_iterator(void)
 // --- public accessors ---------------------------------------------------
 Document::buffer_node_iterator::operator bool(void) const
 {
-    return m_buffer and (m_lineIter != m_buffer->end());
+    return m_buffer and (m_lineIdx < m_buffer->size());
 }// end Document::buffer_node_iterator::operator bool
 
 auto Document::buffer_node_iterator::operator*(void) const
     -> Document::BufferNode&
 {
-    return *m_nodeIter;
-}
+    return node();
+}// end Document::buffer_node_iterator::operator*
 
 auto Document::buffer_node_iterator::line_index(void) const
     -> size_t
@@ -697,11 +682,23 @@ auto Document::buffer_node_iterator::line_index(void) const
     return m_lineIdx;
 }// end Document::buffer_node_iterator::line_index
 
+auto Document::buffer_node_iterator::line(void) const
+    -> Document::BufferLine&
+{
+    return m_buffer->at(line_index());
+}// end Document::buffer_node_iterator::line
+
 auto Document::buffer_node_iterator::node_index(void) const
     -> size_t
 {
     return m_nodeIdx;
 }// end Document::buffer_node_iterator::node_index
+
+auto Document::buffer_node_iterator::node(void) const
+    -> Document::BufferNode&
+{
+    return line().at(node_index());
+}// end Document::buffer_node_iterator::node
 
 auto Document::buffer_node_iterator::column(void) const
     -> size_t
@@ -712,44 +709,27 @@ auto Document::buffer_node_iterator::column(void) const
 auto Document::buffer_node_iterator::at_line_end(void) const
     -> bool
 {
-    return (*this) and (m_nodeIter == m_lineIter->end());
+    return (*this) and (node_index() >= line().size());
 }// end Document::buffer_node_iterator::at_line_end
 
 // --- public mutators ----------------------------------------------------
 auto Document::buffer_node_iterator::operator++(void)
     -> type&
 {
-    if (not m_buffer)
+    if (not (*this))
     {
         goto finally;
     }
-    if (m_lineIter == m_buffer->end())
-    {
-        m_nodeIter = {};
-        m_column = 0;
-        goto finally;
-    }
-    if (m_nodeIter == m_lineIter->end())
-    {
-        ++m_lineIter;
-        ++m_lineIdx;
 
-        if (m_lineIter == m_buffer->end())
-        {
-            m_nodeIter = {};
-            m_column = 0;
-        }
-        else
-        {
-            m_nodeIter = m_lineIter->begin();
-            m_nodeIdx = 0;
-            m_column = 0;
-        }
+    if (at_line_end())
+    {
+        ++m_lineIdx;
+        m_nodeIdx = 0;
+        m_column = 0;
     }
     else
     {
-        m_column += m_nodeIter->text().length();
-        ++m_nodeIter;
+        m_column += node().text().length();
         ++m_nodeIdx;
     }
 finally:
@@ -773,8 +753,8 @@ auto operator==(
 ) -> bool
 {
     return (a.m_buffer == b.m_buffer)
-        and (a.m_lineIter == b.m_lineIter)
-        and (a.m_nodeIter == b.m_nodeIter);
+        and (a.m_lineIdx == b.m_lineIdx)
+        and (a.m_nodeIdx == b.m_nodeIdx);
 }// end operator==
 
 auto operator!=(
@@ -788,16 +768,12 @@ auto operator!=(
 // --- private constructors -----------------------------------------------
 Document::buffer_node_iterator::buffer_node_iterator(
     Document::buffer_type& buffer,
-    const Document::buffer_type::iterator& lineIter,
-    const Document::BufferLine::iterator& nodeIter,
     size_t lineIdx,
     size_t nodeIdx,
     size_t column
 )
 {
     m_buffer = &buffer;
-    m_lineIter = lineIter;
-    m_nodeIter = nodeIter;
     m_lineIdx = lineIdx;
     m_nodeIdx = nodeIdx;
     m_column = column;

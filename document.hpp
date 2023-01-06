@@ -325,8 +325,12 @@ class       Document::buffer_node_iterator
             -> Document::BufferNode&;
         auto line_index(void) const
             -> size_t;
+        auto line(void) const
+            -> Document::BufferLine&;
         auto node_index(void) const
             -> size_t;
+        auto node(void) const
+            -> Document::BufferNode&;
         auto column(void) const
             -> size_t;
         auto at_line_end(void) const
@@ -345,18 +349,14 @@ class       Document::buffer_node_iterator
             -> bool;
     private:
         // --- private member variables -----------------------------------
-        Document::buffer_type               *m_buffer       = nullptr;
-        Document::buffer_type::iterator     m_lineIter      = {};
-        Document::BufferLine::iterator      m_nodeIter      = {};
-        size_t                              m_lineIdx       = 0;
-        size_t                              m_nodeIdx       = 0;
-        size_t                              m_column        = 0;
+        Document::buffer_type   *m_buffer       = nullptr;
+        size_t                  m_lineIdx       = 0;
+        size_t                  m_nodeIdx       = 0;
+        size_t                  m_column        = 0;
 
         // --- private constructors ---------------------------------------
         buffer_node_iterator(
             Document::buffer_type& buffer,
-            const Document::buffer_type::iterator& lineIter,
-            const Document::BufferLine::iterator& nodeIter,
             size_t lineIdx,
             size_t nodeIdx,
             size_t column
