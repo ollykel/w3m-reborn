@@ -91,6 +91,7 @@ class   Document
             // --- operator overloaders -----------------------------------
             operator bool(void) const;
         };// end buffer_index_type
+        class       buffer_node_iterator;
 
         typedef     BufferIndex                     BufIdx;
         typedef     std::vector<BufferNode>         BufferLine;
@@ -297,5 +298,60 @@ struct      Document::BufferIndex
     // --- public constructor(s) ------------------------------------------
     BufferIndex(size_t lnum, size_t cnum);
 };// end struct Document::BufferIndex
+
+class       Document::buffer_node_iterator
+{
+    friend class Document;
+
+    public:
+        // --- public member types ----------------------------------------
+        typedef     buffer_node_iterator        type;
+
+        // --- public constructors ----------------------------------------
+        buffer_node_iterator(void); // void
+
+        // --- public accessors -------------------------------------------
+        operator bool(void) const;
+        auto operator*(void) const
+            -> Document::BufferNode&;
+        auto line_index(void) const
+            -> size_t;
+        auto node_index(void) const
+            -> size_t;
+        auto column(void) const
+            -> size_t;
+        auto at_line_end(void) const
+            -> bool;
+
+        // --- public mutators --------------------------------------------
+        auto operator++(void)
+            -> type&;
+        auto operator++(int _)
+            -> type;
+
+        // --- friend functions -------------------------------------------
+        friend auto operator==(const type& a, const type& b)
+            -> bool;
+        friend auto operator!=(const type& a, const type& b)
+            -> bool;
+    private:
+        // --- private member variables -----------------------------------
+        Document::buffer_type               *m_buffer       = nullptr;
+        Document::buffer_type::iterator     m_lineIter      = {};
+        Document::BufferLine::iterator      m_nodeIter      = {};
+        size_t                              m_lineIdx       = 0;
+        size_t                              m_nodeIdx       = 0;
+        size_t                              m_column        = 0;
+
+        // --- private constructors ---------------------------------------
+        buffer_node_iterator(
+            Document::buffer_type& buffer,
+            const Document::buffer_type::iterator& lineIter,
+            const Document::BufferLine::iterator& nodeIter,
+            size_t lineIdx,
+            size_t nodeIdx,
+            size_t column
+        );
+};// end class Document::buffer_node_iterator
 
 #endif

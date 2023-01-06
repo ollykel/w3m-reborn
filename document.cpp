@@ -580,3 +580,137 @@ Document::buffer_index_type::operator bool(void) const
 {
     return (line != SIZE_MAX) and (node != SIZE_MAX);
 }// end operator bool
+
+// === Document::buffer_node_iterator Implementation ======================
+//
+// ========================================================================
+
+// --- public constructors ------------------------------------------------
+Document::buffer_node_iterator::buffer_node_iterator(void)
+{
+    // do nothing
+}// end void constructor
+
+// --- public accessors ---------------------------------------------------
+Document::buffer_node_iterator::operator bool(void) const
+{
+    return m_buffer and (m_lineIter != m_buffer->end());
+}// end Document::buffer_node_iterator::operator bool
+
+auto Document::buffer_node_iterator::operator*(void) const
+    -> Document::BufferNode&
+{
+    return *m_nodeIter;
+}
+
+auto Document::buffer_node_iterator::line_index(void) const
+    -> size_t
+{
+    return m_lineIdx;
+}// end Document::buffer_node_iterator::line_index
+
+auto Document::buffer_node_iterator::node_index(void) const
+    -> size_t
+{
+    return m_nodeIdx;
+}// end Document::buffer_node_iterator::node_index
+
+auto Document::buffer_node_iterator::column(void) const
+    -> size_t
+{
+    return m_column;
+}// end Document::buffer_node_iterator::column
+
+auto Document::buffer_node_iterator::at_line_end(void) const
+    -> bool
+{
+    return (*this) and (m_nodeIter == m_lineIter->end());
+}// end Document::buffer_node_iterator::at_line_end
+
+// --- public mutators ----------------------------------------------------
+auto Document::buffer_node_iterator::operator++(void)
+    -> type&
+{
+    if (not m_buffer)
+    {
+        goto finally;
+    }
+    if (m_lineIter == m_buffer->end())
+    {
+        m_nodeIter = {};
+        m_column = 0;
+        goto finally;
+    }
+    if (m_nodeIter == m_lineIter->end())
+    {
+        ++m_lineIter;
+        ++m_lineIdx;
+
+        if (m_lineIter == m_buffer->end())
+        {
+            m_nodeIter = {};
+            m_column = 0;
+        }
+        else
+        {
+            m_nodeIter = m_lineIter->begin();
+            m_nodeIdx = 0;
+            m_column = 0;
+        }
+    }
+    else
+    {
+        m_column += m_nodeIter->text().length();
+        ++m_nodeIter;
+        ++m_nodeIdx;
+    }
+finally:
+    return *this;
+}// end Document::buffer_node_iterator::operator++
+
+auto Document::buffer_node_iterator::operator++(int _)
+    -> type
+{
+    type    ret     = *this;
+
+    ++(*this);
+
+    return ret;
+}// end Document::buffer_node_iterator::operator++
+
+// --- friend functions ---------------------------------------------------
+auto operator==(
+    const Document::buffer_node_iterator& a,
+    const Document::buffer_node_iterator& b
+) -> bool
+{
+    return (a.m_buffer == b.m_buffer)
+        and (a.m_lineIter == b.m_lineIter)
+        and (a.m_nodeIter == b.m_nodeIter);
+}// end operator==
+
+auto operator!=(
+    const Document::buffer_node_iterator& a,
+    const Document::buffer_node_iterator& b
+) -> bool
+{
+    return not (a == b);
+}// end operator!=
+
+// --- private constructors -----------------------------------------------
+Document::buffer_node_iterator::buffer_node_iterator(
+    Document::buffer_type& buffer,
+    const Document::buffer_type::iterator& lineIter,
+    const Document::BufferLine::iterator& nodeIter,
+    size_t lineIdx,
+    size_t nodeIdx,
+    size_t column
+)
+{
+    m_buffer = &buffer;
+    m_lineIter = lineIter;
+    m_nodeIter = nodeIter;
+    m_lineIdx = lineIdx;
+    m_nodeIdx = nodeIdx;
+    m_column = column;
+}// end Document::buffer_node_iterator::buffer_node_iterator
