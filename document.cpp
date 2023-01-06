@@ -52,6 +52,65 @@ auto Document::form_inputs(void) const
     return m_form_inputs;
 }// end Document::form_inputs
 
+auto Document::buffer_iter(BufPos pos)
+    -> buffer_node_iterator
+{
+    if (m_buffer.empty())
+    {
+        return {};
+    }
+
+    switch (pos)
+    {
+        case BufPos::begin:
+            return buffer_node_iterator(
+                m_buffer,
+                m_buffer.begin(), m_buffer.front().begin(),
+                0, 0, 0
+            );
+        case BufPos::end:
+            return buffer_node_iterator(
+                m_buffer,
+                m_buffer.begin() + m_buffer.size() - 1,
+                m_buffer.back().begin() + m_buffer.back().size() - 1,
+                m_buffer.size() - 1, m_buffer.back().size() - 1, 0
+            );
+        default:
+            throw std::logic_error("unrecognized BufPos");
+    }// end switch
+}// end Document::buffer_iter
+
+auto Document::buffer_iter(size_t lineIdx, size_t nodeIdx)
+    -> buffer_node_iterator
+{
+    if (m_buffer.empty())
+    {
+        return {};
+    }
+    if (lineIdx >= m_buffer.size())
+    {
+        return {
+            m_buffer,
+            m_buffer.end(), {},
+            lineIdx, SIZE_MAX, 0
+        };
+    }
+    if (nodeIdx >= m_buffer.at(lineIdx).size())
+    {
+        return {
+            m_buffer,
+            m_buffer.begin() + lineIdx, m_buffer.at(lineIdx).end(),
+            lineIdx, m_buffer.at(lineIdx).size(), 0
+        };
+    }
+
+    return {
+        m_buffer,
+        m_buffer.begin() + lineIdx, m_buffer.at(nodeIdx).begin() + nodeIdx,
+        lineIdx, nodeIdx, 0
+    };
+}// end Document::buffer_iter
+
 auto Document::get_section_index(const string& id) const
     -> buffer_index_type
 {

@@ -92,6 +92,11 @@ class   Document
             operator bool(void) const;
         };// end buffer_index_type
         class       buffer_node_iterator;
+        enum class  BufPos
+        {
+            begin   = 0,
+            end     = 1,
+        };
 
         typedef     BufferIndex                     BufIdx;
         typedef     std::vector<BufferNode>         BufferLine;
@@ -132,6 +137,10 @@ class   Document
             -> form_container::iterator;
         auto form_inputs(void)
             -> form_input_container::iterator;
+        auto buffer_iter(BufPos pos)
+            -> buffer_node_iterator;
+        auto buffer_iter(size_t lineIdx, size_t nodeIdx)
+            -> buffer_node_iterator;
     protected:
         // --- protected member types -------------------------------------
         typedef     std::map<string,buffer_index_type>      section_map;
