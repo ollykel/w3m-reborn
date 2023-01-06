@@ -69,12 +69,23 @@ auto Document::buffer_iter(BufPos pos)
                 0, 0, 0
             );
         case BufPos::end:
-            return buffer_node_iterator(
-                m_buffer,
-                m_buffer.begin() + m_buffer.size() - 1,
-                m_buffer.back().begin() + m_buffer.back().size() - 1,
-                m_buffer.size() - 1, m_buffer.back().size() - 1, 0
-            );
+            {
+                auto    nodeIter    = m_buffer.back().begin();
+                size_t  columns     = 0;
+
+                for (size_t i = m_buffer.back().size(); i > 1; ++i)
+                {
+                    columns += nodeIter->text().length();
+                    ++nodeIter;
+                }// end for
+
+                return {
+                    m_buffer,
+                    m_buffer.begin() + m_buffer.size() - 1, nodeIter,
+                    m_buffer.size() - 1, m_buffer.back().size() - 1,
+                    columns
+                };
+            }
         default:
             throw std::logic_error("unrecognized BufPos");
     }// end switch
@@ -97,18 +108,36 @@ auto Document::buffer_iter(size_t lineIdx, size_t nodeIdx)
     }
     if (nodeIdx >= m_buffer.at(lineIdx).size())
     {
+        size_t      columns     = 0;
+
+        for (const auto& node : m_buffer.back())
+        {
+            columns += node.text().length();
+        }// end for
+
         return {
             m_buffer,
             m_buffer.begin() + lineIdx, m_buffer.at(lineIdx).end(),
-            lineIdx, m_buffer.at(lineIdx).size(), 0
+            lineIdx, m_buffer.at(lineIdx).size(), columns
         };
     }
 
-    return {
-        m_buffer,
-        m_buffer.begin() + lineIdx, m_buffer.at(nodeIdx).begin() + nodeIdx,
-        lineIdx, nodeIdx, 0
-    };
+    {
+        auto        nodeIter    = m_buffer.at(nodeIdx).begin();
+        size_t      columns     = 0;
+
+        for (size_t i = nodeIdx; i; --i)
+        {
+            columns += nodeIter->text().length();
+            ++nodeIter;
+        }// end for
+
+        return {
+            m_buffer,
+            m_buffer.begin() + lineIdx, nodeIter,
+            lineIdx, nodeIdx, columns
+        };
+    }
 }// end Document::buffer_iter
 
 auto Document::get_section_index(const string& id) const
