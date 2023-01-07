@@ -375,37 +375,10 @@ void    DocumentHtml::append_a(
         return;
     }
 
-    const size_t        linkIdx     = m_links.size();
-    string              linkUrl     = "";
-
-    {
-        const string&       src         = a.attributes.at("href");
-        size_t              idx         = 0;
-        size_t              beg         = 0;
-
-        do
-        {
-            idx = src.find('&', beg);
-
-            linkUrl += src.substr(beg, idx);
-            if (string::npos == idx)
-            {
-                break;
-            }
-
-            beg = idx + 1;
-            idx = src.find(';', beg);
-            if (string::npos == idx)
-            {
-                linkUrl.push_back('&');
-            }
-            else
-            {
-                linkUrl.push_back(parse_html_entity(src.substr(beg, idx)));
-                beg = idx + 1;
-            }
-        } while (beg < src.size());
-    }
+    const size_t    linkIdx     = m_links.size();
+    const string    linkUrl     = utils::from_wstr(
+        decode_text(a.attributes.at("href"))
+    );
 
     m_links.emplace_back(linkUrl);
     auto&   currLink    = m_links.back();
@@ -1204,10 +1177,16 @@ wstring  DocumentHtml::decode_text(const string& text)
             inBuf.ignore(1);
             string      entId       = utils::read_token_until(inBuf, ";");
 
-            output.push_back(parse_html_entity(entId));
             if (inBuf and inBuf.peek() == ';')
             {
+                output.push_back(parse_html_entity(entId));
                 inBuf.ignore(1);
+            }
+            else
+            {
+                // not an actual entity id
+                output.push_back('&');
+                output += utils::to_wstr(entId);
             }
         }
     }// end while (inBuf)
