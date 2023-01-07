@@ -69,7 +69,7 @@ auto Document::buffer_iter(BufPos pos)
                 auto    nodeIter    = m_buffer.back().begin();
                 size_t  columns     = 0;
 
-                for (size_t i = m_buffer.back().size(); i > 1; ++i)
+                for (size_t i = m_buffer.back().size(); i > 1; --i)
                 {
                     columns += nodeIter->text().length();
                     ++nodeIter;
@@ -77,7 +77,9 @@ auto Document::buffer_iter(BufPos pos)
 
                 return {
                     m_buffer,
-                    m_buffer.size() - 1, m_buffer.back().size() - 1,
+                    m_buffer.size() - 1,
+                    m_buffer.back().empty() ?
+                        0 : m_buffer.back().size() - 1,
                     columns
                 };
             }
