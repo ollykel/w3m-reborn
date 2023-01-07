@@ -366,8 +366,7 @@ void    DocumentHtml::append_a(
     }
 
     // store last line, column indices before appending children
-    const size_t    startLineIdx = m_buffer.size() - 1;
-    const size_t    startNodeIdx = m_buffer.back().size();
+    auto    iter    = buffer_iter(BufPos::end);
 
     append_children(a, cols, fmt, stacks);
 
@@ -409,25 +408,24 @@ void    DocumentHtml::append_a(
     }
 
     m_links.emplace_back(linkUrl);
-    auto&               currLink    = m_links.back();
+    auto&   currLink    = m_links.back();
 
-    for (size_t i = startLineIdx, j = startNodeIdx; i < m_buffer.size(); ++i)
+    ++iter;// one past old end
+    for (; iter; ++iter)
     {
-        auto&   currLine    = m_buffer.at(i);
-
-        for (; j < currLine.size(); ++j)
+        if (iter.at_line_end())
         {
-            auto&   currNode    = currLine.at(j);
+            continue;
+        }
 
-            if (not currNode.reserved() and not currNode.link_ref())
-            {
-                currNode.set_link_ref(linkIdx);
-                currLink.append_referer(i, j);
-            }
-        }// end for j
+        auto&   currNode    = *iter;
 
-        j = 0;
-    }// end for i
+        if (not currNode.reserved() and not currNode.link_ref())
+        {
+            currNode.set_link_ref(linkIdx);
+            currLink.append_referer(iter.line_index(), iter.node_index());
+        }
+    }// end for
 }// end DocumentHtml::append_a(DomTree::node& a)
 
 // === DocumentHtml::append_audio =========================================
