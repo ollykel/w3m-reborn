@@ -1166,32 +1166,37 @@ wstring  DocumentHtml::decode_text(const string& text)
 {
     using namespace std;
 
-    istringstream       inBuf(text);
-    wstring             output      = wstring();
+    size_t      idx     = 0;
+    size_t      beg     = 0;
+    wstring     out     = {};
 
-    while (inBuf)
+    do
     {
-        output += utils::to_wstr(utils::read_token_until(inBuf, "&"));
-        if (inBuf and inBuf.peek() == '&')
+        idx = text.find('&', beg);
+
+        out += utils::to_wstr(text.substr(beg, idx - beg));
+        if (string::npos == idx)
         {
-            inBuf.ignore(1);
-            string      entId       = utils::read_token_until(inBuf, ";");
-
-            if (inBuf and inBuf.peek() == ';')
-            {
-                output.push_back(parse_html_entity(entId));
-                inBuf.ignore(1);
-            }
-            else
-            {
-                // not an actual entity id
-                output.push_back('&');
-                output += utils::to_wstr(entId);
-            }
+            break;
         }
-    }// end while (inBuf)
 
-    return output;
+        beg = idx + 1;
+        idx = text.find(';', beg);
+        if (string::npos == idx)
+        {
+            out.push_back('&');
+            ++beg;
+        }
+        else
+        {
+            const string    entId   = text.substr(beg, idx - beg);
+
+            out.push_back(parse_html_entity(entId));
+            beg = idx + 1;
+        }
+    } while (beg < text.size());
+
+    return out;
 }// end DocumentHtml::decode_text(const string& text)
 
 // XXX class DocumentHtml::Format Implementation XXXXXXXXXXXXXXXXXXXXXXXXXX
