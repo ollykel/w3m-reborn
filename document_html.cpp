@@ -16,7 +16,7 @@ DocumentHtml::DocumentHtml(const Document::Config& cfg)
 {
     // initialize dispatcher
     m_dispatcher["a"] = &DocumentHtml::append_a;
-    m_dispatcher["audio"] = &DocumentHtml::append_audio;
+    m_dispatcher["audio"] = &DocumentHtml::append_embed;
     m_dispatcher["br"] = &DocumentHtml::append_br;
     m_dispatcher["div"] = &DocumentHtml::append_div;
     m_dispatcher["form"] = &DocumentHtml::append_form;
@@ -34,6 +34,7 @@ DocumentHtml::DocumentHtml(const Document::Config& cfg)
     m_dispatcher["p"] = &DocumentHtml::append_p;
     m_dispatcher["table"] = &DocumentHtml::append_table;
     m_dispatcher["tbody"] = &DocumentHtml::append_tbody;
+    m_dispatcher["video"] = &DocumentHtml::append_embed;
 }// end DocumentHtml(void)
 
 DocumentHtml::DocumentHtml(
@@ -401,14 +402,14 @@ void    DocumentHtml::append_a(
     }// end for
 }// end DocumentHtml::append_a(DomTree::node& a)
 
-// === DocumentHtml::append_audio =========================================
+// === DocumentHtml::append_embed =========================================
 //
-// Append an audio element. Realized as a link to the url identified in the
+// Append an embed element. Realized as a link to the url identified in the
 // enclosed source element.
 //
 // ========================================================================
-void    DocumentHtml::append_audio(
-    DomTree::node& audio,
+void    DocumentHtml::append_embed(
+    DomTree::node& embed,
     const size_t cols,
     Format fmt,
     Stacks& stacks
@@ -416,13 +417,13 @@ void    DocumentHtml::append_audio(
 {
     const string    *src    = nullptr;
 
-    if (audio.attributes.count("src"))
+    if (embed.attributes.count("src"))
     {
-        src = &audio.attributes.at("src");
+        src = &embed.attributes.at("src");
     }
     else
     {
-        for (const auto& nd : audio)
+        for (const auto& nd : embed)
         {
             if (
                 (nd.identifier() == "source")
@@ -453,7 +454,8 @@ void    DocumentHtml::append_audio(
 
         // get filename
         fName.push_back('[');
-        fName += "audio:";
+        fName += embed.identifier();
+        fName.push_back(':');
         if (src->rfind('/') != string::npos)
         {
             fName += utils::percent_decode(
@@ -514,7 +516,7 @@ void    DocumentHtml::append_audio(
             j = 0;
         }// end for i
     }
-}// end DocumentHtml::append_audio
+}// end DocumentHtml::append_embed
 
 // === DocumentHtml::append_br(DomTree::node& br, const size_t cols, Format fmt, Stacks& stacks)
 //

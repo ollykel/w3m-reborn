@@ -77,14 +77,14 @@ class   DocumentHtml : public Document
             Format fmt,
             Stacks& stacks
         );
-        void    append_a(
-            DomTree::node& a,
+        void    append_embed(
+            DomTree::node& embed,
             const size_t cols,
             Format fmt,
             Stacks& stacks
         );
-        void    append_audio(
-            DomTree::node& audio,
+        void    append_a(
+            DomTree::node& a,
             const size_t cols,
             Format fmt,
             Stacks& stacks
