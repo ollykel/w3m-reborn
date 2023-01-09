@@ -424,6 +424,9 @@ auto App::run(const Config& config)
                     m_currPage->viewer().disp_status(fmt.str());
                 }
                 break;
+            case CTRL('x'):
+                set_env({ "SET_ENV" });
+                break;
             case CTRL('z'):
                 suspend({});
                 break;
@@ -953,6 +956,36 @@ void App::bind_key(const command_args_container& args)
 
 void App::set_env(const command_args_container& args)
 {
+    string      prompt      = "";
+
+    switch (args.size())
+    {
+        case 2:
+            prompt = args.at(1);
+            prompt.push_back('=');
+        case 1:
+            if (m_currPage->viewer().prompt_string(prompt, "[SETENV]:"))
+            {
+                size_t  splitIdx    = prompt.find('=');
+
+                if (splitIdx and (splitIdx != string::npos))
+                {
+                    string      key     = prompt.substr(0, splitIdx);
+                    string      val     = prompt.substr(splitIdx + 1);
+
+                    setenv(key.c_str(), val.c_str(), 1);
+                }
+            }
+            break;
+        case 3:
+            setenv(args.at(1).c_str(), args.at(2).c_str(), 1);
+            break;
+        default:
+            m_currPage->viewer().disp_status(
+                "usage: " + args.at(0) + " [ENV] [VALUE]"
+            );
+            break;
+    }
     // TODO: implement
 }// end set_env
 
