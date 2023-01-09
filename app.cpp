@@ -94,7 +94,6 @@ auto App::run(const Config& config)
 
     Tab::Config                 tabCfg{ config.viewer };
     Tab                         currTab(tabCfg);
-    Tab::Page                   *currPage;
     std::vector<Mailcap>        mailcaps;
     int                         key;
 
@@ -161,7 +160,7 @@ auto App::run(const Config& config)
     // goto init url
     {
         goto_url(currTab, mailcaps, m_config, m_config.initUrl);
-        currPage = currTab.curr_page();
+        m_currPage = currTab.curr_page();
     }
 
     // wait for keypress
@@ -215,103 +214,103 @@ auto App::run(const Config& config)
             // move cursor down
             case KEY_DOWN:
             case 'j':
-                currPage->viewer().curs_down(w3mIndex);
+                m_currPage->viewer().curs_down(w3mIndex);
                 break;
             // move page up
             case KEY_SF:
             case 'J':
-                currPage->viewer().line_down(w3mIndex);
+                m_currPage->viewer().line_down(w3mIndex);
                 break;
             // move cursor up
             case KEY_UP:
             case 'k':
-                currPage->viewer().curs_up(w3mIndex);
+                m_currPage->viewer().curs_up(w3mIndex);
                 break;
             // move page down
             case KEY_SR:
             case 'K':
-                currPage->viewer().line_up(w3mIndex);
+                m_currPage->viewer().line_up(w3mIndex);
                 break;
             // move cursor left
             case KEY_LEFT:
             case 'h':
-                currPage->viewer().curs_left(w3mIndex);
+                m_currPage->viewer().curs_left(w3mIndex);
                 break;
             // move cursor right
             case KEY_RIGHT:
             case 'l':
-                currPage->viewer().curs_right(w3mIndex);
+                m_currPage->viewer().curs_right(w3mIndex);
                 break;
             // move cursor to first column
             case CTRL('a'):
             case '0':
-                currPage->viewer().curs_left(SIZE_MAX);
+                m_currPage->viewer().curs_left(SIZE_MAX);
                 break;
             case '$':
-                currPage->viewer().curs_right(COLS);
+                m_currPage->viewer().curs_right(COLS);
                 break;
             case 'b':
-                currPage->viewer().line_up(LINES);
+                m_currPage->viewer().line_up(LINES);
                 break;
             case 'c':
-                currPage->viewer().disp_status(currPage->uri().str());
+                m_currPage->viewer().disp_status(m_currPage->uri().str());
                 break;
             case ' ':
-                currPage->viewer().line_down(LINES);
+                m_currPage->viewer().line_down(LINES);
                 break;
             case KEY_CLEAR:
             case CTRL('l'):
-                currPage->viewer().refresh(true);
+                m_currPage->viewer().refresh(true);
                 break;
             case 'g':
-                currPage->viewer().curs_up(SIZE_MAX);
+                m_currPage->viewer().curs_up(SIZE_MAX);
                 break;
             case 'G':
-                currPage->viewer().curs_down(currPage->document().buffer().size() - 1);
+                m_currPage->viewer().curs_down(m_currPage->document().buffer().size() - 1);
                 break;
             case 'u':
                 {
-                    const string&   str     = currPage->viewer().curr_url();
+                    const string&   str     = m_currPage->viewer().curr_url();
 
                     if (not str.empty())
                     {
-                        currPage->viewer().disp_status(str);
+                        m_currPage->viewer().disp_status(str);
                     }
                 }
                 break;
             case 'I':
                 {
-                    const string&   str     = currPage->viewer().curr_img();
+                    const string&   str     = m_currPage->viewer().curr_img();
 
                     if (not str.empty())
                     {
-                        Uri         uri     = Uri::from_relative(currPage->uri(), str);
+                        Uri         uri     = Uri::from_relative(m_currPage->uri(), str);
 
-                        currPage->viewer().disp_status(uri.str());
+                        m_currPage->viewer().disp_status(uri.str());
                     }
                 }
                 break;
             case 'i':
                 {
-                    Uri     targetUrl   = currPage->viewer().curr_img();
+                    Uri     targetUrl   = m_currPage->viewer().curr_img();
 
                     if (not targetUrl.empty())
                     {
                         goto_url(currTab, mailcaps, m_config, targetUrl);
-                        currPage = currTab.curr_page();
+                        m_currPage = currTab.curr_page();
                     }
                 }
                 break;
             case 'U':
                 {
-                    string      url = currPage->viewer().curr_url();
+                    string      url = m_currPage->viewer().curr_url();
 
-                    if (currPage->viewer().prompt_string(url, "Goto URL:"))
+                    if (m_currPage->viewer().prompt_string(url, "Goto URL:"))
                     {
                         Uri             uri     = url;
 
                         goto_url(currTab, mailcaps, m_config, uri);
-                        currPage = currTab.curr_page();
+                        m_currPage = currTab.curr_page();
                     }
                 }
                 break;
@@ -321,32 +320,32 @@ auto App::run(const Config& config)
                     Document::FormInput     *input;
                     Uri                     targetUrl;
 
-                    if ((input = currPage->viewer().curr_form_input()))
+                    if ((input = m_currPage->viewer().curr_form_input()))
                     {
                         handle_form_input(currTab, m_config, mailcaps, *input);
-                        currPage = currTab.curr_page();
+                        m_currPage = currTab.curr_page();
                     }
                     else
                     {
-                        targetUrl = currPage->viewer().curr_url();
+                        targetUrl = m_currPage->viewer().curr_url();
 
                         if (not targetUrl.empty())
                         {
                             goto_url(currTab, mailcaps, m_config, targetUrl);
-                            currPage = currTab.curr_page();
+                            m_currPage = currTab.curr_page();
                         }
                     }
                 }
                 break;
             case 'M':
                 {
-                    Uri     targetUrl   = currPage->viewer().curr_url();
+                    Uri     targetUrl   = m_currPage->viewer().curr_url();
 
                     if (not targetUrl.empty())
                     {
                         // TODO: true external browser API
                         Uri         fullUrl = Uri::from_relative(
-                                                currPage->uri(),
+                                                m_currPage->uri(),
                                                 targetUrl
                                             );
                         Command     cmd     = Command("mpv \"${W3M_URL}\"")
@@ -355,19 +354,19 @@ auto App::run(const Config& config)
                         endwin();
                         cmd.spawn().wait();
                         doupdate();
-                        currPage->viewer().refresh(true);
+                        m_currPage->viewer().refresh(true);
                     }
                 }
                 break;
             case 'm':
                 {
-                    Uri     targetUrl   = currPage->uri();
+                    Uri     targetUrl   = m_currPage->uri();
 
                     if (not targetUrl.empty())
                     {
                         // TODO: true external browser API
                         Uri         fullUrl = Uri::from_relative(
-                                                currPage->uri(),
+                                                m_currPage->uri(),
                                                 targetUrl
                                             );
                         Command     cmd     = Command("mpv \"${W3M_URL}\"")
@@ -376,26 +375,26 @@ auto App::run(const Config& config)
                         endwin();
                         cmd.spawn().wait();
                         doupdate();
-                        currPage->viewer().refresh(true);
+                        m_currPage->viewer().refresh(true);
                     }
                 }
                 break;
             case '<':
                 {
-                    currPage = currTab.prev_page();
-                    currPage->viewer().refresh(true);
+                    m_currPage = currTab.prev_page();
+                    m_currPage->viewer().refresh(true);
                 }
                 break;
             case '>':
                 {
-                    currPage = currTab.next_page();
-                    currPage->viewer().refresh(true);
+                    m_currPage = currTab.next_page();
+                    m_currPage->viewer().refresh(true);
                 }
                 break;
             case 'B':
                 {
-                    currPage = currTab.back_page();
-                    currPage->viewer().refresh(true);
+                    m_currPage = currTab.back_page();
+                    m_currPage->viewer().refresh(true);
                 }
                 break;
             // submit form
@@ -403,12 +402,12 @@ auto App::run(const Config& config)
                 {
                     Document::FormInput     *input;
 
-                    if ((input = currPage->viewer().curr_form_input()))
+                    if ((input = m_currPage->viewer().curr_form_input()))
                     {
                         const Document::Form&   form    = input->form();
 
                         submit_form(currTab, m_config, mailcaps, form);
-                        currPage = currTab.curr_page();
+                        m_currPage = currTab.curr_page();
                     }
                 }
                 break;
@@ -418,16 +417,19 @@ auto App::run(const Config& config)
                     stringstream    fmt;
 
                     fmt << "line ";
-                    fmt << currPage->viewer().curr_curs_line();
+                    fmt << m_currPage->viewer().curr_curs_line();
                     fmt << " / ";
-                    fmt << currPage->viewer().buffer_size();
+                    fmt << m_currPage->viewer().buffer_size();
 
-                    currPage->viewer().disp_status(fmt.str());
+                    m_currPage->viewer().disp_status(fmt.str());
                 }
+                break;
+            case CTRL('z'):
+                suspend({});
                 break;
             case 'q':
                 {
-                    switch (currPage->viewer().prompt_char(
+                    switch (m_currPage->viewer().prompt_char(
                         "Are you sure you want to quit? (y/N):"
                     ))
                     {
@@ -880,7 +882,7 @@ void App::quit(const command_args_container& args)
     m_shouldTerminate = true;
 }// end quit
 
-void App::suspend(const command_args_container& args)
+void App::suspend(const command_args_container& _)
 {
     endwin();
 
@@ -898,7 +900,10 @@ void App::suspend(const command_args_container& args)
 
 void App::redraw(const command_args_container& args)
 {
-    // TODO: implement
+    if (m_currPage)
+    {
+        m_currPage->viewer().refresh(true);
+    }
 }// end redraw
 
 void App::goto_url(const command_args_container& args)

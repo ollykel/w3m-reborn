@@ -69,6 +69,7 @@ class App
         Config                  m_config                    = {};
         tabs_container          m_tabs                      = {};
         tabs_iterator           m_currTab                   = {};
+        Tab::Page               *m_currPage                 = nullptr;
         uri_handler_container   m_uriHandlers               = {};
         uri_handler_map         m_uriHandlerMap             = {};
         Mailcap                 *m_mailcap                  = nullptr;
@@ -123,7 +124,7 @@ class App
 
         // ------ command functions ---------------------------------------
         void quit(const command_args_container& args);
-        void suspend(const command_args_container& args);
+        void suspend(const command_args_container& _);
         void redraw(const command_args_container& args);
         void goto_url(const command_args_container& args);
         void reload(const command_args_container& args);
