@@ -92,12 +92,16 @@ auto App::run(const Config& config)
     // === TODO: move to header file ======================================
     #define     CTRL(KEY)   ((KEY) & 0x1f)
 
-    Tab::Config                 tabCfg{ config.viewer };
-    Tab                         currTab(tabCfg);
+    Tab::Config                 tabCfg;
     std::vector<Mailcap>        mailcaps;
     int                         key;
 
     m_config = config;
+
+    // init first tab
+    tabCfg = { config.viewer };
+    m_tabs.emplace_back(tabCfg);
+    m_currTab = m_tabs.begin();
 
     // print error message and exit if no initial url
     if (m_config.initUrl.empty())
@@ -159,8 +163,8 @@ auto App::run(const Config& config)
 
     // goto init url
     {
-        goto_url(currTab, mailcaps, m_config, m_config.initUrl);
-        m_currPage = currTab.curr_page();
+        goto_url(*m_currTab, mailcaps, m_config, m_config.initUrl);
+        m_currPage = m_currTab->curr_page();
     }
 
     // wait for keypress
@@ -296,8 +300,8 @@ auto App::run(const Config& config)
 
                     if (not targetUrl.empty())
                     {
-                        goto_url(currTab, mailcaps, m_config, targetUrl);
-                        m_currPage = currTab.curr_page();
+                        goto_url(*m_currTab, mailcaps, m_config, targetUrl);
+                        m_currPage = m_currTab->curr_page();
                     }
                 }
                 break;
@@ -309,8 +313,8 @@ auto App::run(const Config& config)
                     {
                         Uri             uri     = url;
 
-                        goto_url(currTab, mailcaps, m_config, uri);
-                        m_currPage = currTab.curr_page();
+                        goto_url(*m_currTab, mailcaps, m_config, uri);
+                        m_currPage = m_currTab->curr_page();
                     }
                 }
                 break;
@@ -322,8 +326,8 @@ auto App::run(const Config& config)
 
                     if ((input = m_currPage->viewer().curr_form_input()))
                     {
-                        handle_form_input(currTab, m_config, mailcaps, *input);
-                        m_currPage = currTab.curr_page();
+                        handle_form_input(*m_currTab, m_config, mailcaps, *input);
+                        m_currPage = m_currTab->curr_page();
                     }
                     else
                     {
@@ -331,8 +335,8 @@ auto App::run(const Config& config)
 
                         if (not targetUrl.empty())
                         {
-                            goto_url(currTab, mailcaps, m_config, targetUrl);
-                            m_currPage = currTab.curr_page();
+                            goto_url(*m_currTab, mailcaps, m_config, targetUrl);
+                            m_currPage = m_currTab->curr_page();
                         }
                     }
                 }
@@ -381,19 +385,19 @@ auto App::run(const Config& config)
                 break;
             case '<':
                 {
-                    m_currPage = currTab.prev_page();
+                    m_currPage = m_currTab->prev_page();
                     m_currPage->viewer().refresh(true);
                 }
                 break;
             case '>':
                 {
-                    m_currPage = currTab.next_page();
+                    m_currPage = m_currTab->next_page();
                     m_currPage->viewer().refresh(true);
                 }
                 break;
             case 'B':
                 {
-                    m_currPage = currTab.back_page();
+                    m_currPage = m_currTab->back_page();
                     m_currPage->viewer().refresh(true);
                 }
                 break;
@@ -406,8 +410,8 @@ auto App::run(const Config& config)
                     {
                         const Document::Form&   form    = input->form();
 
-                        submit_form(currTab, m_config, mailcaps, form);
-                        m_currPage = currTab.curr_page();
+                        submit_form(*m_currTab, m_config, mailcaps, form);
+                        m_currPage = m_currTab->curr_page();
                     }
                 }
                 break;
