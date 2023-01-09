@@ -1046,6 +1046,7 @@ void App::exec_shell(const command_args_container& args)
                 prompt = *iter;
             }
         }
+        // end command args; rest are shell args
         else if (arg == "--")
         {
             break;
