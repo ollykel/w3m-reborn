@@ -1140,11 +1140,18 @@ unsigned    DocumentHtml::parse_html_entity(const string& id)
     {
         out = entMap.at(id);
     }
-    else if (id.length() > 2 and id[0] == '#')
+    else if (id.length() > 1 and id.front() == '#')
     {
         try
         {
-            out = std::stoi(id.substr(1, id.length() - 1));
+            if (id.at(1) == 'x')
+            {
+                out = std::stoi(id.substr(2), nullptr, 0x10);
+            }
+            else
+            {
+                out = std::stoi(id.substr(1));
+            }
         }
         catch (std::invalid_argument& _)
         {
