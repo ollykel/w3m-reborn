@@ -424,6 +424,9 @@ auto App::run(const Config& config)
                     m_currPage->viewer().disp_status(fmt.str());
                 }
                 break;
+            case '!':
+                exec_shell({ "EXEC_SHELL", "--hold" });
+                break;
             case CTRL('x'):
                 set_env({ "SET_ENV" });
                 break;
@@ -1021,7 +1024,73 @@ void App::read_mailcap_file(const command_args_container& args)
 
 void App::exec_shell(const command_args_container& args)
 {
-    // TODO: implement
+    const string&       name            = args.front();
+    string              prompt          = "[SHELL]!";
+    bool                shouldHold      = false;
+    auto                iter            = args.cbegin() + 1;
+    Command             cmd;
+
+    for (; iter != args.cend(); ++iter)
+    {
+        const string&   arg     = *iter;
+
+        if ((arg == "--hold") or (arg == "-h"))
+        {
+            shouldHold = true;
+        }
+        else if ((arg == "--prompt") or (arg == "-p"))
+        {
+            ++iter;
+            if (iter != args.cend())
+            {
+                prompt = *iter;
+            }
+        }
+        else if (arg == "--")
+        {
+            break;
+        }
+        else
+        {
+            break;
+        }
+    }// end for
+
+    switch (args.cend() - iter)
+    {
+        case 0:
+            {
+                string  shellCmd  = "";
+
+                if (
+                    (not m_currPage->viewer().prompt_string(shellCmd, prompt))
+                    or shellCmd.empty()
+                )
+                {
+                    return;
+                }
+
+                cmd = Command(shellCmd);
+            }
+            break;
+        default:
+            {
+                const std::vector<string>   cmdArgs(iter, args.cend());
+
+                cmd = Command(cmdArgs);
+            }
+            break;
+    }// end switch
+
+    endwin();
+    cmd.spawn().wait();
+    if (shouldHold)
+    {
+        std::cout << std::endl;
+        std::cout << "[Press any key to return]";
+        std::cin.get();
+    }
+    m_currPage->viewer().refresh(1);
 }// end exec_shell
 
 void App::command(const command_args_container& args)
