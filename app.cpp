@@ -431,6 +431,13 @@ auto App::run(const Config& config)
             case '!':
                 exec_shell({ "EXEC_SHELL", "--hold" });
                 break;
+            case '@':
+                exec_shell({
+                    "READ_SHELL",
+                    "--read-output",
+                    "--prompt", "[READ_SHELL]!"
+                });
+                break;
             case CTRL('x'):
                 set_env({ "SET_ENV" });
                 break;
@@ -1031,6 +1038,7 @@ void App::exec_shell(const command_args_container& args)
     const string&       name            = args.front();
     string              prompt          = "[SHELL]!";
     bool                shouldHold      = false;
+    bool                shouldRead      = false;
     auto                iter            = args.cbegin() + 1;
     Command             cmd;
 
@@ -1049,6 +1057,10 @@ void App::exec_shell(const command_args_container& args)
             {
                 prompt = *iter;
             }
+        }
+        else if ((arg == "--read-output") or (arg == "-R"))
+        {
+            shouldRead = true;
         }
         // end command args; rest are shell args
         else if (arg == "--")
@@ -1087,8 +1099,27 @@ void App::exec_shell(const command_args_container& args)
             break;
     }// end switch
 
+    cmd.set_stdout_piped(shouldRead);
+
     endwin();
-    cmd.spawn().wait();
+    {
+        auto    sproc   = cmd.spawn();
+
+        // read output as new document
+        if (shouldRead)
+        {
+            s_ptr<Document>     doc;
+
+            doc.reset(new DocumentText(
+                m_config.document,
+                sproc.stdout(),
+                COLS
+            ));
+            m_currPage = m_currTab->push_document(doc, {});
+        }
+
+        sproc.wait();
+    }
     if (shouldHold)
     {
         std::cout << std::endl;
