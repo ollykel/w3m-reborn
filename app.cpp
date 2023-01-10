@@ -218,85 +218,85 @@ auto App::run(const Config& config)
             // move cursor down
             case KEY_DOWN:
             case 'j':
-                m_currPage->viewer().curs_down(w3mIndex);
+                curr_page().viewer().curs_down(w3mIndex);
                 break;
             // move page up
             case KEY_SF:
             case 'J':
-                m_currPage->viewer().line_down(w3mIndex);
+                curr_page().viewer().line_down(w3mIndex);
                 break;
             // move cursor up
             case KEY_UP:
             case 'k':
-                m_currPage->viewer().curs_up(w3mIndex);
+                curr_page().viewer().curs_up(w3mIndex);
                 break;
             // move page down
             case KEY_SR:
             case 'K':
-                m_currPage->viewer().line_up(w3mIndex);
+                curr_page().viewer().line_up(w3mIndex);
                 break;
             // move cursor left
             case KEY_LEFT:
             case 'h':
-                m_currPage->viewer().curs_left(w3mIndex);
+                curr_page().viewer().curs_left(w3mIndex);
                 break;
             // move cursor right
             case KEY_RIGHT:
             case 'l':
-                m_currPage->viewer().curs_right(w3mIndex);
+                curr_page().viewer().curs_right(w3mIndex);
                 break;
             // move cursor to first column
             case CTRL('a'):
             case '0':
-                m_currPage->viewer().curs_left(SIZE_MAX);
+                curr_page().viewer().curs_left(SIZE_MAX);
                 break;
             case '$':
-                m_currPage->viewer().curs_right(COLS);
+                curr_page().viewer().curs_right(COLS);
                 break;
             case 'b':
-                m_currPage->viewer().line_up(LINES);
+                curr_page().viewer().line_up(LINES);
                 break;
             case 'c':
-                m_currPage->viewer().disp_status(m_currPage->uri().str());
+                curr_page().viewer().disp_status(curr_page().uri().str());
                 break;
             case ' ':
-                m_currPage->viewer().line_down(LINES);
+                curr_page().viewer().line_down(LINES);
                 break;
             case KEY_CLEAR:
             case CTRL('l'):
-                m_currPage->viewer().refresh(true);
+                curr_page().viewer().refresh(true);
                 break;
             case 'g':
-                m_currPage->viewer().curs_up(SIZE_MAX);
+                curr_page().viewer().curs_up(SIZE_MAX);
                 break;
             case 'G':
-                m_currPage->viewer().curs_down(m_currPage->document().buffer().size() - 1);
+                curr_page().viewer().curs_down(curr_page().document().buffer().size() - 1);
                 break;
             case 'u':
                 {
-                    const string&   str     = m_currPage->viewer().curr_url();
+                    const string&   str     = curr_page().viewer().curr_url();
 
                     if (not str.empty())
                     {
-                        m_currPage->viewer().disp_status(str);
+                        curr_page().viewer().disp_status(str);
                     }
                 }
                 break;
             case 'I':
                 {
-                    const string&   str     = m_currPage->viewer().curr_img();
+                    const string&   str     = curr_page().viewer().curr_img();
 
                     if (not str.empty())
                     {
-                        Uri         uri     = Uri::from_relative(m_currPage->uri(), str);
+                        Uri         uri     = Uri::from_relative(curr_page().uri(), str);
 
-                        m_currPage->viewer().disp_status(uri.str());
+                        curr_page().viewer().disp_status(uri.str());
                     }
                 }
                 break;
             case 'i':
                 {
-                    Uri     targetUrl   = m_currPage->viewer().curr_img();
+                    Uri     targetUrl   = curr_page().viewer().curr_img();
 
                     if (not targetUrl.empty())
                     {
@@ -307,9 +307,9 @@ auto App::run(const Config& config)
                 break;
             case 'U':
                 {
-                    string      url = m_currPage->viewer().curr_url();
+                    string      url = curr_page().viewer().curr_url();
 
-                    if (m_currPage->viewer().prompt_string(url, "Goto URL:"))
+                    if (curr_page().viewer().prompt_string(url, "Goto URL:"))
                     {
                         Uri             uri     = url;
 
@@ -324,14 +324,14 @@ auto App::run(const Config& config)
                     Document::FormInput     *input;
                     Uri                     targetUrl;
 
-                    if ((input = m_currPage->viewer().curr_form_input()))
+                    if ((input = curr_page().viewer().curr_form_input()))
                     {
                         handle_form_input(*m_currTab, m_config, mailcaps, *input);
                         m_currPage = m_currTab->curr_page();
                     }
                     else
                     {
-                        targetUrl = m_currPage->viewer().curr_url();
+                        targetUrl = curr_page().viewer().curr_url();
 
                         if (not targetUrl.empty())
                         {
@@ -343,13 +343,13 @@ auto App::run(const Config& config)
                 break;
             case 'M':
                 {
-                    Uri     targetUrl   = m_currPage->viewer().curr_url();
+                    Uri     targetUrl   = curr_page().viewer().curr_url();
 
                     if (not targetUrl.empty())
                     {
                         // TODO: true external browser API
                         Uri         fullUrl = Uri::from_relative(
-                                                m_currPage->uri(),
+                                                curr_page().uri(),
                                                 targetUrl
                                             );
                         Command     cmd     = Command("mpv \"${W3M_URL}\"")
@@ -358,19 +358,19 @@ auto App::run(const Config& config)
                         endwin();
                         cmd.spawn().wait();
                         doupdate();
-                        m_currPage->viewer().refresh(true);
+                        curr_page().viewer().refresh(true);
                     }
                 }
                 break;
             case 'm':
                 {
-                    Uri     targetUrl   = m_currPage->uri();
+                    Uri     targetUrl   = curr_page().uri();
 
                     if (not targetUrl.empty())
                     {
                         // TODO: true external browser API
                         Uri         fullUrl = Uri::from_relative(
-                                                m_currPage->uri(),
+                                                curr_page().uri(),
                                                 targetUrl
                                             );
                         Command     cmd     = Command("mpv \"${W3M_URL}\"")
@@ -379,26 +379,26 @@ auto App::run(const Config& config)
                         endwin();
                         cmd.spawn().wait();
                         doupdate();
-                        m_currPage->viewer().refresh(true);
+                        curr_page().viewer().refresh(true);
                     }
                 }
                 break;
             case '<':
                 {
                     m_currPage = m_currTab->prev_page();
-                    m_currPage->viewer().refresh(true);
+                    curr_page().viewer().refresh(true);
                 }
                 break;
             case '>':
                 {
                     m_currPage = m_currTab->next_page();
-                    m_currPage->viewer().refresh(true);
+                    curr_page().viewer().refresh(true);
                 }
                 break;
             case 'B':
                 {
                     m_currPage = m_currTab->back_page();
-                    m_currPage->viewer().refresh(true);
+                    curr_page().viewer().refresh(true);
                 }
                 break;
             // submit form
@@ -406,7 +406,7 @@ auto App::run(const Config& config)
                 {
                     Document::FormInput     *input;
 
-                    if ((input = m_currPage->viewer().curr_form_input()))
+                    if ((input = curr_page().viewer().curr_form_input()))
                     {
                         const Document::Form&   form    = input->form();
 
@@ -421,11 +421,11 @@ auto App::run(const Config& config)
                     stringstream    fmt;
 
                     fmt << "line ";
-                    fmt << m_currPage->viewer().curr_curs_line();
+                    fmt << curr_page().viewer().curr_curs_line();
                     fmt << " / ";
-                    fmt << m_currPage->viewer().buffer_size();
+                    fmt << curr_page().viewer().buffer_size();
 
-                    m_currPage->viewer().disp_status(fmt.str());
+                    curr_page().viewer().disp_status(fmt.str());
                 }
                 break;
             case '!':
@@ -446,7 +446,7 @@ auto App::run(const Config& config)
                 break;
             case 'q':
                 {
-                    switch (m_currPage->viewer().prompt_char(
+                    switch (curr_page().viewer().prompt_char(
                         "Are you sure you want to quit? (y/N):"
                     ))
                     {
@@ -468,6 +468,12 @@ auto App::run(const Config& config)
 }// end App::run
 
 // --- protected mutators -------------------------------------------------
+auto App::curr_page(void)
+    -> Tab::Page&
+{
+    return *m_currTab->curr_page();
+}// end App::curr_page
+
 auto App::get_uri_handler(const string& scheme) const
     -> HttpFetcher*
 {
