@@ -95,10 +95,7 @@ class App
             const HttpFetcher::data_container& input = {}
         );
 
-        template <class CONT_T>
         void    handle_data(
-            const CONT_T& mailcaps,
-            const Config& cfg,
             const string& mimeType,
             const std::vector<char>& data
         );

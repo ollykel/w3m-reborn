@@ -630,17 +630,14 @@ void    App::goto_url(
         }
         else
         {
-            handle_data(m_mailcaps, m_config, *contentType, data);
+            handle_data(*contentType, data);
         }
 finally:
         curr_page().viewer().refresh(true);
     }
 }// end goto_url
 
-template <class CONT_T>
 void    App::handle_data(
-    const CONT_T& mailcaps,
-    const Config& cfg,
     const string& mimeType,
     const std::vector<char>& data
 )
@@ -654,7 +651,7 @@ void    App::handle_data(
     ofstream                tempFile;
     Command                 cmd;
 
-    for (const auto& mailcap : mailcaps)
+    for (const auto& mailcap : m_mailcaps)
     {
         if ((entry = mailcap.get_entry(mimeType)))
         {
@@ -668,7 +665,7 @@ void    App::handle_data(
     }
 
     // TODO: handle path separators, maximum filename length
-    sprintf(fbase, "%s/w3mtmp-%016zx", cfg.tempdir.c_str(), counter);
+    sprintf(fbase, "%s/w3mtmp-%016zx", m_config.tempdir.c_str(), counter);
     fname = entry->parse_filename(fbase);
 
     // write data to tempfile
