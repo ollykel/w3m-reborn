@@ -1046,7 +1046,7 @@ void App::add_mailcap_entry(const command_args_container& args)
 
 void App::clear_mailcap(const command_args_container& args)
 {
-    // TODO: implement
+    m_mailcaps.clear();
 }// end clear_mailcap
 
 void App::read_mailcap_file(const command_args_container& args)
