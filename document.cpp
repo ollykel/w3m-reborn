@@ -1,4 +1,5 @@
 #include <climits>
+#include <sstream>
 #include <unistd.h>
 
 #include "deps.hpp"
@@ -27,6 +28,28 @@ auto Document::buffer(void) const
 {
     return m_buffer;
 }// end Document::buffer
+
+auto Document::buffer_string(void) const
+    -> string
+{
+    std::ostringstream      out;
+
+    for (auto it = buffer_const_iter(BufPos::begin); it; ++it)
+    {
+        if (it.at_line_end())
+        {
+            out << std::endl;
+        }
+        else
+        {
+            string      txt     = utils::from_wstr((*it).text());
+
+            out.write(txt.c_str(), txt.length());
+        }
+    }// end 
+
+    return out.str();
+}// end Document::buffer_string
 
 auto Document::links(void) const
     -> const link_container&
@@ -136,6 +159,81 @@ auto Document::get_section_index(const string& id) const
     }
     return m_sections.at(id);
 }// end Document::get_section_index
+
+auto Document::buffer_const_iter(BufPos pos) const
+    -> buffer_node_const_iterator
+{
+    if (m_buffer.empty())
+    {
+        return { m_buffer, 0, 0, 0 };
+    }
+
+    switch (pos)
+    {
+        case BufPos::begin:
+            return { m_buffer, 0, 0, 0 };
+        case BufPos::end:
+            {
+                auto    nodeIter    = m_buffer.back().begin();
+                size_t  columns     = 0;
+
+                for (size_t i = m_buffer.back().size(); i > 1; --i)
+                {
+                    columns += nodeIter->text().length();
+                    ++nodeIter;
+                }// end for
+
+                return {
+                    m_buffer,
+                    m_buffer.size() - 1,
+                    m_buffer.back().empty() ?
+                        0 : m_buffer.back().size() - 1,
+                    columns
+                };
+            }
+        default:
+            throw std::logic_error("unrecognized BufPos");
+    }// end switch
+}// end Document::buffer_const_iter
+
+auto Document::buffer_const_iter(size_t lineIdx, size_t nodeIdx) const
+    -> buffer_node_const_iterator
+{
+    if (m_buffer.empty())
+    {
+        return {};
+    }
+    if (lineIdx >= m_buffer.size())
+    {
+        return { m_buffer, m_buffer.size(), 0, 0 };
+    }
+    if (nodeIdx >= m_buffer.at(lineIdx).size())
+    {
+        size_t      columns     = 0;
+
+        for (const auto& node : m_buffer.back())
+        {
+            columns += node.text().length();
+        }// end for
+
+        return {
+            m_buffer, lineIdx, m_buffer.at(lineIdx).size(), columns
+        };
+    }
+
+    {
+        auto        nodeIter    = m_buffer.at(nodeIdx).begin();
+        size_t      columns     = 0;
+
+        for (size_t i = nodeIdx; i; --i)
+        {
+            columns += nodeIter->text().length();
+            ++nodeIter;
+        }// end for
+
+        return { m_buffer, lineIdx, nodeIdx, columns };
+    }
+}// end Document::buffer_const_iter
 
 // --- public mutator(s) --------------------------------------------------
 void    Document::clear(void)
@@ -780,3 +878,128 @@ Document::buffer_node_iterator::buffer_node_iterator(
     m_nodeIdx = nodeIdx;
     m_column = column;
 }// end Document::buffer_node_iterator::buffer_node_iterator
+
+// === Document::buffer_node_const_iterator Implementation ================
+//
+// ========================================================================
+
+// --- public constructors ------------------------------------------------
+Document::buffer_node_const_iterator::buffer_node_const_iterator(void)
+{
+    // do nothing
+}// end void constructor
+
+// --- public accessors ---------------------------------------------------
+Document::buffer_node_const_iterator::operator bool(void) const
+{
+    return m_buffer and (m_lineIdx < m_buffer->size());
+}// end Document::buffer_node_const_iterator::operator bool
+
+auto Document::buffer_node_const_iterator::operator*(void) const
+    -> reference_type
+{
+    return node();
+}// end Document::buffer_node_const_iterator::operator*
+
+auto Document::buffer_node_const_iterator::line_index(void) const
+    -> size_t
+{
+    return m_lineIdx;
+}// end Document::buffer_node_const_iterator::line_index
+
+auto Document::buffer_node_const_iterator::line(void) const
+    -> const Document::BufferLine&
+{
+    return m_buffer->at(line_index());
+}// end Document::buffer_node_const_iterator::line
+
+auto Document::buffer_node_const_iterator::node_index(void) const
+    -> size_t
+{
+    return m_nodeIdx;
+}// end Document::buffer_node_const_iterator::node_index
+
+auto Document::buffer_node_const_iterator::node(void) const
+    -> reference_type
+{
+    return line().at(node_index());
+}// end Document::buffer_node_const_iterator::node
+
+auto Document::buffer_node_const_iterator::column(void) const
+    -> size_t
+{
+    return m_column;
+}// end Document::buffer_node_const_iterator::column
+
+auto Document::buffer_node_const_iterator::at_line_end(void) const
+    -> bool
+{
+    return (*this) and (node_index() >= line().size());
+}// end Document::buffer_node_const_iterator::at_line_end
+
+// --- public mutators ----------------------------------------------------
+auto Document::buffer_node_const_iterator::operator++(void)
+    -> type&
+{
+    if (not (*this))
+    {
+        goto finally;
+    }
+
+    if (at_line_end())
+    {
+        ++m_lineIdx;
+        m_nodeIdx = 0;
+        m_column = 0;
+    }
+    else
+    {
+        m_column += node().text().length();
+        ++m_nodeIdx;
+    }
+finally:
+    return *this;
+}// end Document::buffer_node_const_iterator::operator++
+
+auto Document::buffer_node_const_iterator::operator++(int _)
+    -> type
+{
+    type    ret     = *this;
+
+    ++(*this);
+
+    return ret;
+}// end Document::buffer_node_const_iterator::operator++
+
+// --- friend functions ---------------------------------------------------
+auto operator==(
+    const Document::buffer_node_const_iterator& a,
+    const Document::buffer_node_const_iterator& b
+) -> bool
+{
+    return (a.m_buffer == b.m_buffer)
+        and (a.m_lineIdx == b.m_lineIdx)
+        and (a.m_nodeIdx == b.m_nodeIdx);
+}// end operator==
+
+auto operator!=(
+    const Document::buffer_node_const_iterator& a,
+    const Document::buffer_node_const_iterator& b
+) -> bool
+{
+    return not (a == b);
+}// end operator!=
+
+// --- private constructors -----------------------------------------------
+Document::buffer_node_const_iterator::buffer_node_const_iterator(
+    const Document::buffer_type& buffer,
+    size_t lineIdx,
+    size_t nodeIdx,
+    size_t column
+)
+{
+    m_buffer = &buffer;
+    m_lineIdx = lineIdx;
+    m_nodeIdx = nodeIdx;
+    m_column = column;
+}// end Document::buffer_node_const_iterator::buffer_node_const_iterator

@@ -92,6 +92,7 @@ class   Document
             operator bool(void) const;
         };// end buffer_index_type
         class       buffer_node_iterator;
+        class       buffer_node_const_iterator;
         enum class  BufPos
         {
             begin   = 0,
@@ -115,6 +116,8 @@ class   Document
             -> const string&;
         auto buffer(void) const
             -> const buffer_type&;
+        auto buffer_string(void) const
+            -> string;
         auto links(void) const
             -> const link_container&;
         auto images(void) const
@@ -125,6 +128,10 @@ class   Document
             -> const form_input_container&;
         auto get_section_index(const string& id) const
             -> buffer_index_type;
+        auto buffer_const_iter(BufPos pos) const
+            -> buffer_node_const_iterator;
+        auto buffer_const_iter(size_t lineIdx, size_t nodeIdx) const
+            -> buffer_node_const_iterator;
 
         // --- public mutator(s) ------------------------------------------
         void            clear(void);
@@ -137,10 +144,6 @@ class   Document
             -> form_container::iterator;
         auto form_inputs(void)
             -> form_input_container::iterator;
-        auto buffer_iter(BufPos pos)
-            -> buffer_node_iterator;
-        auto buffer_iter(size_t lineIdx, size_t nodeIdx)
-            -> buffer_node_iterator;
     protected:
         // --- protected member types -------------------------------------
         typedef     std::map<string,buffer_index_type>      section_map;
@@ -165,6 +168,10 @@ class   Document
                 string              name        = "",
                 string              value       = ""
             ) -> FormInput&;
+        auto buffer_iter(BufPos pos)
+            -> buffer_node_iterator;
+        auto buffer_iter(size_t lineIdx, size_t nodeIdx)
+            -> buffer_node_iterator;
 };// end class Document
 
 class   Document::BufferNode
@@ -362,5 +369,61 @@ class       Document::buffer_node_iterator
             size_t column
         );
 };// end class Document::buffer_node_iterator
+
+class       Document::buffer_node_const_iterator
+{
+    friend class Document;
+
+    public:
+        // --- public member types ----------------------------------------
+        typedef     buffer_node_const_iterator      type;
+        typedef     const Document::BufferNode&     reference_type;
+
+        // --- public constructors ----------------------------------------
+        buffer_node_const_iterator(void); // void
+
+        // --- public accessors -------------------------------------------
+        operator bool(void) const;
+        auto operator*(void) const
+            -> reference_type;
+        auto line_index(void) const
+            -> size_t;
+        auto line(void) const
+            -> const Document::BufferLine&;
+        auto node_index(void) const
+            -> size_t;
+        auto node(void) const
+            -> reference_type;
+        auto column(void) const
+            -> size_t;
+        auto at_line_end(void) const
+            -> bool;
+
+        // --- public mutators --------------------------------------------
+        auto operator++(void)
+            -> type&;
+        auto operator++(int _)
+            -> type;
+
+        // --- friend functions -------------------------------------------
+        friend auto operator==(const type& a, const type& b)
+            -> bool;
+        friend auto operator!=(const type& a, const type& b)
+            -> bool;
+    private:
+        // --- private member variables -----------------------------------
+        const Document::buffer_type     *m_buffer       = nullptr;
+        size_t                          m_lineIdx       = 0;
+        size_t                          m_nodeIdx       = 0;
+        size_t                          m_column        = 0;
+
+        // --- private constructors ---------------------------------------
+        buffer_node_const_iterator(
+            const Document::buffer_type& buffer,
+            size_t lineIdx,
+            size_t nodeIdx,
+            size_t column
+        );
+};// end class Document::buffer_node_const_iterator
 
 #endif
