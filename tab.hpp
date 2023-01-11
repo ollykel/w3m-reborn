@@ -83,6 +83,8 @@ class Tab
             -> Page*;
         auto push_document(const s_ptr<Document>& doc, const Uri& uri)
             -> Page*;
+        auto push_page(const Page& orig)
+            -> Page*;
         auto goto_pagenum(size_t index)
             -> Page*;
         auto prev_page(void)

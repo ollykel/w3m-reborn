@@ -98,6 +98,28 @@ auto Tab::push_document(const s_ptr<Document>& doc, const Uri& uri)
     return curr_page();
 }// end Tab::push_document
 
+auto Tab::push_page(const Page& orig)
+    -> Page*
+{
+    if (m_pages.empty())
+    {
+        m_pages.emplace_back(orig);
+        m_pageIter = m_pages.begin();
+        m_currPageIdx = 0;
+    }
+    else
+    {
+        if (m_pageIter != m_pages.end())
+        {
+            ++m_pageIter;
+        }
+        m_pageIter = m_pages.emplace(m_pageIter, orig);
+        ++m_currPageIdx;
+    }
+
+    return curr_page();
+}// end Tab::push_page
+
 auto Tab::goto_pagenum(size_t index)
     -> Page*
 {
