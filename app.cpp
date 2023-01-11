@@ -93,7 +93,6 @@ auto App::run(const Config& config)
     #define     CTRL(KEY)   ((KEY) & 0x1f)
 
     Tab::Config                 tabCfg;
-    std::vector<Mailcap>        mailcaps;
     int                         key;
 
     m_config = config;
@@ -159,11 +158,11 @@ auto App::run(const Config& config)
     );
 
     // build mailcap file
-    parse_mailcap_env(mailcaps, getenv("MAILCAPS"));
+    parse_mailcap_env(m_mailcaps, getenv("MAILCAPS"));
 
     // goto init url
     {
-        goto_url(*m_currTab, mailcaps, m_config, m_config.initUrl);
+        goto_url(*m_currTab, m_mailcaps, m_config, m_config.initUrl);
         m_currPage = m_currTab->curr_page();
     }
 
@@ -300,7 +299,7 @@ auto App::run(const Config& config)
 
                     if (not targetUrl.empty())
                     {
-                        goto_url(*m_currTab, mailcaps, m_config, targetUrl);
+                        goto_url(*m_currTab, m_mailcaps, m_config, targetUrl);
                         m_currPage = m_currTab->curr_page();
                     }
                 }
@@ -313,7 +312,7 @@ auto App::run(const Config& config)
                     {
                         Uri             uri     = url;
 
-                        goto_url(*m_currTab, mailcaps, m_config, uri);
+                        goto_url(*m_currTab, m_mailcaps, m_config, uri);
                         m_currPage = m_currTab->curr_page();
                     }
                 }
@@ -326,7 +325,7 @@ auto App::run(const Config& config)
 
                     if ((input = curr_page().viewer().curr_form_input()))
                     {
-                        handle_form_input(*m_currTab, m_config, mailcaps, *input);
+                        handle_form_input(*m_currTab, m_config, m_mailcaps, *input);
                         m_currPage = m_currTab->curr_page();
                     }
                     else
@@ -335,7 +334,7 @@ auto App::run(const Config& config)
 
                         if (not targetUrl.empty())
                         {
-                            goto_url(*m_currTab, mailcaps, m_config, targetUrl);
+                            goto_url(*m_currTab, m_mailcaps, m_config, targetUrl);
                             m_currPage = m_currTab->curr_page();
                         }
                     }
@@ -410,7 +409,7 @@ auto App::run(const Config& config)
                     {
                         const Document::Form&   form    = input->form();
 
-                        submit_form(*m_currTab, m_config, mailcaps, form);
+                        submit_form(*m_currTab, m_config, m_mailcaps, form);
                         m_currPage = m_currTab->curr_page();
                     }
                 }
@@ -436,6 +435,23 @@ auto App::run(const Config& config)
                     "READ_SHELL",
                     "--read-output",
                     "--prompt", "[READ_SHELL]!"
+                });
+                break;
+            case '|':
+                exec_shell({
+                    "PIPE_SHELL",
+                    "--hold",
+                    "--write-input", "BUFFER",
+                    "--prompt", "[PIPE_SHELL]!"
+                });
+                break;
+            case 'f':
+                // TODO: more configurable
+                prompt_url({
+                    "PROMPT_URL",
+                    "--method", "GET",
+                    "--prompt", "(search google):",
+                    "https://www.google.com/search?q=%s"
                 });
                 break;
             case CTRL('x'):
@@ -1045,6 +1061,12 @@ void App::exec_shell(const command_args_container& args)
     string              prompt          = "[SHELL]!";
     bool                shouldHold      = false;
     bool                shouldRead      = false;
+    enum class WriteInput
+    {
+        NONE    = 0,
+        SOURCE  = 1,
+        BUFFER  = 2,
+    }                   writeInput      = WriteInput::NONE;
     auto                iter            = args.cbegin() + 1;
     Command             cmd;
 
@@ -1058,8 +1080,7 @@ void App::exec_shell(const command_args_container& args)
         }
         else if ((arg == "--prompt") or (arg == "-p"))
         {
-            ++iter;
-            if (iter != args.cend())
+            if (++iter != args.cend())
             {
                 prompt = *iter;
             }
@@ -1067,6 +1088,30 @@ void App::exec_shell(const command_args_container& args)
         else if ((arg == "--read-output") or (arg == "-R"))
         {
             shouldRead = true;
+        }
+        else if ((arg == "--write-input") or (arg == "-W"))
+        {
+            string      inputState      = "";
+
+            if (++iter == args.cend())
+            {
+                break;
+            }
+
+            utils::to_upper(inputState = *iter);
+
+            if (inputState == "NONE")
+            {
+                writeInput = WriteInput::NONE;
+            }
+            else if (inputState == "SOURCE")
+            {
+                writeInput = WriteInput::SOURCE;
+            }
+            else if (inputState == "BUFFER")
+            {
+                writeInput = WriteInput::BUFFER;
+            }
         }
         // end command args; rest are shell args
         else if (arg == "--")
@@ -1105,11 +1150,32 @@ void App::exec_shell(const command_args_container& args)
             break;
     }// end switch
 
+    cmd.set_stdin_piped(writeInput != WriteInput::NONE);
     cmd.set_stdout_piped(shouldRead);
 
     endwin();
     {
         auto    sproc   = cmd.spawn();
+
+        // write to stdin, if applicable
+        switch (writeInput)
+        {
+            case WriteInput::NONE:
+                // do nothing
+                break;
+            case WriteInput::SOURCE:
+                // TODO: implement
+                sproc.stdin().close();
+                break;
+            case WriteInput::BUFFER:
+                {
+                    string  input   = curr_page().document().buffer_string();
+
+                    sproc.stdin().write(input.data(), input.length());
+                    sproc.stdin().close();
+                }
+                break;
+        }// end switch
 
         // read output as new document
         if (shouldRead)
@@ -1144,4 +1210,84 @@ void App::source_commands(const command_args_container& args)
 {
     // TODO: implement
 }// end source_commands
+
+void App::prompt_url(const command_args_container& args)
+{
+    using namespace std;
+
+    string      method          = "GET";
+    string      fmt             = "";
+    string      prompt          = "";
+    string      value           = "";
+    auto        iter            = args.cbegin() + 1;
+
+    for (; iter != args.cend(); ++iter)
+    {
+        const string&   arg     = *iter;
+
+        if ((arg == "--method") or (arg == "-m"))
+        {
+            if (++iter == args.cend())
+            {
+                break;
+            }
+
+            method = *iter;
+        }
+        else if ((arg == "--prompt") or (arg == "-p"))
+        {
+            if (++iter == args.cend())
+            {
+                break;
+            }
+
+            prompt = *iter;
+        }
+        else if ((arg == "--default") or (arg == "-d"))
+        {
+            if (++iter == args.cend())
+            {
+                break;
+            }
+
+            value = *iter;
+        }
+        else
+        {
+            break;
+        }
+    }// end for
+
+    if (iter == args.cend())
+    {
+        curr_page().viewer().disp_status(
+            "usage: " + args.front()
+                + " [--method|-m METHOD]"
+                + " [--prompt|-p PROMPT]"
+                + " [--default|-d DEFAULT]"
+                + " URL_FORMAT"
+        );
+    }
+
+    fmt = *iter;
+    if (prompt.empty())
+    {
+        prompt = fmt + ":";
+    }
+
+    if (curr_page().viewer().prompt_string(value, prompt))
+    {
+        // TODO: handle escapes (%%)
+        size_t      pos             = 0;
+        string      valueEncoded    = utils::percent_encode(value);
+
+        while ((pos = fmt.find("%s", pos)) != string::npos)
+        {
+            fmt.replace(pos, 2, valueEncoded);
+            pos += valueEncoded.length();
+        }// end while
+
+        goto_url(*m_currTab, m_mailcaps, m_config, fmt, method);
+    }
+}// end App::prompt_url
 

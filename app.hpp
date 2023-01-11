@@ -64,6 +64,7 @@ class App
         typedef std::list<HttpFetcher>                  uri_handler_container;
         typedef uri_handler_container::iterator         uri_handler_pointer;
         typedef std::map<string,uri_handler_pointer>    uri_handler_map;
+        typedef std::vector<Mailcap>                    mailcap_container;
 
         // --- protected member variables ---------------------------------
         Config                  m_config                    = {};
@@ -73,6 +74,7 @@ class App
         uri_handler_container   m_uriHandlers               = {};
         uri_handler_map         m_uriHandlerMap             = {};
         Mailcap                 *m_mailcap                  = nullptr;
+        mailcap_container       m_mailcaps                  = {};
         keymap                  m_keymap                    = {};
         base_commands_map       m_baseCommandDispatcher     = {};
         commands_map            m_commands                  = {};
@@ -147,6 +149,7 @@ class App
         void exec_shell(const command_args_container& args);
         void command(const command_args_container& args);
         void source_commands(const command_args_container& args);
+        void prompt_url(const command_args_container& args);
 };// end class App
 
 struct App::KeymapEntry
