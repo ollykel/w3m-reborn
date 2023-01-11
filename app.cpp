@@ -484,6 +484,12 @@ auto App::run(const Config& config)
 }// end App::run
 
 // --- protected mutators -------------------------------------------------
+auto App::curr_tab(void)
+    -> Tab&
+{
+    return *m_currTab;
+}// end App::curr_tab
+
 auto App::curr_page(void)
     -> Tab::Page&
 {

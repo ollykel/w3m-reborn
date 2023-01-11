@@ -82,6 +82,8 @@ class App
         bool                    m_shouldTerminate           = false;
 
         // --- protected mutators -----------------------------------------
+        auto curr_tab(void)
+            -> Tab&;
         auto curr_page(void)
             -> Tab::Page&;
         auto get_uri_handler(const string& scheme) const
