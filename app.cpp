@@ -317,6 +317,15 @@ auto App::run(const Config& config)
                     }
                 }
                 break;
+            case 'T':
+                new_tab({ "NEW_TAB" });
+                break;
+            case '[':
+                switch_tab({ "SWITCH_TAB", "-1" });
+                break;
+            case ']':
+                switch_tab({ "SWITCH_TAB", "+1" });
+                break;
             case KEY_ENTER:
             case '\n':
                 {
@@ -956,12 +965,108 @@ void App::reload(const command_args_container& args)
 
 void App::new_tab(const command_args_container& args)
 {
-    // TODO: implement
+    Tab::Config     cfg         = { m_config.viewer };
+    auto&           currPage    = curr_page();
+    auto            pos         = m_currTab;
+
+    ++pos;
+    m_currTab = m_tabs.emplace(pos, cfg);
+    m_currTab->push_page(currPage);
 }// end new_tab
 
 void App::switch_tab(const command_args_container& args)
 {
-    // TODO: implement
+    using namespace std;
+
+    const string    *arg    = nullptr;
+
+    if (args.size() != 2)
+    {
+        goto print_usage;
+    }
+
+    arg = &args.at(1);
+
+    if (arg->empty())
+    {
+        goto print_usage;
+    }
+
+    switch (arg->front())
+    {
+        case '+':
+            {
+                int     diff;
+
+                if (sscanf(arg->c_str() + 1, " %d", &diff) != 1)
+                {
+                    goto print_usage;
+                }
+
+                diff %= m_tabs.size();
+
+                for (; diff; --diff)
+                {
+                    ++m_currTab;
+
+                    if (m_currTab == m_tabs.end())
+                    {
+                        m_currTab = m_tabs.begin();
+                    }
+                }// end for
+            }
+            break;
+        case '-':
+            {
+                int     diff;
+
+                if (sscanf(arg->c_str() + 1, " %d", &diff) != 1)
+                {
+                    goto print_usage;
+                }
+
+                diff %= m_tabs.size();
+
+                for (; diff; --diff)
+                {
+                    if (m_currTab == m_tabs.begin())
+                    {
+                        m_currTab = m_tabs.end();
+                    }
+
+                    --m_currTab;
+                }// end for
+            }
+            break;
+        default:
+            {
+                int     index;
+
+                if (
+                    (sscanf(arg->c_str(), " %d", &index) != 1)
+                    or (index < 0)
+                )
+                {
+                    goto print_usage;
+                }
+
+                index %= m_tabs.size();
+                m_currTab = m_tabs.begin();
+
+                for (; index; --index)
+                {
+                    ++m_currTab;
+                }// end for
+            }
+            break;
+    }// end switch
+
+    curr_page().viewer().refresh(true);
+    return;
+print_usage:
+    curr_page().viewer().disp_status(
+        "usage: " + args.front() + " INDEX"
+    );
 }// end switch_tab
 
 void App::swap_tabs(const command_args_container& args)
