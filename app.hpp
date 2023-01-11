@@ -64,7 +64,7 @@ class App
         typedef std::list<HttpFetcher>                  uri_handler_container;
         typedef uri_handler_container::iterator         uri_handler_pointer;
         typedef std::map<string,uri_handler_pointer>    uri_handler_map;
-        typedef std::vector<Mailcap>                    mailcap_container;
+        typedef std::deque<Mailcap>                     mailcap_container;
 
         // --- protected member variables ---------------------------------
         Config                  m_config                    = {};

@@ -1051,7 +1051,59 @@ void App::clear_mailcap(const command_args_container& args)
 
 void App::read_mailcap_file(const command_args_container& args)
 {
-    // TODO: implement
+    string              fName   = "";
+    enum class End
+    {
+        FRONT   = 1,
+        BACK    = 2,
+    }                   end     = End::FRONT;
+    Mailcap             *dest   = nullptr;
+    auto                iter    = args.cbegin() + 1;
+
+    for (; iter != args.cend(); ++iter)
+    {
+        const string&   arg     = *iter;
+
+        if (arg == "--prepend")
+        {
+            end = End::FRONT;
+        }
+        else if (arg == "--append")
+        {
+            end = End::BACK;
+        }
+        else
+        {
+            break;
+        }
+    }// end for
+
+    if (iter == args.cend())
+    {
+        if (not curr_page().viewer().prompt_string(fName, "Mailcap file:"))
+        {
+            return;
+        }
+    }
+    else
+    {
+        fName = args.at(1);
+    }
+
+    switch (end)
+    {
+        case End::FRONT:
+            m_mailcaps.emplace_front();
+            dest = &m_mailcaps.front();
+            break;
+        case End::BACK:
+            m_mailcaps.emplace_back();
+            dest = &m_mailcaps.back();
+            break;
+    }// end switch
+
+    // TODO: handle invalid file
+    parse_mailcap_file(*dest, fName);
 }// end read_mailcap_file
 
 void App::exec_shell(const command_args_container& args)
