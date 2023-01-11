@@ -162,7 +162,7 @@ auto App::run(const Config& config)
 
     // goto init url
     {
-        goto_url(*m_currTab, m_mailcaps, m_config, m_config.initUrl);
+        goto_url(m_config.initUrl);
         m_currPage = m_currTab->curr_page();
     }
 
@@ -299,7 +299,7 @@ auto App::run(const Config& config)
 
                     if (not targetUrl.empty())
                     {
-                        goto_url(*m_currTab, m_mailcaps, m_config, targetUrl);
+                        goto_url(targetUrl);
                         m_currPage = m_currTab->curr_page();
                     }
                 }
@@ -312,7 +312,7 @@ auto App::run(const Config& config)
                     {
                         Uri             uri     = url;
 
-                        goto_url(*m_currTab, m_mailcaps, m_config, uri);
+                        goto_url(uri);
                         m_currPage = m_currTab->curr_page();
                     }
                 }
@@ -334,7 +334,7 @@ auto App::run(const Config& config)
 
                         if (not targetUrl.empty())
                         {
-                            goto_url(*m_currTab, m_mailcaps, m_config, targetUrl);
+                            goto_url(targetUrl);
                             m_currPage = m_currTab->curr_page();
                         }
                     }
@@ -507,11 +507,7 @@ auto App::get_uri_handler(const string& scheme) const
     return &(*m_uriHandlerMap.at(scheme));
 }// end App::get_uri_handler
 
-template <class CONT_T>
 void    App::goto_url(
-    Tab& tab,
-    const CONT_T& mailcaps,
-    const Config& cfg,
     const Uri& targetUrl,
     const string& requestMethod,
     const HttpFetcher::data_container& input
@@ -521,9 +517,9 @@ void    App::goto_url(
 
     if (targetUrl.is_fragment())
     {
-        if (not tab.curr_page()->viewer().goto_section(targetUrl.fragment))
+        if (not curr_page().viewer().goto_section(targetUrl.fragment))
         {
-            tab.curr_page()->viewer().disp_status(
+            curr_page().viewer().disp_status(
                 "ERROR: could not find #" + targetUrl.fragment
             );
         }
@@ -549,9 +545,9 @@ void    App::goto_url(
 
         fetchEnv["W3M_REQUEST_METHOD"] = requestMethod;
 
-        if (tab.curr_page())
+        if (curr_tab().curr_page())
         {
-            prevUri = tab.curr_page()->uri();
+            prevUri = curr_page().uri();
         }
 
         do
@@ -605,8 +601,8 @@ void    App::goto_url(
         // create document, if applicable
         if (not contentType)
         {
-            tab.curr_page()->viewer().refresh(true);
-            tab.curr_page()->viewer().disp_status(
+            curr_page().viewer().refresh(true);
+            curr_page().viewer().disp_status(
                 "ERROR: could not identify content type"
             );
             goto finally;
@@ -614,7 +610,7 @@ void    App::goto_url(
         else if (*contentType == "text/plain")
         {
             doc.reset(new DocumentText(
-                cfg.document,
+                m_config.document,
                 string(data.cbegin(), data.cend()),
                 COLS
             ));
@@ -622,7 +618,7 @@ void    App::goto_url(
         else if (*contentType == "text/html")
         {
             doc.reset(new DocumentHtml(
-                cfg.document,
+                m_config.document,
                 string(data.cbegin(), data.cend()),
                 COLS
             ));
@@ -630,14 +626,14 @@ void    App::goto_url(
 
         if (doc)
         {
-            tab.push_document(doc, fullUri);
+            curr_tab().push_document(doc, fullUri);
         }
         else
         {
-            handle_data(mailcaps, cfg, *contentType, data);
+            handle_data(m_mailcaps, m_config, *contentType, data);
         }
 finally:
-        tab.curr_page()->viewer().refresh(true);
+        curr_page().viewer().refresh(true);
     }
 }// end goto_url
 
@@ -891,7 +887,7 @@ void    App::submit_form(
     )
     {
         url.query = utils::join_str(values, "&");
-        goto_url(tab, mailcaps, cfg, url);
+        goto_url(url);
     }
     // Case 3: other methods (i.e. POST, PUT, DELETE, etc.)
     else
@@ -903,7 +899,7 @@ void    App::submit_form(
         const HttpFetcher::data_container   data
             = { dataStr.cbegin(), dataStr.cend() };
 
-        goto_url(tab, mailcaps, cfg, url, method, data);
+        goto_url(url, method, data);
     }
 }// end submit_form
 
@@ -1293,7 +1289,7 @@ void App::prompt_url(const command_args_container& args)
             pos += valueEncoded.length();
         }// end while
 
-        goto_url(*m_currTab, m_mailcaps, m_config, fmt, method);
+        goto_url(fmt, method);
     }
 }// end App::prompt_url
 

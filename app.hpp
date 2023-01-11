@@ -89,11 +89,7 @@ class App
         auto get_uri_handler(const string& scheme) const
             -> HttpFetcher*;
 
-        template <class CONT_T>
         void    goto_url(
-            Tab& tab,
-            const CONT_T& mailcaps,
-            const Config& cfg,
             const Uri& targetUrl,
             const string& requestMethod = "GET",
             const HttpFetcher::data_container& input = {}
