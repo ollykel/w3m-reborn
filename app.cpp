@@ -35,7 +35,7 @@ App::App(void)
     m_baseCommandDispatcher["SHIFT_PAGE"] = &App::shift_page;
     m_baseCommandDispatcher["SHIFT_CURSOR"] = &App::shift_cursor;
     m_baseCommandDispatcher["ADD_MAILCAP_ENTRY"] = &App::add_mailcap_entry;
-    m_baseCommandDispatcher["CLEAR_MAILCAP"] = &App::clear_mailcap;
+    m_baseCommandDispatcher["CLEAR_MAILCAP"] = &App::clear_mailcaps;
     m_baseCommandDispatcher["READ_MAILCAP_FILE"] = &App::read_mailcap_file;
     m_baseCommandDispatcher["EXEC_SHELL"] = &App::exec_shell;
     m_baseCommandDispatcher["COMMAND"] = &App::command;
@@ -1044,7 +1044,7 @@ void App::add_mailcap_entry(const command_args_container& args)
     // TODO: implement
 }// end add_mailcap_entry
 
-void App::clear_mailcap(const command_args_container& args)
+void App::clear_mailcaps(const command_args_container& args)
 {
     m_mailcaps.clear();
 }// end clear_mailcap

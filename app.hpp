@@ -139,7 +139,7 @@ class App
         void shift_page(const command_args_container& args);
         void shift_cursor(const command_args_container& args);
         void add_mailcap_entry(const command_args_container& args);
-        void clear_mailcap(const command_args_container& args);
+        void clear_mailcaps(const command_args_container& args);
         void read_mailcap_file(const command_args_container& args);
         void exec_shell(const command_args_container& args);
         void command(const command_args_container& args);
