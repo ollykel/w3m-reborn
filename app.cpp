@@ -547,6 +547,22 @@ void App::draw_tab_headers(void)
     }
 }// end App::draw_tab_headers
 
+void App::redraw(bool retouch)
+{
+    if (m_tabs.size() > 1)
+    {
+        curr_page().viewer().set_start_line(2);
+        draw_tab_headers();
+    }
+    else
+    {
+        curr_page().viewer().set_start_line(0);
+    }
+
+    curr_page().viewer().refresh(retouch);
+    wrefresh(stdscr);
+}// end App::redraw
+
 void    App::goto_url(
     const Uri& targetUrl,
     const string& requestMethod,
