@@ -314,7 +314,7 @@ std::string	        pad_str(
         switch (just)
         {
             case Justify::LEFT:
-                return orig + string(ch, len - orig.size());
+                return orig + string(len - orig.size(), ch);
                 break;
             case Justify::CENTER:
                 {
@@ -322,11 +322,11 @@ std::string	        pad_str(
                     size_t      leftLen     = remLen / 2;
                     size_t      rightLen    = len - leftLen;
 
-                    return string(ch, leftLen) + orig + string(ch, rightLen);
+                    return string(leftLen, ch) + orig + string(rightLen, ch);
                 }
                 break;
             case Justify::RIGHT:
-                return string(ch, len - orig.size()) + orig;
+                return string(len - orig.size(), ch) + orig;
                 break;
             default:
                 throw std::logic_error("unrecognized justification");
