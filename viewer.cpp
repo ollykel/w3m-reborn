@@ -127,6 +127,22 @@ void    Viewer::copy_from(const Viewer& other)
     }
 }// end copy_from
 
+void    Viewer::set_start_line(size_t lnum)
+{
+    m_startLine = lnum;
+}// end Viewer::set_start_line
+
+void    Viewer::set_start_col(size_t cnum)
+{
+    m_startCol = cnum;
+}// end Viewer::set_start_col
+
+void    Viewer::set_start_point(size_t lnum, size_t cnum)
+{
+    set_start_line(lnum);
+    set_start_col(cnum);
+}// end Viewer::set_start_point
+
 void    Viewer::refresh(bool retouch)
 {
     size_t                  colDiff         = m_currCol;

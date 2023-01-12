@@ -67,6 +67,9 @@ class   Viewer
             -> Viewer&;
         void    destruct(void);
         void    copy_from(const Viewer& other);
+        void    set_start_line(size_t lnum);
+        void    set_start_col(size_t cnum);
+        void    set_start_point(size_t lnum, size_t cnum);
         void    refresh(bool retouch = false);
         void    redraw(void);
         auto    goto_section(const string& id)
