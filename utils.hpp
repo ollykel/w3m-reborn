@@ -66,6 +66,21 @@ namespace utils
     std::string         percent_encode(const std::string& str);
     std::string         percent_decode(const std::string& str);
 
+    enum class Justify
+    {
+        LEFT    = 0,
+        CENTER  = 1,
+        RIGHT   = 2,
+    };// end enum class Justify
+
+    std::string	        pad_str(
+                            const std::string& orig,
+                            size_t len,
+                            Justify just = Justify::LEFT,
+                            char ch = ' ',
+                            bool truncate = false
+                        );
+
     template <typename ITER_T>
     void ignore_whitespace(
         ITER_T& iter,

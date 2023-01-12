@@ -299,4 +299,51 @@ std::string     percent_decode(const std::string& str)
     return out;
 }// end percent_decode
 
+std::string	        pad_str(
+    const std::string& orig,
+    size_t len,
+    Justify just,
+    char ch,
+    bool truncate
+)
+{
+    using namespace std;
+
+    if (orig.size() < len)
+    {
+        switch (just)
+        {
+            case Justify::LEFT:
+                return orig + string(ch, len - orig.size());
+                break;
+            case Justify::CENTER:
+                {
+                    size_t      remLen      = len - orig.size();
+                    size_t      leftLen     = remLen / 2;
+                    size_t      rightLen    = len - leftLen;
+
+                    return string(ch, leftLen) + orig + string(ch, rightLen);
+                }
+                break;
+            case Justify::RIGHT:
+                return string(ch, len - orig.size()) + orig;
+                break;
+            default:
+                throw std::logic_error("unrecognized justification");
+                break;
+        }// end switch
+    }
+    else
+    {
+        if (truncate)
+        {
+            return orig.substr(0, len);
+        }
+        else
+        {
+            return orig;
+        }
+    }
+}// end pad_str
+
 };// end namespace utils
