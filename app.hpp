@@ -88,6 +88,7 @@ class App
             -> Tab::Page&;
         auto get_uri_handler(const string& scheme) const
             -> HttpFetcher*;
+        void draw_tab_headers(void);
 
         void    goto_url(
             const Uri& targetUrl,

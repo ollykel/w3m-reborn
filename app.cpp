@@ -516,6 +516,37 @@ auto App::get_uri_handler(const string& scheme) const
     return &(*m_uriHandlerMap.at(scheme));
 }// end App::get_uri_handler
 
+void App::draw_tab_headers(void)
+{
+    if (LINES < 2)
+    {
+        // we don't have enough room
+        return;
+    }
+    else
+    {
+        static const string     PART    = "|";
+
+        const size_t    numParts        = m_tabs.size() - 1;
+        const size_t    nPartChars      = numParts * PART.length();
+        const size_t    headerLen
+            = (COLS - nPartChars) / m_tabs.size();
+        const string    headerLine
+            = utils::join_str(m_tabs, PART,
+            [&headerLen](const Tab& tab)
+            {
+                return utils::pad_str(
+                    tab.curr_page()->title(), headerLen,
+                    utils::Justify::CENTER,
+                    ' ', true
+                );
+            });
+
+        mvwaddnstr(stdscr, 0, 0, headerLine.c_str(), COLS);
+        mvwaddnstr(stdscr, 1, 0, string('~', COLS).c_str(), COLS);
+    }
+}// end App::draw_tab_headers
+
 void    App::goto_url(
     const Uri& targetUrl,
     const string& requestMethod,
