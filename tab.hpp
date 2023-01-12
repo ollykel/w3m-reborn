@@ -38,6 +38,8 @@ class Tab
                     -> const Viewer&;
                 auto uri(void) const
                     -> const Uri&;
+                auto title(void) const
+                    -> string;
 
                 // --- public mutators ------------------------------------
                 auto document(void)

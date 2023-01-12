@@ -242,6 +242,19 @@ auto Tab::Page::uri(void) const
     return m_uri;
 }// end Tab::Page::uri
 
+auto Tab::Page::title(void) const
+    -> string
+{
+    if (not document().title().empty())
+    {
+        return document().title();
+    }
+    else
+    {
+        return uri().str();
+    }
+}// end Tab::Page::title
+
 // --- public mutators ----------------------------------------------------
 auto Tab::Page::document(void)
     -> Document&
