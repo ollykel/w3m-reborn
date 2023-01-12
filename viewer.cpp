@@ -165,7 +165,7 @@ void    Viewer::refresh(bool retouch)
     {
         string      padding(COLS, ' ');
 
-        for (int i = 0; i < LINES; ++i)
+        for (int i = m_startLine; i < LINES; ++i)
         {
             mvwaddstr(stdscr, i, 0, padding.c_str());
         }// end for
@@ -174,7 +174,12 @@ void    Viewer::refresh(bool retouch)
     }
 
     wmove(m_pad, m_currCursLine, m_currCol);
-    prefresh(m_pad, m_currLine, 0, 0, 0, LINES - 1, COLS - 1);
+    prefresh(
+        m_pad,                  // pad
+        m_currLine, 0,          // pminrow, pmincol
+        m_startLine, m_startCol,    // sminrow, smincol
+        LINES - 1, COLS - 1     // smaxrow, smaxcol
+    );
 }// end refresh
 
 void Viewer::redraw(void)

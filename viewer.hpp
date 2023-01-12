@@ -106,6 +106,8 @@ class   Viewer
         size_t                                  m_currCursLine      = 0;
         size_t                                  m_currCol           = 0;
         bool                                    m_isSinglePage      = false;
+        size_t                                  m_startLine         = 0;
+        size_t                                  m_startCol          = 0;
 };// end class Viewer
 
 #endif
