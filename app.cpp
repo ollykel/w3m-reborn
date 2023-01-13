@@ -543,7 +543,7 @@ void App::draw_tab_headers(void)
             });
 
         mvwaddnstr(stdscr, 0, 0, headerLine.c_str(), COLS);
-        mvwaddnstr(stdscr, 1, 0, string('~', COLS).c_str(), COLS);
+        mvwaddnstr(stdscr, 1, 0, string(COLS, '~').c_str(), COLS);
     }
 }// end App::draw_tab_headers
 
@@ -1019,6 +1019,7 @@ void App::new_tab(const command_args_container& args)
     ++pos;
     m_currTab = m_tabs.emplace(pos, cfg);
     m_currTab->push_page(currPage);
+    redraw(true);
 }// end new_tab
 
 void App::switch_tab(const command_args_container& args)
