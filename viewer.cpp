@@ -116,6 +116,8 @@ void    Viewer::copy_from(const Viewer& other)
     m_currLine = other.m_currLine;
     m_currCursLine = other.m_currCursLine;
     m_currCol = other.m_currCol;
+    m_startLine = other.m_startLine;
+    m_startCol = other.m_startCol;
 
     if (m_doc)
     {
