@@ -60,7 +60,9 @@ class Tab
                 Page(
                     const s_ptr<Document>& doc,
                     const Uri& uri,
-                    const Viewer::Config& cfg
+                    const Viewer::Config& cfg,
+                    size_t startLine = 0,
+                    size_t startCol = 0
                 );// type
 
                 // --- private mutators -----------------------------------
@@ -95,6 +97,9 @@ class Tab
             -> Page*;
         auto next_page(void)
             -> Page*;
+        void set_start_line(size_t lnum);
+        void set_start_col(size_t cnum);
+        void set_start_point(size_t lnum, size_t cnum);
         void destruct(void);
         void copy_from(const type& orig);
     private:
@@ -103,6 +108,8 @@ class Tab
         page_container              m_pages             = {};
         page_container::iterator    m_pageIter;
         size_t                      m_currPageIdx       = SIZE_MAX;
+        size_t                      m_startLine         = 0;
+        size_t                      m_startCol          = 0;
 };// end class Tab
 
 #endif

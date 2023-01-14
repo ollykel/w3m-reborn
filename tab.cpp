@@ -77,7 +77,7 @@ auto Tab::push_document(const s_ptr<Document>& doc, const Uri& uri)
     if (m_pages.empty())
     {
         m_pages.emplace_back(
-            Page(doc, uri, m_cfg.viewer)
+            Page(doc, uri, m_cfg.viewer, m_startLine, m_startCol)
         );
         m_pageIter = m_pages.begin();
         m_currPageIdx = 0;
@@ -90,7 +90,7 @@ auto Tab::push_document(const s_ptr<Document>& doc, const Uri& uri)
         }
         m_pageIter = m_pages.emplace(
             m_pageIter,
-            Page(doc, uri, m_cfg.viewer)
+            Page(doc, uri, m_cfg.viewer, m_startLine, m_startCol)
         );
         ++m_currPageIdx;
     }
@@ -183,6 +183,32 @@ auto Tab::back_page(void)
     m_pages.erase(oldIter);
     return curr_page();
 }// end Tab::back_page
+
+void Tab::set_start_line(size_t lnum)
+{
+    m_startLine = lnum;
+    
+    for (auto& pg : m_pages)
+    {
+        pg.viewer().set_start_line(lnum);
+    }// end for
+}// end Tab::set_start_line
+
+void Tab::set_start_col(size_t cnum)
+{
+    m_startCol = cnum;
+    
+    for (auto& pg : m_pages)
+    {
+        pg.viewer().set_start_col(cnum);
+    }// end for
+}// end Tab::set_start_col
+
+void Tab::set_start_point(size_t lnum, size_t cnum)
+{
+    set_start_line(lnum);
+    set_start_col(cnum);
+}// end Tab::set_start_point
 
 void Tab::destruct(void)
 {
@@ -296,12 +322,15 @@ auto Tab::Page::operator=(type&& orig)
 Tab::Page::Page(
     const s_ptr<Document>& doc,
     const Uri& uri,
-    const Viewer::Config& cfg
+    const Viewer::Config& cfg,
+    size_t startLine,
+    size_t startCol
 )
 {
     m_uri = uri;
     m_documentPtr = doc;
     m_viewer = Viewer(cfg, m_documentPtr.get());
+    m_viewer.set_start_point(startLine, startCol);
 }// end type constructor
 
 // --- private mutators ---------------------------------------------------
