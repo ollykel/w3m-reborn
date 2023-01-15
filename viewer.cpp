@@ -249,7 +249,6 @@ void Viewer::redraw(void)
     wmove(m_pad, m_currCursLine, m_currCol);
     wcolor_set(m_pad, 0, NULL);
     wattrset(m_pad, A_NORMAL);
-    prefresh(m_pad, m_currLine, 0, 0, 0, LINES - 1, COLS - 1);
     wnoutrefresh(stdscr);
 }// end void redraw
 
