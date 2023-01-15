@@ -263,7 +263,7 @@ auto App::run(const Config& config)
                 break;
             case KEY_CLEAR:
             case CTRL('l'):
-                curr_page().viewer().refresh(true);
+                redraw(true);
                 break;
             case 'g':
                 curr_page().viewer().curs_up(SIZE_MAX);
@@ -525,7 +525,7 @@ void App::draw_tab_headers(void)
     }
     else
     {
-        static const string     PART    = "|";
+        static const string     PART    = "][";
 
         const size_t    numParts        = m_tabs.size() - 1;
         const size_t    nPartChars      = numParts * PART.length();
@@ -551,12 +551,18 @@ void App::redraw(bool retouch)
 {
     if (m_tabs.size() > 1)
     {
-        curr_page().viewer().set_start_line(2);
+        for (auto& tab : m_tabs)
+        {
+            tab.set_start_line(2);
+        }// end for
         draw_tab_headers();
     }
     else
     {
-        curr_page().viewer().set_start_line(0);
+        for (auto& tab : m_tabs)
+        {
+            tab.set_start_line(0);
+        }// end for
     }
 
     curr_page().viewer().refresh(retouch);
@@ -1018,6 +1024,7 @@ void App::new_tab(const command_args_container& args)
 
     ++pos;
     m_currTab = m_tabs.emplace(pos, cfg);
+    m_currTab->set_start_line(m_tabs.size() > 1 ? 2 : 0);
     m_currTab->push_page(currPage);
     redraw(true);
 }// end new_tab
