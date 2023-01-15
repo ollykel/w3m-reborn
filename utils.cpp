@@ -320,7 +320,7 @@ std::string	        pad_str(
                 {
                     size_t      remLen      = len - orig.size();
                     size_t      leftLen     = remLen / 2;
-                    size_t      rightLen    = len - leftLen;
+                    size_t      rightLen    = remLen - leftLen;
 
                     return string(leftLen, ch) + orig + string(rightLen, ch);
                 }
