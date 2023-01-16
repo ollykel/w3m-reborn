@@ -26,6 +26,7 @@ App::App(void)
     m_baseCommandDispatcher["NEW_TAB"] = &App::new_tab;
     m_baseCommandDispatcher["SWITCH_TAB"] = &App::switch_tab;
     m_baseCommandDispatcher["SWAP_TABS"] = &App::swap_tabs;
+    m_baseCommandDispatcher["DELETE_TAB"] = &App::delete_tab;
     m_baseCommandDispatcher["SWITCH_PAGE"] = &App::switch_page;
     m_baseCommandDispatcher["DELETE_PAGE"] = &App::delete_page;
     m_baseCommandDispatcher["DEFINE_COMMAND"] = &App::define_command;
@@ -319,6 +320,9 @@ auto App::run(const Config& config)
                 break;
             case 'T':
                 new_tab({ "NEW_TAB" });
+                break;
+            case CTRL('q'):
+                delete_tab({ "DELETE_TAB" });
                 break;
             case '[':
                 switch_tab({ "SWITCH_TAB", "-1" });
@@ -1128,6 +1132,28 @@ void App::swap_tabs(const command_args_container& args)
 {
     // TODO: implement
 }// end swap_tabs
+
+void App::delete_tab(const command_args_container& args)
+{
+    if (m_tabs.size() < 2)
+    {
+        return;
+    }
+
+    const auto      oldIter     = m_currTab;
+
+    if (m_currTab == m_tabs.begin())
+    {
+        ++m_currTab;
+    }
+    else
+    {
+        --m_currTab;
+    }
+
+    m_tabs.erase(oldIter);
+    redraw(true);
+}// end App::delete_tab
 
 void App::switch_page(const command_args_container& args)
 {

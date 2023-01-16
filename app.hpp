@@ -132,6 +132,7 @@ class App
         void new_tab(const command_args_container& args);
         void switch_tab(const command_args_container& args);
         void swap_tabs(const command_args_container& args);
+        void delete_tab(const command_args_container& args);
         void switch_page(const command_args_container& args);
         void delete_page(const command_args_container& args);
         void define_command(const command_args_container& args);
