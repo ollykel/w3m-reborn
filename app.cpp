@@ -699,7 +699,7 @@ void    App::goto_url(
             handle_data(*contentType, data);
         }
 finally:
-        curr_page().viewer().refresh(true);
+        redraw(true);
     }
 }// end goto_url
 
