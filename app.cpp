@@ -529,24 +529,51 @@ void App::draw_tab_headers(void)
     }
     else
     {
+        static const string     OPEN    = "[";
         static const string     PART    = "][";
+        static const string     CLOS    = "]";
 
+        const Tab       *currTab        = &(*m_currTab);
         const size_t    numParts        = m_tabs.size() - 1;
         const size_t    nPartChars      = numParts * PART.length();
         const size_t    headerLen
-            = (COLS - nPartChars) / m_tabs.size();
+            = (COLS - nPartChars - OPEN.length() - CLOS.length())
+                / m_tabs.size();
         const string    headerLine
             = utils::join_str(m_tabs, PART,
-            [&headerLen](const Tab& tab)
+            [&headerLen, &currTab](const Tab& tab)
             {
-                return utils::pad_str(
-                    tab.curr_page()->title(), headerLen,
-                    utils::Justify::CENTER,
-                    ' ', true
-                );
+                if (&tab == currTab)
+                {
+                    static const string     marker  = "*";
+
+                    string                  str     = marker;
+
+                    str += tab.curr_page()->title().substr(
+                        0, headerLen - (2 * marker.length())
+                    );
+                    str += marker;
+
+                    return utils::pad_str(
+                        str, headerLen, utils::Justify::CENTER, ' ', true
+                    );
+                }
+                else
+                {
+                    return utils::pad_str(
+                        tab.curr_page()->title(), headerLen,
+                        utils::Justify::CENTER,
+                        ' ', true
+                    );
+                }
             });
 
-        mvwaddnstr(stdscr, 0, 0, headerLine.c_str(), COLS);
+        // draw opening
+        mvwaddnstr(stdscr, 0, 0, OPEN.c_str(), COLS);
+        // draw tab headers
+        mvwaddnstr(stdscr, 0, OPEN.length(), headerLine.c_str(), COLS - OPEN.length());
+        // draw closing
+        mvwaddnstr(stdscr, 0, COLS - CLOS.length(), CLOS.c_str(), COLS);
         mvwaddnstr(stdscr, 1, 0, string(COLS, '~').c_str(), COLS);
     }
 }// end App::draw_tab_headers
