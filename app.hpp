@@ -30,8 +30,12 @@ class App
             Viewer::Config          viewer;
             Document::Config        document;
         };// end struct Config
-        typedef std::list<Tab>                  tabs_container;
-        typedef tabs_container::iterator        tabs_iterator;
+        typedef std::list<Tab>
+            tabs_container;
+        typedef tabs_container::iterator
+            tabs_iterator;
+        typedef std::map<string,Viewer::history_container>
+            history_map;
 
         // --- public constructors ----------------------------------------
         App(void);
@@ -80,6 +84,7 @@ class App
         commands_map            m_commands                  = {};
         WINDOW                  *m_screen                   = nullptr;
         bool                    m_shouldTerminate           = false;
+        history_map             m_histories                 = {};
 
         // --- protected mutators -----------------------------------------
         auto curr_tab(void)

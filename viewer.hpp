@@ -33,6 +33,9 @@ class   Viewer
             }                       attribs;
         };// end struct Config
 
+        typedef string                          history_type;
+        typedef std::vector<history_type>       history_container;
+
         // --- public static constants ------------------------------------
         static const short  COLOR_DEFAULT               = -1;
 
