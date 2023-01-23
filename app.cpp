@@ -1147,7 +1147,7 @@ void App::switch_tab(const command_args_container& args)
             break;
     }// end switch
 
-    curr_page().viewer().refresh(true);
+    redraw(true);
     return;
 print_usage:
     curr_page().viewer().disp_status(
