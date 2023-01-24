@@ -454,18 +454,6 @@ void    parse_mailcap_env(CONT_T& mailcaps, const string& env)
     }// end while
 }// end parse_mailcap_env
 
-void    set_form_input(Document::FormInput& input, Viewer& viewer)
-{
-    const string&   name        = input.name();
-    string          value       = input.value();
-
-    if (viewer.prompt_string(value, name + ":"))
-    {
-        // TODO: differentiate between quitting, empty value
-        input.set_value(value);
-    }
-}// end set_form_input
-
 template <class CONT_T>
 void    handle_form_input(
     Tab& tab,

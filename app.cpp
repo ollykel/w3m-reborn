@@ -309,7 +309,9 @@ auto App::run(const Config& config)
                 {
                     string      url = curr_page().viewer().curr_url();
 
-                    if (curr_page().viewer().prompt_string(url, "Goto URL:"))
+                    if (curr_page().viewer().prompt_string(
+                        url, "Goto URL:", m_histories["URL"]
+                    ))
                     {
                         Uri             uri     = url;
 
@@ -869,7 +871,7 @@ void    App::set_form_input(Document::FormInput& input, Viewer& viewer)
     const string&   name        = input.name();
     string          value       = input.value();
 
-    if (viewer.prompt_string(value, name + ":"))
+    if (viewer.prompt_string(value, name + ":", m_histories["TEXT"]))
     {
         // TODO: differentiate between quitting, empty value
         input.set_value(value);
@@ -1212,7 +1214,9 @@ void App::set_env(const command_args_container& args)
             prompt = args.at(1);
             prompt.push_back('=');
         case 1:
-            if (m_currPage->viewer().prompt_string(prompt, "[SETENV]:"))
+            if (m_currPage->viewer().prompt_string(
+                prompt, "[SETENV]:", m_histories["TEXT"]
+            ))
             {
                 size_t  splitIdx    = prompt.find('=');
 
@@ -1293,7 +1297,9 @@ void App::read_mailcap_file(const command_args_container& args)
 
     if (iter == args.cend())
     {
-        if (not curr_page().viewer().prompt_string(fName, "Mailcap file:"))
+        if (not curr_page().viewer().prompt_string(
+            fName, "Mailcap file:", m_histories["FILE"]
+        ))
         {
             return;
         }
@@ -1395,7 +1401,9 @@ void App::exec_shell(const command_args_container& args)
                 string  shellCmd  = "";
 
                 if (
-                    (not m_currPage->viewer().prompt_string(shellCmd, prompt))
+                    (not m_currPage->viewer().prompt_string(
+                        shellCmd, prompt, m_histories["SHELL"]
+                    ))
                     or shellCmd.empty()
                 )
                 {
@@ -1539,7 +1547,7 @@ void App::prompt_url(const command_args_container& args)
         prompt = fmt + ":";
     }
 
-    if (curr_page().viewer().prompt_string(value, prompt))
+    if (curr_page().viewer().prompt_string(value, prompt, m_histories["URL"]))
     {
         // TODO: handle escapes (%%)
         size_t      pos             = 0;

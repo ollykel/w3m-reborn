@@ -499,21 +499,30 @@ auto    Viewer::prompt_char(const string& str)
 
 auto    Viewer::prompt_string(
     string& dest,
-    const string& prompt
+    const string& prompt,
+    history_container& history
 ) -> bool
 {
     using namespace std;
 
-    WINDOW          *promptWin  = subwin(stdscr, 1, COLS, LINES-1, 0);
-    size_t          inputLen    = COLS - prompt.size();
-    string          inputPadding(inputLen, ' ');
-    int             cursIdx;
-    int             inputIdx;
-    int             key;
-    size_t          idx;
-    string          out     = dest;
-    bool            ret     = true;
+    WINDOW                                  *promptWin
+        = subwin(stdscr, 1, COLS, LINES-1, 0);
+    size_t                                  inputLen
+        = COLS - prompt.size();
+    string                                  inputPadding(inputLen, ' ');
+    int                                     cursIdx;
+    int                                     inputIdx;
+    int                                     key;
+    size_t                                  idx;
+    string                                  out
+        = dest;
+    history_container::reverse_iterator     iter;
+    bool                                    ret
+        = true;
 
+    // initialize history, iterator
+    history.emplace_back();
+    iter = history.rbegin();
     idx = out.size();
     cursIdx = prompt.size() + idx;
     inputIdx = out.size() >= inputLen ?
@@ -638,6 +647,31 @@ auto    Viewer::prompt_string(
                     idx = pos;
                 }
                 break;
+            case KEY_UP:
+            case CTRL('p'):
+                {
+                    ++iter;
+                    if (history.rend() == iter)
+                    {
+                        --iter;
+                    }
+                    else
+                    {
+                        out = *iter;
+                        idx = out.size();
+                    }
+                }
+                break;
+            case CTRL('n'):
+                {
+                    if (history.rbegin() != iter)
+                    {
+                        --iter;
+                        out = *iter;
+                        idx = out.size();
+                    }
+                }
+                break;
             case CTRL('c'):
             case CTRL('g'):
                 ret = false;
@@ -667,7 +701,11 @@ auto    Viewer::prompt_string(
 
 end_while:
     dest = out;
+    history.back() = dest;
+    // dummy history
+    history.emplace_back();
 finally:
+    history.pop_back();
     delwin(promptWin);
     refresh(true);
     wnoutrefresh(stdscr);
