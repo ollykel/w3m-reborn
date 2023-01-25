@@ -315,6 +315,7 @@ auto App::run(const Config& config)
                     {
                         Uri             uri     = url;
 
+                        m_histories.at("URL").push_back(url);
                         goto_url(uri);
                         m_currPage = m_currTab->curr_page();
                     }
@@ -875,6 +876,7 @@ void    App::set_form_input(Document::FormInput& input, Viewer& viewer)
     {
         // TODO: differentiate between quitting, empty value
         input.set_value(value);
+        m_histories.at("TEXT").push_back(value);
     }
 }// end set_form_input
 
@@ -1220,6 +1222,7 @@ void App::set_env(const command_args_container& args)
             {
                 size_t  splitIdx    = prompt.find('=');
 
+                m_histories.at("TEXT").push_back(prompt);
                 if (splitIdx and (splitIdx != string::npos))
                 {
                     string      key     = prompt.substr(0, splitIdx);
@@ -1302,6 +1305,10 @@ void App::read_mailcap_file(const command_args_container& args)
         ))
         {
             return;
+        }
+        else
+        {
+            m_histories.at("FILE").push_back(fName);
         }
     }
     else
@@ -1410,6 +1417,7 @@ void App::exec_shell(const command_args_container& args)
                     return;
                 }
 
+                m_histories.at("SHELL").push_back(shellCmd);
                 cmd = Command(shellCmd);
             }
             break;
@@ -1552,6 +1560,8 @@ void App::prompt_url(const command_args_container& args)
         // TODO: handle escapes (%%)
         size_t      pos             = 0;
         string      valueEncoded    = utils::percent_encode(value);
+
+        m_histories.at("URL").push_back(value);
 
         while ((pos = fmt.find("%s", pos)) != string::npos)
         {

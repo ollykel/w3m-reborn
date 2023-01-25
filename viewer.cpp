@@ -500,33 +500,36 @@ auto    Viewer::prompt_char(const string& str)
 auto    Viewer::prompt_string(
     string& dest,
     const string& prompt,
-    history_container& history
+    const history_container& history
 ) -> bool
 {
     using namespace std;
 
-    WINDOW                                  *promptWin
+    WINDOW                                      *promptWin
         = subwin(stdscr, 1, COLS, LINES-1, 0);
-    size_t                                  inputLen
+    size_t                                      inputLen
         = COLS - prompt.size();
-    string                                  inputPadding(inputLen, ' ');
-    int                                     cursIdx;
-    int                                     inputIdx;
-    int                                     key;
-    size_t                                  idx;
-    string                                  out
-        = dest;
-    history_container::reverse_iterator     iter;
-    bool                                    ret
+    string                                      inputPadding(inputLen, ' ');
+    int                                         cursIdx;
+    int                                         inputIdx;
+    int                                         key;
+    size_t                                      idx;
+    std::vector<history_type>                   localHist
+        = { dest };
+    size_t                                      localHistIdx
+        = 0;
+    history_container::const_reverse_iterator   srcHistIter;
+    string                                      *curr
+        = &localHist.front();
+    bool                                        ret
         = true;
 
     // initialize history, iterator
-    history.emplace_back();
-    iter = history.rbegin();
-    idx = out.size();
+    srcHistIter = --history.crbegin();
+    idx = curr->size();
     cursIdx = prompt.size() + idx;
-    inputIdx = out.size() >= inputLen ?
-        out.size() - inputLen + 1 :
+    inputIdx = curr->size() >= inputLen ?
+        curr->size() - inputLen + 1 :
         0;
     refresh();
     mvwaddnstr(promptWin, 0, 0, prompt.c_str(), COLS);
@@ -537,7 +540,7 @@ auto    Viewer::prompt_string(
         string(inputLen, ' ').c_str(),
         inputLen
     );
-    mvwaddstr(promptWin, 0, prompt.size(), out.c_str() + inputIdx);
+    mvwaddstr(promptWin, 0, prompt.size(), curr->c_str() + inputIdx);
     wrefresh(promptWin);
     wmove(promptWin, 0, cursIdx);
 
@@ -557,26 +560,26 @@ auto    Viewer::prompt_string(
                 idx = 0;
                 break;
             case CTRL('d'):
-                if (idx < out.size())
+                if (idx < curr->size())
                 {
-                    out.erase(idx, 1);
+                    curr->erase(idx, 1);
                 }
                 break;
             case CTRL('e'):
-                idx = out.size();
+                idx = curr->size();
                 break;
             case CTRL('f'):
-                if (idx < out.size())
+                if (idx < curr->size())
                 {
                     ++idx;
                 }
                 break;
             case KEY_BACKSPACE:
             case CTRL('h'):
-                if (not out.empty())
+                if (not curr->empty())
                 {
                     --idx;
-                    out.erase(idx, 1);
+                    curr->erase(idx, 1);
                 }
                 break;
             case CTRL('t'):
@@ -588,14 +591,14 @@ auto    Viewer::prompt_string(
                         break;
                     }
 
-                    pos = out.find_last_not_of(" \t", idx - 1);
+                    pos = curr->find_last_not_of(" \t", idx - 1);
                     if ((0 == pos) or (string::npos == pos))
                     {
                         pos = 0;
                     }
                     else
                     {
-                        pos = out.find_last_of(" \t", pos);
+                        pos = curr->find_last_of(" \t", pos);
                         if (string::npos == pos)
                         {
                             pos = 0;
@@ -612,7 +615,7 @@ auto    Viewer::prompt_string(
             case CTRL('u'):
                 if (idx)
                 {
-                    out.erase(0, idx);
+                    curr->erase(0, idx);
                     idx = 0;
                 }
                 break;
@@ -625,14 +628,14 @@ auto    Viewer::prompt_string(
                         break;
                     }
 
-                    pos = out.find_last_not_of(" \t", idx - 1);
+                    pos = curr->find_last_not_of(" \t", idx - 1);
                     if ((0 == pos) or (string::npos == pos))
                     {
                         pos = 0;
                     }
                     else
                     {
-                        pos = out.find_last_of(" \t", pos);
+                        pos = curr->find_last_of(" \t", pos);
                         if (string::npos == pos)
                         {
                             pos = 0;
@@ -643,32 +646,42 @@ auto    Viewer::prompt_string(
                         }
                     }
 
-                    out.erase(pos, idx - pos);
+                    curr->erase(pos, idx - pos);
                     idx = pos;
                 }
                 break;
             case KEY_UP:
             case CTRL('p'):
                 {
-                    ++iter;
-                    if (history.rend() == iter)
+                    if (localHistIdx + 1 < localHist.size())
                     {
-                        --iter;
+                        ++localHistIdx;
                     }
                     else
                     {
-                        out = *iter;
-                        idx = out.size();
+                        ++srcHistIter;
+                        if (history.crend() == srcHistIter)
+                        {
+                            --srcHistIter;
+                            break;
+                        }
+                        else
+                        {
+                            localHist.push_back(*srcHistIter);
+                            ++localHistIdx;
+                        }
                     }
+
+                    curr = &localHist.at(localHistIdx);
+                    idx = curr->size();
                 }
                 break;
             case CTRL('n'):
                 {
-                    if (history.rbegin() != iter)
+                    if (localHistIdx)
                     {
-                        --iter;
-                        out = *iter;
-                        idx = out.size();
+                        curr = &localHist.at(--localHistIdx);
+                        idx = curr->size();
                     }
                 }
                 break;
@@ -677,13 +690,13 @@ auto    Viewer::prompt_string(
                 ret = false;
                 goto finally;
             default:
-                out.insert(idx, 1, key);
+                curr->insert(idx, 1, key);
                 ++idx;
                 break;
         }// end switch
 
-        inputIdx = out.size() >= inputLen ?
-            out.size() - inputLen + 1 :
+        inputIdx = curr->size() >= inputLen ?
+            curr->size() - inputLen + 1 :
             0;
 
         cursIdx = prompt.size() + idx;
@@ -694,18 +707,14 @@ auto    Viewer::prompt_string(
         }
 
         mvwaddstr(promptWin, 0, prompt.size(), inputPadding.c_str());
-        mvwaddstr(promptWin, 0, prompt.size(), out.c_str() + inputIdx);
+        mvwaddstr(promptWin, 0, prompt.size(), curr->c_str() + inputIdx);
         wrefresh(promptWin);
         wmove(promptWin, 0, cursIdx);
     }// end while
 
 end_while:
-    dest = out;
-    history.back() = dest;
-    // dummy history
-    history.emplace_back();
+    dest = *curr;
 finally:
-    history.pop_back();
     delwin(promptWin);
     refresh(true);
     wnoutrefresh(stdscr);

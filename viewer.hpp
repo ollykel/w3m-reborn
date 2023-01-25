@@ -99,7 +99,7 @@ class   Viewer
         auto    prompt_string(
                 string& dest,
                 const string& prompt,
-                history_container& history
+                const history_container& history = {}
             ) -> bool;
     private:
         // === private member variables ===================================
