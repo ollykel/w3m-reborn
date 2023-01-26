@@ -11,6 +11,7 @@ class   Debugger
         {
             string      filename;
             int         thresholdDefault;
+            string      prefix;
         };// end struct Config
 
         // --- public constructors ----------------------------------------
@@ -21,13 +22,17 @@ class   Debugger
         void printf(int priority, const string& fmt, ...);
         auto threshold(void)
             -> int;
+        auto prefix(void)
+            -> const string&;
 
         // --- public mutators --------------------------------------------
         void set_threshold(int value);
+        void set_prefix(const string& value);
     private:
         // --- private member variables -----------------------------------
         string      m_filename          = "";
         int         m_threshold         = 0;
+        string      m_prefix            = "";
 };// end class Debugger
 
 #endif
