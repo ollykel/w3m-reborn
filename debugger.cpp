@@ -28,6 +28,11 @@ void Debugger::printf(int priority, const string& fmt, ...)
     va_list     ap;
     FILE        *out        = nullptr;
 
+    if (priority < m_threshold)
+    {
+        return;
+    }
+
     if (not (out = fopen(m_filename.c_str(), "a")))
     {
         return;
