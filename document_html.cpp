@@ -1194,7 +1194,6 @@ wstring  DocumentHtml::decode_text(const string& text)
         if (string::npos == idx)
         {
             out.push_back('&');
-            ++beg;
         }
         else
         {
