@@ -28,7 +28,7 @@ void Debugger::printf(int priority, const string& fmt, ...)
     va_list     ap;
     FILE        *out        = nullptr;
 
-    if (priority < m_threshold)
+    if (priority >= m_threshold)
     {
         return;
     }
