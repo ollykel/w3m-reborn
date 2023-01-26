@@ -22,10 +22,18 @@ int main(const int argc, const char **argv)
 
     debug = Debugger(config);
 
-    for (int i = 0; i < 12; ++i)
+    try
     {
-        debug.printf(i, "Debug #%d", i);
-    }// end for i
+        for (int i = 0; i < 12; ++i)
+        {
+            debug.printf(i, "Debug #%d", i);
+        }// end for i
+    }
+    catch (const Debugger::FileIOException& e)
+    {
+        cerr << "ERROR: " << e << endl;
+        return EXIT_FAILURE;
+    }
 
     return EXIT_SUCCESS;
 }// end int main
