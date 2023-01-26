@@ -35,7 +35,7 @@ void Debugger::printf(int priority, const string& fmt, ...)
 
     if (not (out = fopen(m_filename.c_str(), "a")))
     {
-        return;
+        throw FileIOException(m_filename);
     }
 
     if (not m_prefix.empty())
@@ -74,3 +74,13 @@ void Debugger::set_prefix(const string& value)
 {
     m_prefix = value;
 }// end Debugger::set_prefix
+
+// === class Debugger::FileIOException Implementation =====================
+//
+// ========================================================================
+
+// --- private constructors -----------------------------------------------
+Debugger::FileIOException::FileIOException(const string& fname)
+{
+    set_text("could not open \"" + fname + "\"");
+}// end Debugger::FileIOException::FileIOException

@@ -13,6 +13,14 @@ class   Debugger
             int         limitDefault;
             string      prefix;
         };// end struct Config
+        class   FileIOException : public StringException
+        {
+            friend class Debugger;
+
+            private:
+                // --- private constructors -------------------------------
+                FileIOException(const string& fname);
+        };// end class File
 
         // --- public constructors ----------------------------------------
         Debugger(void);
