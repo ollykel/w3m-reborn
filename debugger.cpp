@@ -16,7 +16,7 @@ Debugger::Debugger(void)
 Debugger::Debugger(const Config& cfg)
 {
     m_filename = cfg.filename;
-    m_threshold = cfg.thresholdDefault;
+    m_limit = cfg.limitDefault;
     m_prefix = cfg.prefix;
 }// end Debugger::Debugger
 
@@ -28,7 +28,7 @@ void Debugger::printf(int priority, const string& fmt, ...)
     va_list     ap;
     FILE        *out        = nullptr;
 
-    if (priority >= m_threshold)
+    if (priority >= m_limit)
     {
         return;
     }
@@ -52,11 +52,11 @@ void Debugger::printf(int priority, const string& fmt, ...)
     fclose(out);
 }// end Debugger::printf
 
-auto Debugger::threshold(void)
+auto Debugger::limit(void)
     -> int
 {
-    return m_threshold;
-}// end Debugger::threshold
+    return m_limit;
+}// end Debugger::limit
 
 auto Debugger::prefix(void)
     -> const string&
@@ -65,10 +65,10 @@ auto Debugger::prefix(void)
 }// end Debugger::prefix
 
 // --- public mutators ----------------------------------------------------
-void Debugger::set_threshold(int value)
+void Debugger::set_limit(int value)
 {
-    m_threshold = value;
-}// end Debugger::set_threshold
+    m_limit = value;
+}// end Debugger::set_limit
 
 void Debugger::set_prefix(const string& value)
 {

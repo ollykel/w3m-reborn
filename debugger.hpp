@@ -10,7 +10,7 @@ class   Debugger
         struct  Config
         {
             string      filename;
-            int         thresholdDefault;
+            int         limitDefault;
             string      prefix;
         };// end struct Config
 
@@ -20,18 +20,18 @@ class   Debugger
 
         // --- public accessors -------------------------------------------
         void printf(int priority, const string& fmt, ...);
-        auto threshold(void)
+        auto limit(void)
             -> int;
         auto prefix(void)
             -> const string&;
 
         // --- public mutators --------------------------------------------
-        void set_threshold(int value);
+        void set_limit(int value);
         void set_prefix(const string& value);
     private:
         // --- private member variables -----------------------------------
         string      m_filename          = "";
-        int         m_threshold         = 0;
+        int         m_limit             = 0;
         string      m_prefix            = "";
 };// end class Debugger
 
