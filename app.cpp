@@ -98,6 +98,9 @@ auto App::run(const Config& config)
 
     m_config = config;
 
+    // init debugger
+    m_debuggerMain = Debugger(config.debuggerMain);
+
     // init first tab
     tabCfg = { config.viewer };
     m_tabs.emplace_back(tabCfg);

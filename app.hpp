@@ -30,6 +30,7 @@ class App
             string                  tempdir;
             Viewer::Config          viewer;
             Document::Config        document;
+            Debugger::Config        debuggerMain;
         };// end struct Config
         typedef std::list<Tab>
             tabs_container;
