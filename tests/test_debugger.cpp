@@ -22,6 +22,7 @@ int main(const int argc, const char **argv)
     // settings
     config.filename = fname;
     config.prefix = "TEST";
+    config.timeFormat = "%a, %d %b %Y %T %z";
     sscanf(argv[2], " %d", &config.limitDefault);
 
     debug = Debugger(config);
@@ -30,16 +31,10 @@ int main(const int argc, const char **argv)
 
     try
     {
-        time_t          currTime                = time(nullptr);
-        char            timeBuf[BUFFER_LEN]     = "";
-
-        strftime(
-            timeBuf,
-            BUFFER_LEN,
-            "%a, %d %b %Y %T %z",
-            localtime(&currTime)
+        debug.printf(
+            0, "Beginning output at %s...",
+            debug.format_curr_time().c_str()
         );
-        debug.printf(0, "Beginning output at %s...", timeBuf);
 
         for (int i = 0; i < 12; ++i)
         {
