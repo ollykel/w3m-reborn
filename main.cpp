@@ -138,6 +138,14 @@ int main(const int argc, const char **argv, const char **envp)
                 SIZE_MAX,   // max
             },
         },
+        // Main debugger
+        {
+            // TODO: dynamically choose temp directory
+            "/tmp/w3mdebug.log",        // filename
+            1,                          // limitDefault
+            "MAIN",                     // prefix
+            "%a, %d %b %Y %T %z",       // timeFormat
+        },
     };
 
     #undef  CURL_COMMAND
