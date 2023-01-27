@@ -28,12 +28,12 @@ class   Debugger
         Debugger(const Config& cfg);
 
         // --- public accessors -------------------------------------------
-        void printf(int priority, const string& fmt, ...);
-        auto limit(void)
+        void printf(int priority, const string& fmt, ...) const;
+        auto limit(void) const
             -> int;
-        auto prefix(void)
+        auto prefix(void) const
             -> const string&;
-        auto time_format(void)
+        auto time_format(void) const
             -> const string&;
 
         // --- public mutators --------------------------------------------

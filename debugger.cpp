@@ -22,7 +22,7 @@ Debugger::Debugger(const Config& cfg)
 }// end Debugger::Debugger
 
 // --- public accessors ---------------------------------------------------
-void Debugger::printf(int priority, const string& fmt, ...)
+void Debugger::printf(int priority, const string& fmt, ...) const
 {
     using namespace std;
 
@@ -53,19 +53,19 @@ void Debugger::printf(int priority, const string& fmt, ...)
     fclose(out);
 }// end Debugger::printf
 
-auto Debugger::limit(void)
+auto Debugger::limit(void) const
     -> int
 {
     return m_limit;
 }// end Debugger::limit
 
-auto Debugger::prefix(void)
+auto Debugger::prefix(void) const
     -> const string&
 {
     return m_prefix;
 }// end Debugger::prefix
 
-auto Debugger::time_format(void)
+auto Debugger::time_format(void) const
     -> const string&
 {
     return m_timeFormat;
