@@ -35,6 +35,8 @@ class   Debugger
             -> const string&;
         auto time_format(void) const
             -> const string&;
+        auto format_curr_time(void) const
+            -> string;
 
         // --- public mutators --------------------------------------------
         void set_limit(int value);

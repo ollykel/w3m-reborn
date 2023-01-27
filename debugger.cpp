@@ -1,3 +1,4 @@
+#include <time.h>
 #include <stdarg.h>
 
 #include "deps.hpp"
@@ -70,6 +71,31 @@ auto Debugger::time_format(void) const
 {
     return m_timeFormat;
 }// end Debugger::time_format
+
+auto Debugger::format_curr_time(void) const
+    -> string
+{
+    #define     BUFFER_LEN_INIT     0x100
+
+    using namespace std;
+
+    time_t                  currTime        = time(nullptr);
+    std::vector<char>       buffer(BUFFER_LEN_INIT, '\0');
+
+    while (strftime(
+            buffer.data(),
+            buffer.size(),
+            m_timeFormat.c_str(),
+            localtime(&currTime)
+        ) == buffer.size()
+    )
+    {
+        buffer.resize(buffer.size() * 2);
+    }// end while
+
+    return string(buffer.data());
+    #undef      BUFFER_LEN_INIT
+}// end Debugger::format_curr_time
 
 // --- public mutators ----------------------------------------------------
 void Debugger::set_limit(int value)
