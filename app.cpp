@@ -669,9 +669,23 @@ void    App::goto_url(
             }
 
             visitedUris.insert(fullUri.str());
-            data = fetcher->fetch_url(
-                status, headers, fullUri, *inData, fetchEnv
-            );
+
+            try
+            {
+                data = fetcher->fetch_url(
+                    status, headers, fullUri, *inData, fetchEnv
+                );
+            }
+            catch (const std::exception& e)
+            {
+                m_debuggerMain.printf(
+                    1,
+                    "%s: could not fetch %s",
+                    m_debuggerMain.format_curr_time().c_str(),
+                    fullUri.str().c_str()
+                );
+                throw e;
+            }
 
             fetchEnv["W3M_REQUEST_METHOD"] = "GET";
             inData = &nullData;
