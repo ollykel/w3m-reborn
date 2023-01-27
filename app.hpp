@@ -16,6 +16,7 @@
 #include "tab.hpp"
 #include "viewer.hpp"
 #include "mailcap.hpp"
+#include "debugger.hpp"
 
 class App
 {
@@ -85,6 +86,7 @@ class App
         WINDOW                  *m_screen                   = nullptr;
         bool                    m_shouldTerminate           = false;
         history_map             m_histories                 = {};
+        Debugger                m_debuggerMain              = {};
 
         // --- protected mutators -----------------------------------------
         auto curr_tab(void)
