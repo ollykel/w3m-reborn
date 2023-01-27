@@ -1,5 +1,9 @@
+#include <time.h>
+
 #include "../deps.hpp"
 #include "../debugger.hpp"
+
+#define     BUFFER_LEN      0x100
 
 int main(const int argc, const char **argv)
 {
@@ -21,11 +25,25 @@ int main(const int argc, const char **argv)
     sscanf(argv[2], " %d", &config.limitDefault);
 
     debug = Debugger(config);
+    cout << "Debugger initialized, with limit level "
+        << config.limitDefault << endl;
 
     try
     {
+        time_t          currTime                = time(nullptr);
+        char            timeBuf[BUFFER_LEN]     = "";
+
+        strftime(
+            timeBuf,
+            BUFFER_LEN,
+            "%a, %d %b %Y %T %z",
+            localtime(&currTime)
+        );
+        debug.printf(0, "Beginning output at %s...", timeBuf);
+
         for (int i = 0; i < 12; ++i)
         {
+            cout << "\tPrinting debug at level " << i << "..." << endl;
             debug.printf(i, "Debug #%d", i);
         }// end for i
     }
@@ -34,6 +52,8 @@ int main(const int argc, const char **argv)
         cerr << "ERROR: " << e << endl;
         return EXIT_FAILURE;
     }
+
+    cout << "Read debugger output at \"" << fname << "\"" << endl;
 
     return EXIT_SUCCESS;
 }// end int main
