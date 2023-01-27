@@ -18,6 +18,7 @@ Debugger::Debugger(const Config& cfg)
     m_filename = cfg.filename;
     m_limit = cfg.limitDefault;
     m_prefix = cfg.prefix;
+    m_timeFormat = cfg.timeFormat;
 }// end Debugger::Debugger
 
 // --- public accessors ---------------------------------------------------
@@ -64,6 +65,12 @@ auto Debugger::prefix(void)
     return m_prefix;
 }// end Debugger::prefix
 
+auto Debugger::time_format(void)
+    -> const string&
+{
+    return m_timeFormat;
+}// end Debugger::time_format
+
 // --- public mutators ----------------------------------------------------
 void Debugger::set_limit(int value)
 {
@@ -74,6 +81,11 @@ void Debugger::set_prefix(const string& value)
 {
     m_prefix = value;
 }// end Debugger::set_prefix
+
+void Debugger::set_time_format(const string& fmt)
+{
+    m_timeFormat = fmt;
+}// end Debugger::set_time_format
 
 // === class Debugger::FileIOException Implementation =====================
 //

@@ -12,6 +12,7 @@ class   Debugger
             string      filename;
             int         limitDefault;
             string      prefix;
+            string      timeFormat;
         };// end struct Config
         class   FileIOException : public StringException
         {
@@ -32,15 +33,20 @@ class   Debugger
             -> int;
         auto prefix(void)
             -> const string&;
+        auto time_format(void)
+            -> const string&;
 
         // --- public mutators --------------------------------------------
         void set_limit(int value);
         void set_prefix(const string& value);
+        void set_time_format(const string& fmt);
     private:
         // --- private member variables -----------------------------------
         string      m_filename          = "";
         int         m_limit             = 0;
         string      m_prefix            = "";
+        // default to RFC 2822-compliant date format
+        string      m_timeFormat        = "%a, %d %b %Y %T %z";
 };// end class Debugger
 
 #endif
