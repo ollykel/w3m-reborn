@@ -142,13 +142,23 @@ int main(const int argc, const char **argv, const char **envp)
         {
             // TODO: dynamically choose temp directory
             "/tmp/w3mdebug.log",        // filename
-            1,                          // limitDefault
+            0,                          // limitDefault
             "MAIN",                     // prefix
             "%a, %d %b %Y %T %z",       // timeFormat
         },
     };
 
     #undef  CURL_COMMAND
+
+    // get debug level
+    if (getenv("W3M_DEBUG_LEVEL"))
+    {
+        sscanf(
+            getenv("W3M_DEBUG_LEVEL"),
+            " %d",
+            &config.debuggerMain.limitDefault
+        );
+    }
 
     // get url
     if (argc > 1)
