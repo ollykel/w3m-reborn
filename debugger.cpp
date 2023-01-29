@@ -54,6 +54,12 @@ void Debugger::printf(int priority, const string& fmt, ...) const
     fclose(out);
 }// end Debugger::printf
 
+auto Debugger::filename(void) const
+    -> const string&
+{
+    return m_filename;
+}// end Debugger::filename
+
 auto Debugger::limit(void) const
     -> int
 {
@@ -98,6 +104,11 @@ auto Debugger::format_curr_time(void) const
 }// end Debugger::format_curr_time
 
 // --- public mutators ----------------------------------------------------
+void Debugger::set_filename(const string& name)
+{
+    m_filename = name;
+}// end Debugger::set_filename
+
 void Debugger::set_limit(int value)
 {
     m_limit = value;

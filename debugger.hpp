@@ -29,6 +29,8 @@ class   Debugger
 
         // --- public accessors -------------------------------------------
         void printf(int priority, const string& fmt, ...) const;
+        auto filename(void) const
+            -> const string&;
         auto limit(void) const
             -> int;
         auto prefix(void) const
@@ -39,6 +41,7 @@ class   Debugger
             -> string;
 
         // --- public mutators --------------------------------------------
+        void set_filename(const string& name);
         void set_limit(int value);
         void set_prefix(const string& value);
         void set_time_format(const string& fmt);
