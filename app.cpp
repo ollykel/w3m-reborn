@@ -614,6 +614,14 @@ void    App::goto_url(
 {
     using namespace std;
 
+    m_debuggerMain.printf(
+        3, 
+        "%s: fetching: %s \"%s\"",
+        m_debuggerMain.format_curr_time().c_str(),
+        requestMethod.c_str(),
+        targetUrl.str().c_str()
+    );
+
     if (targetUrl.is_fragment())
     {
         if (not curr_page().viewer().goto_section(targetUrl.fragment))
@@ -658,6 +666,13 @@ void    App::goto_url(
 
             fullUri = Uri::from_relative(prevUri, target);
 
+            m_debuggerMain.printf(
+                3,
+                "%s: directed to \"%s\"",
+                m_debuggerMain.format_curr_time().c_str(),
+                fullUri.str().c_str()
+            );
+
             if (visitedUris.count(fullUri.str()))
             {
                 break;
@@ -676,6 +691,17 @@ void    App::goto_url(
                     status, headers, fullUri, *inData, fetchEnv
                 );
             }
+            catch (const StringException& e)
+            {
+                m_debuggerMain.printf(
+                    1,
+                    "%s: could not fetch %s; %s",
+                    m_debuggerMain.format_curr_time().c_str(),
+                    fullUri.str().c_str(),
+                    ((string)(e)).c_str()
+                );
+                throw e;
+            }
             catch (const std::exception& e)
             {
                 m_debuggerMain.printf(
@@ -690,6 +716,13 @@ void    App::goto_url(
             fetchEnv["W3M_REQUEST_METHOD"] = "GET";
             inData = &nullData;
             prevUri = fullUri;
+
+            m_debuggerMain.printf(
+                3,
+                "%s: received status %d",
+                m_debuggerMain.format_curr_time().c_str(),
+                status.code
+            );
 
             if (headers.count("location")
                 and (not headers.at("location").empty())
@@ -714,27 +747,59 @@ void    App::goto_url(
         // create document, if applicable
         if (not contentType)
         {
+            m_debuggerMain.printf(
+                1,
+                "%s: ERROR: content-type not provided",
+                m_debuggerMain.format_curr_time().c_str()
+            );
             curr_page().viewer().refresh(true);
             curr_page().viewer().disp_status(
                 "ERROR: could not identify content type"
             );
             goto finally;
         }
-        else if (*contentType == "text/plain")
+        else
         {
-            doc.reset(new DocumentText(
-                m_config.document,
-                string(data.cbegin(), data.cend()),
-                COLS
-            ));
-        }
-        else if (*contentType == "text/html")
-        {
-            doc.reset(new DocumentHtml(
-                m_config.document,
-                string(data.cbegin(), data.cend()),
-                COLS
-            ));
+            try
+            {
+                if (*contentType == "text/plain")
+                {
+                    doc.reset(new DocumentText(
+                        m_config.document,
+                        string(data.cbegin(), data.cend()),
+                        COLS
+                    ));
+                }
+                else if (*contentType == "text/html")
+                {
+                    doc.reset(new DocumentHtml(
+                        m_config.document,
+                        string(data.cbegin(), data.cend()),
+                        COLS
+                    ));
+                }
+            }
+            catch (const StringException& e)
+            {
+                m_debuggerMain.printf(
+                    1,
+                    "%s: could not parse document for \"%s\": %s",
+                    m_debuggerMain.format_curr_time().c_str(),
+                    fullUri.str().c_str(),
+                    ((string)(e)).c_str()
+                );
+                throw e;
+            }
+            catch (const std::exception& e)
+            {
+                m_debuggerMain.printf(
+                    1,
+                    "%s: could not parse document for \"%s\"",
+                    m_debuggerMain.format_curr_time().c_str(),
+                    fullUri.str().c_str()
+                );
+                throw e;
+            }
         }
 
         if (doc)
@@ -746,7 +811,19 @@ void    App::goto_url(
             handle_data(*contentType, data);
         }
 finally:
+        m_debuggerMain.printf(
+            3,
+            "%s: redrawing document for \"%s\"",
+            m_debuggerMain.format_curr_time().c_str(),
+            fullUri.str().c_str()
+        );
         redraw(true);
+        m_debuggerMain.printf(
+            3,
+            "%s: finished redrawing document for \"%s\"",
+            m_debuggerMain.format_curr_time().c_str(),
+            fullUri.str().c_str()
+        );
     }
 }// end goto_url
 
