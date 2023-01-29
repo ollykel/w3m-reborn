@@ -3,12 +3,25 @@
 #include <unistd.h>
 
 #include "deps.hpp"
+#include "debugger.hpp"
 #include "utils.hpp"
 #include "document.hpp"
+
+static Debugger     DEBUGGER        = {};
 
 // === class Document implementation ======================================
 //
 // ========================================================================
+
+void Document::set_debugger_filename(const string& fname)
+{
+    DEBUGGER.set_filename(fname);
+}// end Document::set_debugger_filename
+
+void Document::set_debugger_limit(int limit)
+{
+    DEBUGGER.set_limit(limit);
+}// end Document::set_debugger_limit
 
 Document::Document(const Config& cfg)
 {
@@ -262,6 +275,12 @@ auto Document::form_inputs(void)
 {
     return m_form_inputs.begin();
 }// end Document::form_inputs
+
+auto Document::debugger(void)
+    -> Debugger&
+{
+    return DEBUGGER;
+}// end 
 
 auto    Document::emplace_form(string action, string method)
     -> Form&

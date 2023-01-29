@@ -6,6 +6,7 @@
 #include <unordered_set>
 
 #include "deps.hpp"
+#include "debugger.hpp"
 #include "dom_tree.hpp"
 
 class   Document
@@ -108,6 +109,10 @@ class   Document
         typedef     std::vector<form_type>          form_container;
         typedef     std::vector<FormInput>          form_input_container;
 
+        // --- public static functions ------------------------------------
+        static void set_debugger_filename(const string& fname);
+        static void set_debugger_limit(int limit);
+
         // --- public constructor(s) --------------------------------------
         Document(const Config& cfg);// default
 
@@ -157,6 +162,10 @@ class   Document
         form_container          m_forms         = {};
         form_input_container    m_form_inputs   = {};
         section_map             m_sections      = {};
+
+        // --- protected static functions ---------------------------------
+        static auto debugger(void)
+            -> Debugger&;
 
         // --- protected mutator(s) ---------------------------------------
         auto    emplace_form(string action = "", string method = "")
