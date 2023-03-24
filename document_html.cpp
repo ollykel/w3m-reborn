@@ -183,8 +183,20 @@ void    DocumentHtml::append_node(
     const size_t    currNodes   = (not currLines) ?
                                     0 : m_buffer.back().size();
 
+    debugger().printf(
+        3,
+        "%s: appending node of type \"%s\"",
+        debugger().format_curr_time().c_str(),
+        nd.identifier()
+    );
     if (nd.is_text())
     {
+        debugger().printf(
+            3,
+            "%s: appending text node: \"%s\"",
+            debugger().format_curr_time().c_str(),
+            nd.text().c_str()
+        );
         append_text(nd, cols, fmt, stacks);
     }
     // ignore scripts
