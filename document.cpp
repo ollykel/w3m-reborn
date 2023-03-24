@@ -7,7 +7,12 @@
 #include "utils.hpp"
 #include "document.hpp"
 
-static Debugger     DEBUGGER        = {};
+static Debugger     DEBUGGER        = {{
+    "",                         // filename
+    0,                          // limit
+    "DOCUMENT",                 // prefix
+    "%a, %d %b %Y %T %z",       // timeFormat
+}};
 
 // === class Document implementation ======================================
 //

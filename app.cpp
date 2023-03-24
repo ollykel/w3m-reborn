@@ -98,8 +98,10 @@ auto App::run(const Config& config)
 
     m_config = config;
 
-    // init debugger
+    // init debuggers
     m_debuggerMain = Debugger(config.debuggerMain);
+    Document::set_debugger_filename(config.debuggerMain.filename);
+    Document::set_debugger_limit(config.debuggerMain.limitDefault);
 
     // init first tab
     tabCfg = { config.viewer };
