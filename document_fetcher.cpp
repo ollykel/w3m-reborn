@@ -26,6 +26,20 @@ DocumentFetcher::DocumentFetcher(
 }// end constructor
 
 // --- public accessors ---------------------------------------------------
+
+// === auto DocumentFetcher::fetch_url ====================================
+//
+// Fetches a document identified by a url, returning a smart pointer
+// to a Document.
+//
+// Parameters:
+//  url         IN      -- url of document to fetch
+//  headers     IN      -- headers with which to make request
+//
+// Return:
+//  A smart pointer pointing to the fetched document.
+//
+// ========================================================================
 auto DocumentFetcher::fetch_url(
     const string& url,
     std::map<string, string>& headers
