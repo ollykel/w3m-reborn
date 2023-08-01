@@ -1,7 +1,8 @@
 # PRIORITIES
-1. create debugger
-2. create yaml parser
-3. create mailcap handler
-4. create Page class
-5. render \<pre\>
-7. render tables
+1. improve code documentation
+2. create debugger
+3. create yaml parser
+4. create mailcap handler
+5. create Page class
+6. render \<pre\>
+8. render tables
