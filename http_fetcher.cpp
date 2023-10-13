@@ -23,8 +23,8 @@ HttpFetcher::HttpFetcher(
 )
 {
     m_cmd = Command(shellCommand)
-        .set_stdout_piped(true)
-        .set_stdin_piped(true);
+        .set_std_out_piped(true)
+        .set_std_in_piped(true);
     m_urlEnv = urlEnv;
 
     for (const auto& kv : env)
@@ -64,16 +64,16 @@ auto HttpFetcher::fetch_url(
     // write request body, if applicable
     if (not input.empty())
     {
-        sproc.stdin().write(input.data(), input.size());
+        sproc.std_in().write(input.data(), input.size());
     }
 
-    // close stdin
-    sproc.stdin().close();
+    // close std_in
+    sproc.std_in().close();
 
     // read first line
     //     if it is a valid HTTP status line, parse it
     //     otherwise, treat it as first header
-    getline(sproc.stdout(), currLine);
+    getline(sproc.std_out(), currLine);
     if (sscanf(currLine.c_str(), " %s %d %s", version, &status.code, reason) >= 2)
     {
         status.version = version;
@@ -82,7 +82,7 @@ auto HttpFetcher::fetch_url(
     }
 
     // read headers
-    while ((not currLine.empty()) or getline(sproc.stdout(), currLine))
+    while ((not currLine.empty()) or getline(sproc.std_out(), currLine))
     {
         header_key_type             key         = {};
         header_value_type           value       = {};
@@ -184,22 +184,22 @@ auto HttpFetcher::fetch_url(
     }// end while
 
     // next, read body
-    while (sproc.stdout())
+    while (sproc.std_out())
     {
         char    *buf;
 
         body.resize(body.size() + READ_LEN);
         buf = &body.back() + 1 - READ_LEN;
 
-        sproc.stdout().read(buf, READ_LEN);
+        sproc.std_out().read(buf, READ_LEN);
     }// end while
 
     if (not body.empty())
     {
-        body.resize(body.size() + sproc.stdout().gcount() - READ_LEN);
+        body.resize(body.size() + sproc.std_out().gcount() - READ_LEN);
     }
 
-    sproc.stdout().close();
+    sproc.std_out().close();
     sproc.wait();
     return body;
 }// end HttpFetcher::fetch_url

@@ -66,20 +66,20 @@ auto Command::shell_command(void) const     -> bool
     return m_isShellCommand;
 }// end Command::shell_command
 
-auto Command::stdin_piped(void) const       -> bool
+auto Command::std_in_piped(void) const       -> bool
 {
     return m_pipeStdin;
-}// end Command::stdin_piped
+}// end Command::std_in_piped
 
-auto Command::stdout_piped(void) const      -> bool
+auto Command::std_out_piped(void) const      -> bool
 {
     return m_pipeStdout;
-}// end Command::stdout_piped
+}// end Command::std_out_piped
 
-auto Command::stderr_piped(void) const      -> bool
+auto Command::std_err_piped(void) const      -> bool
 {
     return m_pipeStderr;
-}// end Command::stderr_piped
+}// end Command::std_err_piped
 
 auto Command::shell(void) const          -> const string&
 {
@@ -124,23 +124,23 @@ auto Command::set_shell(const string& shell)                 -> Command&
     return *this;
 }// end Command::set_shell
 
-auto Command::set_stdin_piped(const bool state)                 -> Command&
+auto Command::set_std_in_piped(const bool state)                 -> Command&
 {
     m_pipeStdin = state;
     return *this;
-}// end Command::set_stdin_piped
+}// end Command::set_std_in_piped
 
-auto Command::set_stdout_piped(const bool state)                -> Command&
+auto Command::set_std_out_piped(const bool state)                -> Command&
 {
     m_pipeStdout = state;
     return *this;
-}// end Command::set_stdout_piped
+}// end Command::set_std_out_piped
 
-auto Command::set_stderr_piped(const bool state)                -> Command&
+auto Command::set_std_err_piped(const bool state)                -> Command&
 {
     m_pipeStderr = state;
     return *this;
-}// end Command::set_stderr_piped
+}// end Command::set_std_err_piped
 
 // === Command::Subprocess Implementation =================================
 //
@@ -158,51 +158,51 @@ auto Command::Subprocess::terminated(void) const     -> bool
     return m_hasTerminated;
 }// end Command::Subprocess::terminated
 
-auto Command::Subprocess::stdin_piped(void) const    -> bool
+auto Command::Subprocess::std_in_piped(void) const    -> bool
 {
-    return m_stdin.get();
-}// end Command::Subprocess::stdin_piped
+    return m_std_in.get();
+}// end Command::Subprocess::std_in_piped
 
-auto Command::Subprocess::stdout_piped(void) const   -> bool
+auto Command::Subprocess::std_out_piped(void) const   -> bool
 {
-    return m_stdout.get();
-}// end Command::Subprocess::stdout_piped
+    return m_std_out.get();
+}// end Command::Subprocess::std_out_piped
 
-auto Command::Subprocess::stderr_piped(void) const   -> bool
+auto Command::Subprocess::std_err_piped(void) const   -> bool
 {
-    return m_stderr.get();
-}// end Command::Subprocess::stderr_piped
+    return m_std_err.get();
+}// end Command::Subprocess::std_err_piped
 
 // --- public mutator(s) --------------------------------------------------
-auto Command::Subprocess::stdin(void)    -> ofdstream&
+auto Command::Subprocess::std_in(void)    -> ofdstream&
 {
-    if (not m_stdin)
+    if (not m_std_in)
     {
-        throw except_file_unpiped("stdin");
+        throw except_file_unpiped("std_in");
     }
 
-    return *m_stdin.get();
-}// end Command::Subprocess::stdin
+    return *m_std_in.get();
+}// end Command::Subprocess::std_in
 
-auto Command::Subprocess::stdout(void)   -> ifdstream&
+auto Command::Subprocess::std_out(void)   -> ifdstream&
 {
-    if (not m_stdout)
+    if (not m_std_out)
     {
-        throw except_file_unpiped("stdout");
+        throw except_file_unpiped("std_out");
     }
 
-    return *m_stdout.get();
-}// end Command::Subprocess::stdout
+    return *m_std_out.get();
+}// end Command::Subprocess::std_out
 
-auto Command::Subprocess::stderr(void)   -> ifdstream&
+auto Command::Subprocess::std_err(void)   -> ifdstream&
 {
-    if (not m_stderr)
+    if (not m_std_err)
     {
-        throw except_file_unpiped("stderr");
+        throw except_file_unpiped("std_err");
     }
 
-    return *m_stderr.get();
-}// end Command::Subprocess::stderr
+    return *m_std_err.get();
+}// end Command::Subprocess::std_err
 
 auto Command::Subprocess::wait(void)                 -> int
 {
@@ -273,7 +273,7 @@ Command::Subprocess::Subprocess(
         {
             // success
             case 0:
-                m_stdin = make_unique<ofdstream>(inPipe[1]);
+                m_std_in = make_unique<ofdstream>(inPipe[1]);
                 break;
             // failure
             case -1:
@@ -291,7 +291,7 @@ Command::Subprocess::Subprocess(
         {
             // success
             case 0:
-                m_stdout = make_unique<ifdstream>(outPipe[0]);
+                m_std_out = make_unique<ifdstream>(outPipe[0]);
                 break;
             // failure
             case -1:
@@ -309,7 +309,7 @@ Command::Subprocess::Subprocess(
         {
             // success
             case 0:
-                m_stderr = make_unique<ifdstream>(errPipe[0]);
+                m_std_err = make_unique<ifdstream>(errPipe[0]);
                 break;
             // failure
             case -1:

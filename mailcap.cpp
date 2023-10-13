@@ -269,19 +269,19 @@ auto Mailcap::Entry::passes_test(void) const
 
     auto    sproc   = m_test.spawn();
 
-    sproc.stdin().close();
+    sproc.std_in().close();
 
-    while (sproc.stdout())
+    while (sproc.std_out())
     {
-        sproc.stdout().ignore(INT_MAX);
+        sproc.std_out().ignore(INT_MAX);
     }
-    sproc.stdout().close();
+    sproc.std_out().close();
 
-    while (sproc.stderr())
+    while (sproc.std_err())
     {
-        sproc.stderr().ignore(INT_MAX);
+        sproc.std_err().ignore(INT_MAX);
     }
-    sproc.stderr().close();
+    sproc.std_err().close();
 
     return sproc.wait() == 0;
 }// end Mailcap::Entry::passes_test
@@ -377,10 +377,10 @@ auto Mailcap::Entry::create_command(
     }// end for str
 
     return Command(commandStr)
-        .set_stdin_piped(file_piped())
-        .set_stdout_piped(not needs_terminal()
+        .set_std_in_piped(file_piped())
+        .set_std_out_piped(not needs_terminal()
             or not output_type_str().empty())
-        .set_stderr_piped(not needs_terminal());
+        .set_std_err_piped(not needs_terminal());
 }// end Mailcap::Entry::create_command
 
 // --- public mutator(s) --------------------------------------------------
