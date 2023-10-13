@@ -4,6 +4,7 @@
 #include <list>
 #include <unordered_set>
 
+#include <unistd.h>
 #include <curses.h>
 #include <sys/types.h>
 #include <sys/wait.h>
