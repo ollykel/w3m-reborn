@@ -395,8 +395,8 @@ void    handle_data(
     // pipe file contents to process, if necessary
     if (entry->file_piped())
     {
-        sproc.std_in().write(data.data(), data.size());
-        sproc.std_in().close();
+        sproc.stdin().write(data.data(), data.size());
+        sproc.stdin().close();
     }
 
     if (entry->needs_terminal())

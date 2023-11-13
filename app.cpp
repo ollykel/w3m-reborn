@@ -885,8 +885,8 @@ void    App::handle_data(
     // pipe file contents to process, if necessary
     if (entry->file_piped())
     {
-        sproc.std_in().write(data.data(), data.size());
-        sproc.std_in().close();
+        sproc.stdin().write(data.data(), data.size());
+        sproc.stdin().close();
     }
 
     if (entry->needs_terminal())
@@ -1526,14 +1526,14 @@ void App::exec_shell(const command_args_container& args)
             break;
     }// end switch
 
-    cmd.set_std_in_piped(writeInput != WriteInput::NONE);
-    cmd.set_std_out_piped(shouldRead);
+    cmd.set_stdin_piped(writeInput != WriteInput::NONE);
+    cmd.set_stdout_piped(shouldRead);
 
     endwin();
     {
         auto    sproc   = cmd.spawn();
 
-        // write to std_in, if applicable
+        // write to stdin, if applicable
         switch (writeInput)
         {
             case WriteInput::NONE:
@@ -1541,14 +1541,14 @@ void App::exec_shell(const command_args_container& args)
                 break;
             case WriteInput::SOURCE:
                 // TODO: implement
-                sproc.std_in().close();
+                sproc.stdin().close();
                 break;
             case WriteInput::BUFFER:
                 {
                     string  input   = curr_page().document().buffer_string();
 
-                    sproc.std_in().write(input.data(), input.length());
-                    sproc.std_in().close();
+                    sproc.stdin().write(input.data(), input.length());
+                    sproc.stdin().close();
                 }
                 break;
         }// end switch
@@ -1560,7 +1560,7 @@ void App::exec_shell(const command_args_container& args)
 
             doc.reset(new DocumentText(
                 m_config.document,
-                sproc.std_out(),
+                sproc.stdout(),
                 COLS
             ));
             m_currPage = m_currTab->push_document(doc, {});

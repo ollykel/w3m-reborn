@@ -21,7 +21,7 @@ DocumentFetcher::DocumentFetcher(
 )
 {
     m_cmd = Command(shellCmd);
-    m_cmd.set_std_out_piped(true);
+    m_cmd.set_stdout_piped(true);
     m_documentConfig = documentConfig;
 }// end constructor
 
@@ -52,14 +52,14 @@ auto DocumentFetcher::fetch_url(
 
     auto        sproc   = cmd.spawn();
 
-    while (sproc.std_out())
+    while (sproc.stdout())
     {
         string      line;
         string      key;
         string      val;
         size_t      colonIdx;
 
-        getline(sproc.std_out(), line);
+        getline(sproc.stdout(), line);
 
         if (line.empty() or (line.size() == 1 and line[0] == '\r'))
         {
@@ -109,9 +109,9 @@ auto DocumentFetcher::fetch_url(
         DocumentHtml    *docHtml    = new DocumentHtml(m_documentConfig);
 
         docPtr.reset(docHtml);
-        docHtml->from_stream(sproc.std_out(), COLS);
+        docHtml->from_stream(sproc.stdout(), COLS);
 
-        sproc.std_out().close();
+        sproc.stdout().close();
         sproc.wait();
     }
 

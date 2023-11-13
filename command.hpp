@@ -40,9 +40,9 @@ class   Command
         // === public accessor(s) =========================================
         auto args(void) const           -> const std::vector<string>&;
         auto shell_command(void) const  -> bool;
-        auto std_in_piped(void) const    -> bool;
-        auto std_out_piped(void) const   -> bool;
-        auto std_err_piped(void) const   -> bool;
+        auto stdin_piped(void) const    -> bool;
+        auto stdout_piped(void) const   -> bool;
+        auto stderr_piped(void) const   -> bool;
         auto shell(void) const          -> const string&;
         // TODO: make sure move constructor/operator is implemented
         auto spawn(void) const          -> Subprocess;
@@ -52,9 +52,9 @@ class   Command
         auto set_env(const string& key, const string& val)  -> Command&;
         auto set_is_shell_command(const bool state)         -> Command&;
         auto set_shell(const string& shell)                 -> Command&;
-        auto set_std_in_piped(const bool state)              -> Command&;
-        auto set_std_out_piped(const bool state)             -> Command&;
-        auto set_std_err_piped(const bool state)             -> Command&;
+        auto set_stdin_piped(const bool state)              -> Command&;
+        auto set_stdout_piped(const bool state)             -> Command&;
+        auto set_stderr_piped(const bool state)             -> Command&;
     protected:
         // === protected member variable(s) ===============================
         std::vector<string>     m_args              = {};
@@ -83,14 +83,14 @@ class   Command::Subprocess
         operator    bool(void) const;
 
         auto terminated(void) const     -> bool;
-        auto std_in_piped(void) const    -> bool;
-        auto std_out_piped(void) const   -> bool;
-        auto std_err_piped(void) const   -> bool;
+        auto stdin_piped(void) const    -> bool;
+        auto stdout_piped(void) const   -> bool;
+        auto stderr_piped(void) const   -> bool;
 
         // === public mutator(s) ==========================================
-        auto std_in(void)    -> ofdstream&;
-        auto std_out(void)   -> ifdstream&;
-        auto std_err(void)   -> ifdstream&;
+        auto stdin(void)    -> ofdstream&;
+        auto stdout(void)   -> ifdstream&;
+        auto stderr(void)   -> ifdstream&;
         auto wait(void)     -> int;
         auto kill(int sig)  -> int;
     protected:
@@ -98,9 +98,9 @@ class   Command::Subprocess
         pid_t                   m_pid               = 0;
         int                     m_exitStatus        = -1;
         bool                    m_hasTerminated     = false;
-        u_ptr<ofdstream>        m_std_in             = nullptr;
-        u_ptr<ifdstream>        m_std_out            = nullptr;
-        u_ptr<ifdstream>        m_std_err            = nullptr;
+        u_ptr<ofdstream>        m_stdin             = nullptr;
+        u_ptr<ifdstream>        m_stdout            = nullptr;
+        u_ptr<ifdstream>        m_stderr            = nullptr;
 
         // === protected member constructor(s) ============================
         Subprocess(
