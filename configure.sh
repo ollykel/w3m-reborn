@@ -280,7 +280,7 @@ ${TAB}install \$< \$(PREFIX)/bin/\$(BIN)
 # 
 # =========================================================================
 docker-image: Dockerfile
-    docker image build --tag "$(PACKAGE_NAME):latest" Dockerfile
+${TAB}docker image build --tag "${PACKAGE_NAME}:latest" .
 
 _EOF_
 
