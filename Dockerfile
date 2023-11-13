@@ -28,8 +28,9 @@ COPY ./*.cpp $DEST
 COPY ./*.tpp $DEST
 COPY ./*.hpp $DEST
 
-RUN ./configure.sh --with-prefix=/tmp
+RUN ./configure.sh --with-prefix=/usr
 RUN make -j5
+RUN make install
 
 # Set up command environment
 ENV W3M_USER_AGENT="Lynx/2.8.9rel.1 libwww-FM/2.14 SSL-MM/1.4.1 OpenSSL/1.1.1d"
