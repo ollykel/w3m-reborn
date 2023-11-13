@@ -35,4 +35,4 @@ RUN make install
 # Set up command environment
 ENV W3M_USER_AGENT="Lynx/2.8.9rel.1 libwww-FM/2.14 SSL-MM/1.4.1 OpenSSL/1.1.1d"
 ENV WWW_HOME="https://lite.duckduckgo.com/lite/"
-CMD [ "ls" ]
+CMD [ "w3m" ]
