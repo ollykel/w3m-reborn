@@ -1,17 +1,23 @@
 FROM alpine:3.18.4
-RUN apk update && apk upgrade
+
+# Set package manager
+ENV PKG_MGR=apk
+ENV PKG_MGR_INSTALL="$PKG_MGR add"
+
+RUN $PKG_MGR update && $PKG_MGR upgrade
 
 # Install binary dependencies
-RUN apk add make
-RUN apk add gcc
-RUN apk add g++
-RUN apk add libc-dev
-RUN apk add libstdc++
-RUN apk add ncurses ncurses-dev libncursesw libncurses++
+RUN $PKG_MGR_INSTALL make
+RUN $PKG_MGR_INSTALL gcc
+RUN $PKG_MGR_INSTALL g++
+RUN $PKG_MGR_INSTALL libc-dev
+RUN $PKG_MGR_INSTALL libstdc++
+RUN $PKG_MGR_INSTALL ncurses ncurses-dev libncursesw libncurses++
+RUN $PKG_MGR_INSTALL libformw libmenuw libncurses++ libncursesw libpanelw ncurses-dev ncurses-doc ncurses-libs ncurses-static ncurses-terminfo ncurses-terminfo-base
 
 # Install script dependencies
-RUN apk add bash
-RUN apk add curl
+RUN $PKG_MGR_INSTALL bash
+RUN $PKG_MGR_INSTALL curl
 
 # Build executable
 ENV DEST=/build/
@@ -22,12 +28,6 @@ COPY ./*.csv $DEST
 COPY ./*.cpp $DEST
 COPY ./*.tpp $DEST
 COPY ./*.hpp $DEST
-
-RUN echo Listing files ...
-RUN ls
-
-RUN echo Finding fork ...
-RUN grep -R -e fork /usr/include
 
 RUN ./configure.sh --with-prefix=/tmp
 RUN make -j5
