@@ -7,6 +7,7 @@ TAB=$'\t'
 CONFIG_ARGS=($@)
 
 # Standard options
+export PACKAGE_NAME=w3m-reborn
 export BIN=w3m
 export TEST_DIR=tests
 export CPP=g++
@@ -274,6 +275,12 @@ main.out : ${base_obj_files[@]}
 # =========================================================================
 install : main.out
 ${TAB}install \$< \$(PREFIX)/bin/\$(BIN)
+
+# === DOCKER IMAGE ========================================================
+# 
+# =========================================================================
+docker-image: Dockerfile
+    docker image build --tag "$(PACKAGE_NAME):latest" Dockerfile
 
 _EOF_
 
