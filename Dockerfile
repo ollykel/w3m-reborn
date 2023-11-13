@@ -12,6 +12,7 @@ RUN $PKG_MGR_INSTALL gcc
 RUN $PKG_MGR_INSTALL g++
 RUN $PKG_MGR_INSTALL libc-dev
 RUN $PKG_MGR_INSTALL libstdc++6
+RUN $PKG_MGR_INSTALL libncurses5
 RUN $PKG_MGR_INSTALL libncurses5-dev
 
 # Install script dependencies
