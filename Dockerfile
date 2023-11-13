@@ -1,8 +1,8 @@
-FROM alpine:3.18.4
+FROM debian:stable-20231030-slim
 
 # Set package manager
-ENV PKG_MGR=apk
-ENV PKG_MGR_INSTALL="$PKG_MGR add"
+ENV PKG_MGR=apt
+ENV PKG_MGR_INSTALL="$PKG_MGR install -y"
 
 RUN $PKG_MGR update && $PKG_MGR upgrade
 
@@ -11,9 +11,8 @@ RUN $PKG_MGR_INSTALL make
 RUN $PKG_MGR_INSTALL gcc
 RUN $PKG_MGR_INSTALL g++
 RUN $PKG_MGR_INSTALL libc-dev
-RUN $PKG_MGR_INSTALL libstdc++
-RUN $PKG_MGR_INSTALL ncurses ncurses-dev libncursesw libncurses++
-RUN $PKG_MGR_INSTALL libformw libmenuw libncurses++ libncursesw libpanelw ncurses-dev ncurses-doc ncurses-libs ncurses-static ncurses-terminfo ncurses-terminfo-base
+RUN $PKG_MGR_INSTALL libstdc++6
+RUN $PKG_MGR_INSTALL libncurses5-dev
 
 # Install script dependencies
 RUN $PKG_MGR_INSTALL bash
