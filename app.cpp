@@ -164,7 +164,14 @@ auto App::run(const Config& config)
     );
 
     // build mailcap file
-    parse_mailcap_env(m_mailcaps, getenv("MAILCAPS"));
+    {
+        const char  *mailcapFName   = getenv("MAILCAPS");
+
+        if (mailcapFName != NULL)
+        {
+            parse_mailcap_env(m_mailcaps, mailcapFName);
+        }
+    }
 
     // goto init url
     {
