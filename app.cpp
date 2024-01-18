@@ -55,24 +55,33 @@ App::App(Mailcap *mailcap)
 }// end App::App
 
 // --- public accessors ---------------------------------------------------
+
+// Returns whether the tabs container is empty
+//  return: true if at least one tab present, false otherwise
 auto App::empty(void) const
     -> bool
 {
     return m_tabs.empty();
 }// end App::empty
 
+// Returns number of tabs in tab container
+//  return: number of tabs in tab container
 auto App::num_tabs(void) const
     -> size_t
 {
     return m_tabs.size();
 }// end App::num_tabs
 
+// Returns currently selected/viewed tab
+//  return: const reference to currently selected/viewed tab
 auto App::curr_tab(void) const
     -> const Tab&
 {
     return *m_currTab;
 }// end App::curr_tab
 
+// Returns constant reference to container containing tabs
+//  return: const reference to container containing tabs
 auto App::tabs(void) const
     -> const tabs_container&
 {
@@ -80,11 +89,20 @@ auto App::tabs(void) const
 }// end App::tabs
 
 // --- public mutators ----------------------------------------------------
+
+// Sets pointer to mailcap handler:
+//  NOTE: does not make a copy of the mailcap handler; instead, stores pointer
+//  to parameter, which may be modified or deleted externally
+//
+//  param mailcap: new mailcap
 void App::set_mailcap(Mailcap *mailcap)
 {
     m_mailcap = mailcap;
 }// end App::set_mailcap
 
+// Begins the app's main runtime.
+//  param config: app's starting configuration
+//  return: integer corresponding to desired program exit code
 auto App::run(const Config& config)
     -> int
 {
@@ -512,18 +530,24 @@ auto App::run(const Config& config)
 }// end App::run
 
 // --- protected mutators -------------------------------------------------
+
+// return: mutable reference to currently selected/viewed tab
 auto App::curr_tab(void)
     -> Tab&
 {
     return *m_currTab;
 }// end App::curr_tab
 
+// return: mutable reference to currently selected/viewed page
 auto App::curr_page(void)
     -> Tab::Page&
 {
     return *m_currTab->curr_page();
 }// end App::curr_page
 
+// param scheme: string containing uri scheme (i.e. https, ftp)
+// return: mutable pointer to HttpFetcher for given uri (nullptr if no handler
+//  found for given uri scheme)
 auto App::get_uri_handler(const string& scheme) const
     -> HttpFetcher*
 {
@@ -535,6 +559,8 @@ auto App::get_uri_handler(const string& scheme) const
     return &(*m_uriHandlerMap.at(scheme));
 }// end App::get_uri_handler
 
+// Draws tab headers (titles of tabs, separated by characters) at top of
+// terminal screen
 void App::draw_tab_headers(void)
 {
     if (LINES < 2)
@@ -593,6 +619,9 @@ void App::draw_tab_headers(void)
     }
 }// end App::draw_tab_headers
 
+// redraws the complete terminal view
+//
+// param retouch: whether or not to redraw page view completely from scratch
 void App::redraw(bool retouch)
 {
     if (m_tabs.size() > 1)
@@ -615,6 +644,13 @@ void App::redraw(bool retouch)
     wrefresh(stdscr);
 }// end App::redraw
 
+// Updates app's state to go to a given url, given a container containing the
+// data fetched from or associated with the given url. Does not fetch the data
+// itself; that is the responsibility of the calling function.
+//
+// param targetUrl: url (in string form) to go to
+// param requestMethod: http method to use (GET/POST/PUT/DELETE/etc)
+// param input: input data
 void    App::goto_url(
     const Uri& targetUrl,
     const string& requestMethod,
@@ -836,6 +872,12 @@ finally:
     }
 }// end goto_url
 
+// Displays data given a certain mime-type. Behavior dependent on mailcap
+// handlers.
+//
+// param mimeType: string of mime-type associated with data (i.e. text/html,
+//  image/jpeg)
+// param data: container containing byte-level data to display
 void    App::handle_data(
     const string& mimeType,
     const std::vector<char>& data
@@ -903,6 +945,10 @@ void    App::handle_data(
     }
 }// end handle_data
 
+// Parses the contents of a named mailcap file into a given mailcap object.
+//
+// param mailcap: mailcap object to update; may or may not already contain data
+// param fname: name of mailcap file to parse
 void    App::parse_mailcap_file(Mailcap& mailcap, const string& fname)
 {
     using namespace std;
@@ -935,6 +981,11 @@ void    App::parse_mailcap_file(Mailcap& mailcap, const string& fname)
     inFile.close();
 }// end parse_mailcap_file
 
+// Parses the mailcap files named by a mailcap env string into a container of
+// mailcap objects. Earlier named files take precedence over later-named files.
+//
+// param mailcaps: container of mailcap objects to update
+// param env: string of colon-separated mailcap files.
 template <class CONT_T>
 void    App::parse_mailcap_env(CONT_T& mailcaps, const string& env)
 {
@@ -970,6 +1021,11 @@ void    App::parse_mailcap_env(CONT_T& mailcaps, const string& env)
     }// end while
 }// end parse_mailcap_env
 
+// Prompts a string input from the user for a given form input, setting the
+// form's value accordingly if a string is successfully read.
+//
+// param input: FormInput object to update
+// param viewer: page viewer through which to prompt user
 void    App::set_form_input(Document::FormInput& input, Viewer& viewer)
 {
     const string&   name        = input.name();
@@ -983,6 +1039,13 @@ void    App::set_form_input(Document::FormInput& input, Viewer& viewer)
     }
 }// end set_form_input
 
+// Updates view/app state accordingly given changes to a given FormInput's
+// value.
+//
+// param tab: currently selected/viewed tab
+// param cfg: appropriate app configuration
+// param mailcaps: container containing mailcap objects
+// param input: FormInput whose value has been updated
 template <class CONT_T>
 void    App::handle_form_input(
     Tab& tab,
@@ -1027,6 +1090,7 @@ void    App::handle_form_input(
             }
             break;
         case Document::FormInput::Type::checkbox:
+        // TODO: handle radio buttons correctly
         case Document::FormInput::Type::radio:
             {
                 input.set_is_active(not input.is_active());
