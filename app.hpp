@@ -55,6 +55,7 @@ class App
 
         // --- public mutators --------------------------------------------
         void set_mailcap(Mailcap *mailcap);
+        void redraw(bool retouch = false);
         auto run(const Config& config)
             -> int;
     protected:
@@ -97,7 +98,6 @@ class App
         auto get_uri_handler(const string& scheme) const
             -> HttpFetcher*;
         void draw_tab_headers(void);
-        void redraw(bool retouch = false);
 
         void    goto_url(
             const Uri& targetUrl,
