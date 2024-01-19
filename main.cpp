@@ -8,6 +8,7 @@
 #include <curses.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <signal.h>
 
 #include "deps.hpp"
 #include "uri.hpp"
@@ -37,6 +38,8 @@ struct  Config
 
 // === Function Prototypes ================================================
 int     runtime(const App::Config& cfg);
+
+void    handle_sigwinch(int sig);
 
 template <class CONT_T>
 void    goto_url(
@@ -77,6 +80,9 @@ void    submit_form(
     const HttpFetcher& fetcher,
     const Document::Form& form
 );
+
+// === Global Variables ========================================================
+App     *MAIN_APP;
 
 // === main ===============================================================
 //
@@ -221,8 +227,17 @@ int runtime(const App::Config& cfg)
 
     App     app;
 
+    MAIN_APP = &app;
+    signal(SIGWINCH, handle_sigwinch);
+
     return app.run(cfg);
 }// end runtime
+
+void    handle_sigwinch(int sig)
+{
+    MAIN_APP->redraw(true);
+    wrefresh(stdscr);
+}// end int handle_sigwinch(int sig)
 
 template <class CONT_T>
 void    goto_url(
