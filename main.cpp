@@ -41,6 +41,8 @@ int     runtime(const App::Config& cfg);
 
 void    handle_sigwinch(int sig);
 
+void    handle_signal_term(int sig);
+
 template <class CONT_T>
 void    goto_url(
     Tab& tab,
@@ -93,7 +95,6 @@ int main(const int argc, const char **argv, const char **envp)
 
     int             ret         = EXIT_FAILURE;
     int             wstatus;
-    pid_t           child;
     #define     CURL_COMMAND    \
     "curl " \
         "--include " \
@@ -182,6 +183,9 @@ int main(const int argc, const char **argv, const char **envp)
         }
     }
 
+    // set up signal handler(s)
+    signal(SIGINT, handle_signal_term);
+
     // initialize screen
     initscr();
     raw();
@@ -194,22 +198,8 @@ int main(const int argc, const char **argv, const char **envp)
     start_color();
     use_default_colors();
 
-    switch ((child = fork()))
-    {
-        case 0:
-            // we are child process
-            return runtime(config);
-        case -1:
-            // could not fork
-            cerr << "ERROR: could not spawn child process" << endl;
-            ret = EXIT_FAILURE;
-        default:
-            // we are parent
-            waitpid(child, &wstatus, 0x00);
-
-            ret = WEXITSTATUS(wstatus);
-    }// end switch
-
+    // main runtime
+    ret = runtime(config);
 finally:
     // reset screen
     use_default_colors();
@@ -238,6 +228,17 @@ void    handle_sigwinch(int sig)
     MAIN_APP->redraw(true);
     wrefresh(stdscr);
 }// end int handle_sigwinch(int sig)
+
+void    handle_signal_term(int sig)
+{
+    // reset screen
+    use_default_colors();
+    curs_set(1);
+    endwin();
+
+    // if we get here, we aren't exiting under normal circumstances
+    exit(EXIT_FAILURE);
+}// end handle_signal_term
 
 template <class CONT_T>
 void    goto_url(
