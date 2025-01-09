@@ -185,6 +185,63 @@ int main(const int argc, const char **argv, const char **envp)
 
     // set up signal handler(s)
     signal(SIGINT, handle_signal_term);
+    #ifdef SIGALRM
+    signal(SIGALRM, handle_signal_term);
+    #endif
+    #ifdef SIGEMT
+    signal(SIGEMT, handle_signal_term);
+    #endif
+    #ifdef SIGHUP
+    signal(SIGHUP, handle_signal_term);
+    #endif
+    #ifdef SIGINT
+    signal(SIGINT, handle_signal_term);
+    #endif
+    #ifdef SIGIO
+    signal(SIGIO, handle_signal_term);
+    #endif
+    #ifdef SIGLOST
+    signal(SIGLOST, handle_signal_term);
+    #endif
+    #ifdef SIGPIPE
+    signal(SIGPIPE, handle_signal_term);
+    #endif
+    #ifdef SIGPOLL
+    signal(SIGPOLL, handle_signal_term);
+    #endif
+    #ifdef SIGPROF
+    signal(SIGPROF, handle_signal_term);
+    #endif
+    #ifdef SIGPWR
+    signal(SIGPWR, handle_signal_term);
+    #endif
+    #ifdef SIGSTKFLT
+    signal(SIGSTKFLT, handle_signal_term);
+    #endif
+    #ifdef SIGTSTP
+    signal(SIGTSTP, handle_signal_term);
+    #endif
+    #ifdef SIGTERM
+    signal(SIGTERM, handle_signal_term);
+    #endif
+    #ifdef SIGTTIN
+    signal(SIGTTIN, handle_signal_term);
+    #endif
+    #ifdef SIGTTOU
+    signal(SIGTTOU, handle_signal_term);
+    #endif
+    #ifdef SIGUSR1
+    signal(SIGUSR1, handle_signal_term);
+    #endif
+    #ifdef SIGUSR2
+    signal(SIGUSR2, handle_signal_term);
+    #endif
+    #ifdef SIGVTALRM
+    signal(SIGVTALRM, handle_signal_term);
+    #endif
+    #ifdef SIGSEGV
+    signal(SIGSEGV, handle_signal_term);
+    #endif
 
     // initialize screen
     initscr();
@@ -238,8 +295,9 @@ void    handle_signal_term(int sig)
     curs_set(1);
     endwin();
 
-    // if we get here, we aren't exiting under normal circumstances
-    exit(EXIT_FAILURE);
+    // invoke default signal handler
+    signal(sig, SIG_DFL);
+    kill(static_cast<pid_t>(0x00), sig);
 }// end handle_signal_term
 
 template <class CONT_T>
