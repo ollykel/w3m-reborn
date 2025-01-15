@@ -283,9 +283,8 @@ int runtime(const App::Config& cfg)
 void    handle_sigwinch(int sig)
 {
     endwin();
-    refresh();
-    MAIN_APP->redraw(true);
     wrefresh(stdscr);
+    MAIN_APP->redraw(true);
 }// end int handle_sigwinch(int sig)
 
 void    handle_signal_term(int sig)
